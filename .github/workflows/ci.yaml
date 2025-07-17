@@ -1,0 +1,30 @@
+name : CI
+
+on :
+  push:
+    branches:
+      - develop
+      - 'feature/*'
+      - 'bugfix/*'
+  pull_request:
+    branches:
+      - develop
+      - 'feature/*'
+      - 'bugfix/*'
+
+jobs:
+  test-mobileApp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: action/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore & test mobile app
+        run: |
+          cd mobileApp
+          # dotnet restore
+          # dotnet test --no-build --verbosity normal

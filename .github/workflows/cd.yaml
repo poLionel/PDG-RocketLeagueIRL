@@ -1,0 +1,17 @@
+name: CD
+
+on: 
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      #1. Create realase on Github
+      #2. Build and push Docker image on server
+      #3. (needed ?) Upload firmware binary
+      #4. Raspberry deployement
