@@ -3,7 +3,7 @@
 ```arduino
 rocket-league-physique/
 ├── server/        # ???
-├── firmware/      # ???
+├── cars/          # ???
 ├── mobile/        # appli .NET MAUI
 ├── infra/         # docker-compose, scripts Ansible/Terraform
 └── docs/          # schémas, spécs, README, wiki…
