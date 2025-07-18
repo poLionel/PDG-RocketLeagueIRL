@@ -74,8 +74,5 @@ git push origin v.1.1.2
 
 # 5. Outils & environnements
     - Issue tracker : Github Issues + Project (kanban), templates, labels(bug, feature, etc)
-        - Questions : 
-            - Milestone comment ? sprint ou version
-            - Kanban ? un global et des par parties ou un seul et unique
     - Docs : dossier docs/
     - autres ? 
