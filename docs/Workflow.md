@@ -3,7 +3,7 @@
 ```arduino
 rocket-league-physique/
 ├── server/        # ???
-├── firmware/      # ???
+├── cars/          # ???
 ├── mobile/        # appli .NET MAUI
 ├── infra/         # docker-compose, scripts Ansible/Terraform
 └── docs/          # schémas, spécs, README, wiki…
@@ -42,7 +42,7 @@ hotfix/vX.Y.Z
 
 
 # 3. Tags Git & Releases
-- Format sémantique : vMaJEUR.MINOR.PATCH (ex. v1.0.0, v1.2.2)
+- Format sémantique : vMAJEUR.MINOR.PATCH (ex. v1.0.0, v1.2.2)
 - Création anotée :
 
 ```bash
@@ -52,12 +52,12 @@ git push origin v.1.1.2
 
 - Usage
     - Reste figé sur le commit de release
-    - Déclencheur CD (dans cd.yml)
+    - Déclencheur CD (dans cd.yaml)
 
 - Github Releases : associez notes de version et artefacts (Docker, firmware,...)
 
 # 4. Pipelines Github Actions
-## 1) .github/workflows/ci.yml
+## 1) .github/workflows/ci.yaml
     - Déchencheurs : push & pull_request sur develop, feature/*, bugfix/*
     - Jobs (parallèles) :
         - Test AppMobile (dotnet test)
@@ -65,17 +65,14 @@ git push origin v.1.1.2
         - Test Firmware
     - Objectif : feedback rapide, qualité du code
 
-## 2) .github/workflows/e2e.yml (todo : à voir si besoin)
+## 2) .github/workflows/e2e.yaml (todo : à voir si besoin)
 
-## 3) .github/workflows/cd.yml
+## 3) .github/workflows/cd.yaml
     - Déclencheur : push de tags v*.*.*
     - Job :
         - A voir mais build & push docker images, générer binaire, ...
 
 # 5. Outils & environnements
     - Issue tracker : Github Issues + Project (kanban), templates, labels(bug, feature, etc)
-        - Questions : 
-            - Milestone comment ? sprint ou version
-            - Kanban ? un global et des par parties ou un seul et unique
     - Docs : dossier docs/
     - autres ? 
