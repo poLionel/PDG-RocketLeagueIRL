@@ -79,9 +79,3 @@ git push origin v.1.1.2
             - Kanban ? un global et des par parties ou un seul et unique
     - Docs : dossier docs/
     - autres ? 
-
-
-# 6. Questions 
-    - template pour pull request et issue ? 
-    - Besoin d'un .pre-commit-config.yaml ? 
-    - Préférence fichier yaml ou yml ?
