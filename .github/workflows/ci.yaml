@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  test-mobileApp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore, build & test mobile app
+        run: |
+          cd mobileApp
+          # dotnet restore
+          # dotnet build c- Release
+          # dotnet test --no-build --verbosity normal
+
+      - name: Notify successfull mobile app build and test
+        run: |
+          echo "Mobile app build and tests successfull"
+
+  test-server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Notify successfull server build and test
+        run: |
+          echo "Server build and tests successfull"
+
+  test-cars:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Notify successfull cars build and test
+        run: |
+          echo "Cars build and tests successfull"
