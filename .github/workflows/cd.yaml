@@ -3,13 +3,25 @@ name: CD
 on: 
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
 
 jobs:
   publish-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          body: |
+            New releases automatically published
+            - Tag: ${{github.ref_name}}
+            - Commit: ${{github.sha}}
+        env: 
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       #1. Create realase on Github
       #2. Build and push Docker image on server
