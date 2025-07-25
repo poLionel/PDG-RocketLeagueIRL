@@ -41,8 +41,3 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
     
-
-      #1. Create realase on Github
-      #2. Build and push Docker image on server
-      #3. (needed ?) Upload firmware binary
-      #4. Raspberry deployement
