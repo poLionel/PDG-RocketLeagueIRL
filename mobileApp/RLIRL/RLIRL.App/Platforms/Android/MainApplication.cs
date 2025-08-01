@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace RocketLeagueIRLMobile
+namespace RLIRL.App
 {
     [Application]
     public class MainApplication : MauiApplication

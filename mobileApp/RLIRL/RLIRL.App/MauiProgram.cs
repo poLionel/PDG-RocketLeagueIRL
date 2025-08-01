@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace RocketLeagueIRLMobile
+namespace RLIRL.App
 {
     public static class MauiProgram
     {

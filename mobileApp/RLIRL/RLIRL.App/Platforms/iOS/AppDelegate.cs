@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace RocketLeagueIRLMobile
+namespace RLIRL.App
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

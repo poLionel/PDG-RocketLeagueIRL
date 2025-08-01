@@ -1,4 +1,4 @@
-﻿namespace RocketLeagueIRLMobile
+﻿namespace RLIRL.App
 {
     public partial class MainPage : ContentPage
     {

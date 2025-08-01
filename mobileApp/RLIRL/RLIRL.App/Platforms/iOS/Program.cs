@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace RocketLeagueIRLMobile
+namespace RLIRL.App
 {
     public class Program
     {

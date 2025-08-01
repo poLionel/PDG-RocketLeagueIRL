@@ -2,7 +2,7 @@ using System;
 using Microsoft.Maui;
 using Microsoft.Maui.Hosting;
 
-namespace RocketLeagueIRLMobile
+namespace RLIRL.App
 {
     internal class Program : MauiApplication
     {
