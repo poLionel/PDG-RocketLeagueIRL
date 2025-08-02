@@ -20,8 +20,8 @@ jobs:
       - name: Restore, build & test mobile app
         run: |
           cd mobileApp
-          dotnet restore
           dotnet workload restore
+          dotnet restore
           dotnet build -c Release
           dotnet test --no-build --verbosity normal
 
