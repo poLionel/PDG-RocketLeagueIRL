@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-mobileApp:
-    runs-on: macos-15-large
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -26,7 +26,7 @@ jobs:
         run: |
           cd mobileApp
           dotnet restore
-          dotnet build -c Release
+          dotnet build -c Release -f net9.0
           dotnet test --no-build --verbosity normal
 
       - name: Notify successfull mobile app build and test
