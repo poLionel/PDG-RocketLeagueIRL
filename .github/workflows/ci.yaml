@@ -15,14 +15,14 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x'
 
       - name: Restore, build & test mobile app
         run: |
           cd mobileApp
-          # dotnet restore
-          # dotnet build c- Release
-          # dotnet test --no-build --verbosity normal
+          dotnet restore
+          dotnet build -c Release
+          dotnet test --no-build --verbosity normal
 
       - name: Notify successfull mobile app build and test
         run: |
