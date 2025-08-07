@@ -1,4 +1,4 @@
-﻿namespace RLIRL.Services.Abstractions.Server
+﻿namespace RLIRL.Server.Abstractions.Server
 {
     public interface IClientCommandQueue
     {

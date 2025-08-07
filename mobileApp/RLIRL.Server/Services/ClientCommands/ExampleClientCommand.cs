@@ -1,6 +1,6 @@
-﻿using RLIRL.Services.Abstractions.Server;
+﻿using RLIRL.Server.Abstractions.Server;
 
-namespace RLIRL.Services.Services.Server.ClientCommands
+namespace RLIRL.Server.Services.Server.ClientCommands
 {
     [Serializable, CommandName("ExampleServerCommand")]
     public class ExampleClientCommand : IClientCommand

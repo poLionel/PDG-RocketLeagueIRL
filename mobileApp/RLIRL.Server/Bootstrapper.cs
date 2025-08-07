@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using RLIRL.Services.Abstractions.Server;
-using RLIRL.Services.Services.Server;
-using RLIRL.Services.Services.Server.CommandProcessors;
-using RLIRL.Services.Services.Server.ServerCommands;
+using RLIRL.Server.Abstractions.Server;
+using RLIRL.Server.Services.Server;
+using RLIRL.Server.Services.Server.CommandProcessors;
+using RLIRL.Server.Services.Server.ServerCommands;
 
-namespace RLIRL.Services
+namespace RLIRL.Server
 {
     public static class Bootstrapper
     {
-        public static IServiceCollection ConfigureServiceLayer(this IServiceCollection services)
+        public static IServiceCollection ConfigureServer(this IServiceCollection services)
         {
             services.AddSingleton<IClientCommandQueue, ClientCommandQueue>()
                 .AddSingleton<IServerCommandProcessor<ExampleServerCommand>, ExampleClientCommandProcessor>()

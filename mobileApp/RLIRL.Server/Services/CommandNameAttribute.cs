@@ -1,4 +1,4 @@
-﻿namespace RLIRL.Services.Services.Server
+﻿namespace RLIRL.Server.Services.Server
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     internal class CommandNameAttribute : Attribute

@@ -1,7 +1,7 @@
-﻿using RLIRL.Services.Abstractions.Server;
-using RLIRL.Services.Services.Server.ServerCommands;
+﻿using RLIRL.Server.Abstractions.Server;
+using RLIRL.Server.Services.Server.ServerCommands;
 
-namespace RLIRL.Services.Services.Server.CommandProcessors
+namespace RLIRL.Server.Services.Server.CommandProcessors
 {
     internal class ExampleClientCommandProcessor : IServerCommandProcessor<ExampleServerCommand>
     {

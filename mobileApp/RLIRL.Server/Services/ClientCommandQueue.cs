@@ -1,6 +1,6 @@
-﻿using RLIRL.Services.Abstractions.Server;
+﻿using RLIRL.Server.Abstractions.Server;
 
-namespace RLIRL.Services.Services.Server
+namespace RLIRL.Server.Services.Server
 {
     internal class ClientCommandQueue : IClientCommandQueue
     {
