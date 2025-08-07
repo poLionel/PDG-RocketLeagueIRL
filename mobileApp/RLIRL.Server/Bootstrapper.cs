@@ -13,7 +13,7 @@ namespace RLIRL.Server
             services.AddSingleton<IClientCommandQueue, ClientCommandQueue>()
                 .AddSingleton<IServerCommandProcessor<ExampleServerCommand>, ExampleClientCommandProcessor>()
                 .AddHostedService<ServerListener>()
-                .AddHostedService<ServerListener>();
+                .AddHostedService<ServerSender>();
 
             return services;
         }
