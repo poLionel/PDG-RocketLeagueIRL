@@ -15,7 +15,6 @@ namespace RLIRL.Business.Abstractions
         /// <summary>
         /// Event triggered when the game data is updated
         /// </summary>
-
         event EventHandler<GameData>? GameDataUpdated;
     }
 }
