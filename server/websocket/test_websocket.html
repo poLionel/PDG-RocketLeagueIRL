@@ -2,39 +2,156 @@
 <html>
 <head>
     <title>WebSocket Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+        .car-controls {
+            margin-bottom: 15px;
+        }
+        .button-group {
+            margin: 10px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 12px;
+        }
+        select, input {
+            margin: 5px;
+            padding: 5px;
+        }
+        #output {
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+        }
+    </style>
 </head>
 <body>
     <h1>WebSocket Test Client</h1>
+    
+    <div class="controls">
+        <div class="car-controls">
+            <label for="carSelect">Select Car:</label>
+            <select id="carSelect">
+                <option value="1">Car 1 (Lightning McQueen)</option>
+                <option value="2">Car 2 (Speed Racer)</option>
+                <option value="3">Car 3 (Knight Rider)</option>
+            </select>
+            
+            <label for="moveSelect">Move:</label>
+            <select id="moveSelect">
+                <option value="stopped">Stopped</option>
+                <option value="forward">Forward</option>
+                <option value="backward">Backward</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+            </select>
+            
+            <label for="boostCheck">Boost:</label>
+            <input type="checkbox" id="boostCheck">
+        </div>
+        
+        <div class="button-group">
+            <button onclick="sendMoveCommand()">Send Move Command</button>
+            <button onclick="getSelectedCarStatus()">Get Car Status</button>
+        </div>
+        
+        <div class="button-group">
+            <button onclick="getAllCarsStatus()">Get All Cars Status</button>
+            <button onclick="clearOutput()">Clear Output</button>
+        </div>
+        
+        <div class="button-group">
+            <button onclick="testUnknownAction()">Test Unknown Action</button>
+            <button onclick="testInvalidJSON()">Test Invalid JSON</button>
+        </div>
+    </div>
+    
     <div id="output"></div>
-    <button onclick="testMovecar()">Test Move Car</button>
-    <button onclick="testUnknownAction()">Test Unknown Action</button>
-    <button onclick="testInvalidJSON()">Test Invalid JSON</button>
 
     <script>
         const ws = new WebSocket('ws://localhost:8000');
         const output = document.getElementById('output');
 
         ws.onopen = function(event) {
-            output.innerHTML += '<p>Connected to WebSocket server!</p>';
+            addToOutput('Connected to WebSocket server!', 'success');
         };
 
         ws.onmessage = function(event) {
-            output.innerHTML += `<p>Received: ${event.data}</p>`;
+            try {
+                const data = JSON.parse(event.data);
+                addToOutput(`Received: ${JSON.stringify(data, null, 2)}`, 'received');
+            } catch (e) {
+                addToOutput(`Received: ${event.data}`, 'received');
+            }
         };
 
         ws.onerror = function(error) {
-            output.innerHTML += `<p>Error: ${error}</p>`;
+            addToOutput(`Error: ${error}`, 'error');
         };
 
-        function testMovecar() {
+        ws.onclose = function(event) {
+            addToOutput('Connection closed', 'error');
+        };
+
+        function addToOutput(message, type = 'normal') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'green' : 
+                         type === 'error' ? 'red' : 
+                         type === 'received' ? 'blue' : 'black';
+            output.innerHTML += `<p style="color: ${color}; margin: 5px 0;">[${timestamp}] ${message}</p>`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function sendMoveCommand() {
+            const carId = parseInt(document.getElementById('carSelect').value);
+            const move = document.getElementById('moveSelect').value;
+            const boost = document.getElementById('boostCheck').checked;
+            
             const message = {
                 action: "move_car",
-                car: "1",
-                move: "forward",
-                boost: "true"
+                car: carId,
+                move: move,
+                boost: boost.toString()
             };
+            
             ws.send(JSON.stringify(message));
-            output.innerHTML += `<p>Sent: ${JSON.stringify(message)}</p>`;
+            addToOutput(`Sent: ${JSON.stringify(message)}`, 'sent');
+        }
+
+        function getSelectedCarStatus() {
+            const carId = parseInt(document.getElementById('carSelect').value);
+            
+            const message = {
+                action: "get_car_status",
+                car: carId
+            };
+            
+            ws.send(JSON.stringify(message));
+            addToOutput(`Sent: ${JSON.stringify(message)}`, 'sent');
+        }
+
+        function getAllCarsStatus() {
+            // Get status for cars 1, 2, and 3
+            for (let carId = 1; carId <= 3; carId++) {
+                const message = {
+                    action: "get_car_status",
+                    car: carId
+                };
+                
+                ws.send(JSON.stringify(message));
+                addToOutput(`Sent: ${JSON.stringify(message)}`, 'sent');
+            }
         }
 
         function testUnknownAction() {
@@ -43,12 +160,25 @@
                 data: "test"
             };
             ws.send(JSON.stringify(message));
-            output.innerHTML += `<p>Sent: ${JSON.stringify(message)}</p>`;
+            addToOutput(`Sent: ${JSON.stringify(message)}`, 'sent');
         }
 
         function testInvalidJSON() {
             ws.send("{invalid json}");
-            output.innerHTML += `<p>Sent invalid JSON: {invalid json}</p>`;
+            addToOutput(`Sent invalid JSON: {invalid json}`, 'sent');
+        }
+
+        function clearOutput() {
+            output.innerHTML = '';
+        }
+
+        // Legacy functions for backward compatibility
+        function testMovecar() {
+            sendMoveCommand();
+        }
+
+        function testGetCarStatus() {
+            getSelectedCarStatus();
         }
     </script>
 </body>
