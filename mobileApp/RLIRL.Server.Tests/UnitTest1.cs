@@ -1,4 +1,4 @@
-﻿namespace RLIRL.Services.Tests
+﻿namespace RLIRL.Server.Tests
 {
     public class UnitTest1
     {
