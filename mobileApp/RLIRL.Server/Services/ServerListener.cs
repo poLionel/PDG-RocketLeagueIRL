@@ -1,8 +1,8 @@
-﻿using RLIRL.Server.Abstractions.Server;
+﻿using Microsoft.Extensions.Hosting;
 
 namespace RLIRL.Server.Services.Server
 {
-    internal class ServerListener : IServerListener
+    internal class ServerListener : IHostedService
     {
         public Task StartAsync(CancellationToken cancellationToken)
         {
