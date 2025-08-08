@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Test Client</h1>
+    <div id="output"></div>
+    <button onclick="testMovecar()">Test Move Car</button>
+    <button onclick="testUnknownAction()">Test Unknown Action</button>
+    <button onclick="testInvalidJSON()">Test Invalid JSON</button>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8000');
+        const output = document.getElementById('output');
+
+        ws.onopen = function(event) {
+            output.innerHTML += '<p>Connected to WebSocket server!</p>';
+        };
+
+        ws.onmessage = function(event) {
+            output.innerHTML += `<p>Received: ${event.data}</p>`;
+        };
+
+        ws.onerror = function(error) {
+            output.innerHTML += `<p>Error: ${error}</p>`;
+        };
+
+        function testMovecar() {
+            const message = {
+                action: "move_car",
+                car: "1",
+                move: "forward",
+                boost: "true"
+            };
+            ws.send(JSON.stringify(message));
+            output.innerHTML += `<p>Sent: ${JSON.stringify(message)}</p>`;
+        }
+
+        function testUnknownAction() {
+            const message = {
+                action: "unknown_action",
+                data: "test"
+            };
+            ws.send(JSON.stringify(message));
+            output.innerHTML += `<p>Sent: ${JSON.stringify(message)}</p>`;
+        }
+
+        function testInvalidJSON() {
+            ws.send("{invalid json}");
+            output.innerHTML += `<p>Sent invalid JSON: {invalid json}</p>`;
+        }
+    </script>
+</body>
+</html>
