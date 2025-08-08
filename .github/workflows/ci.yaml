@@ -8,21 +8,29 @@ on:
 
 jobs:
   test-mobileApp:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v3
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x'
 
-      - name: Restore, build & test mobile app
+      - name: Select Xcode 16.4
+        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+
+      - name: Restore solution workloads
         run: |
           cd mobileApp
-          # dotnet restore
-          # dotnet build c- Release
-          # dotnet test --no-build --verbosity normal
+          dotnet workload restore
+
+      - name: Build & test mobile app
+        run: |
+          cd mobileApp
+          dotnet restore
+          dotnet build -c Debug
+          dotnet test --no-build --verbosity normal
 
       - name: Notify successfull mobile app build and test
         run: |
