@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using RLIRL.Business;
 
 namespace RLIRL.App
 {
@@ -18,6 +19,8 @@ namespace RLIRL.App
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+
+            builder.Services.ConfigureBusiness();
 
             return builder.Build();
         }

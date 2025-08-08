@@ -65,7 +65,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\RLIRL.Services\RLIRL.Services.csproj" />
+	  <ProjectReference Include="..\RLIRL.Business\RLIRL.Business.csproj" />
 	</ItemGroup>
 
 </Project>
