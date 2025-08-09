@@ -1,0 +1,9 @@
+﻿namespace RLIRL.Server
+{
+    public class ServerConfiguration
+    {
+        public string? Host { get; set; }
+        public short Port { get; set; }
+        public bool IsHostGateway { get; set; }
+    }
+}
