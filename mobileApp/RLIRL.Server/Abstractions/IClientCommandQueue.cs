@@ -16,5 +16,15 @@
         /// </summary>
         /// <returns>Command to process, or null if no commands are available</returns>
         IClientCommand? DequeueCommand();
+
+        /// <summary>
+        /// Notifies when a command is enqueued
+        /// </summary>
+        event EventHandler<IClientCommand>? CommandEnqueued;
+
+        /// <summary>
+        /// Notifies when a command is dequeued
+        /// </summary>
+        event EventHandler<IClientCommand>? CommandDequeued;
     }
 }

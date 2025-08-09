@@ -1,11 +1,10 @@
-﻿using System.Runtime.Serialization;
-
-namespace RLIRL.Server.Abstractions.Server
+﻿namespace RLIRL.Server.Abstractions.Server
 {
     /// <summary>
-    /// Marker interface for client commands sent to the server
+    /// Represents a command sent by the client to the server
     /// </summary>
     public interface IClientCommand
     {
+        public string Action { get; set; }
     }
 }

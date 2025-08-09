@@ -2,7 +2,7 @@
 
 namespace RLIRL.Server.Services.Server
 {
-    internal class ServerListener : IHostedService
+    internal class ServerCommandListener : IHostedService
     {
         public Task StartAsync(CancellationToken cancellationToken)
         {

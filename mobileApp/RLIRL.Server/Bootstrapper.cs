@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RLIRL.Server.Abstractions;
 using RLIRL.Server.Abstractions.Server;
+using RLIRL.Server.Services;
 using RLIRL.Server.Services.Server;
 using RLIRL.Server.Services.Server.CommandProcessors;
 using RLIRL.Server.Services.Server.ServerCommands;
@@ -15,8 +17,9 @@ namespace RLIRL.Server
 
             services.AddSingleton<IClientCommandQueue, ClientCommandQueue>()
                 .AddSingleton<IServerCommandProcessor<ExampleServerCommand>, ExampleClientCommandProcessor>()
-                .AddHostedService<ServerListener>()
-                .AddHostedService<ServerSender>();
+                .AddSingleton<IWebSocketProvider, WebSocketProvider>()
+                .AddHostedService<ServerCommandListener>()
+                .AddHostedService<ServerCommandSender>();
 
             return services;
         }
