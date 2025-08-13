@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  rocket-league-server:
+    build: .
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    container_name: rocket-league-server
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - rocket-league-network
+
+networks:
+  rocket-league-network:
+    driver: bridge
