@@ -2,9 +2,18 @@
 WebSocket message handlers for the Rocket League IRL server.
 """
 
+# Try to import Bluetooth handlers, but don't fail if they're not available
+try:
+    from bluetooth.handlers import BLUETOOTH_HANDLERS
+    BLUETOOTH_AVAILABLE = True
+except ImportError:
+    BLUETOOTH_HANDLERS = {}
+    BLUETOOTH_AVAILABLE = False
+
 __all__ = [
     'handle_move_car',
     'handle_get_car_status',
+    'handle_get_all_cars',
     'handle_unknown_action', 
     'handle_invalid_json',
     'ACTION_HANDLERS'
@@ -80,6 +89,24 @@ def handle_get_car_status(data, car_manager=None):
         }
     }
 
+def handle_get_all_cars(data, car_manager=None):
+    """Handle get all cars requests."""
+    print("Getting all cars status")
+    
+    if car_manager:
+        cars = car_manager.get_all_cars()
+        cars_status = [car.get_status() for car in cars]
+        return {
+            "status": "success",
+            "cars": cars_status,
+            "count": len(cars_status)
+        }
+    
+    return {
+        "status": "error",
+        "message": "Car manager not available"
+    }
+
 def handle_unknown_action(data):
     """Handle unknown action commands."""
     return {
@@ -98,4 +125,5 @@ def handle_invalid_json():
 ACTION_HANDLERS = {
     "move_car": handle_move_car,
     "get_car_status": handle_get_car_status,
+    "get_all_cars": handle_get_all_cars,
 }

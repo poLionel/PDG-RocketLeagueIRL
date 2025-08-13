@@ -57,10 +57,12 @@ async def start_server_async(port=8000):
 def start_server(port=8000):
     asyncio.run(start_server_async(port))
 
-def start_server_with_cars(manager, port=8000):
-    """Start the WebSocket server with a car manager."""
+async def start_server_with_cars(manager, port=8000):
+    """Start the WebSocket server with a car manager (async version)."""
     set_car_manager(manager)
-    start_server(port)
+    print(f"Serveur WebSocket en écoute sur le port {port}...")
+    async with websockets.serve(handle_message, "0.0.0.0", port):
+        await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":
     start_server()
