@@ -32,25 +32,28 @@ namespace RLIRL.Server.Services.Server
 
         private async Task ProcessCommandsAsync(CancellationToken cancellationToken)
         {
-            // Fetch the WebSocket client and start sending commands
-            using var webSocketClient = await webSocketProvider.GetWebSocketClientAsync(cancellationToken);
+            using var webSocket = await webSocketProvider.GetWebSocketClientAsync(cancellationToken);
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                // Fetch the next command from the queue or exit if none are available
-                var item = clientCommandQueue.DequeueCommand();
-                if (item == null) continue;
-
-                // Prepare the JSON payload
-                var jsonPayload = JsonSerializer.Serialize(item);
-                var data = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
-
                 try
                 {
+                    // Fetch the next command from the queue or exit if none are available
+                    var item = clientCommandQueue.DequeueCommand();
+                    if (item == null) continue;
+
+                    // Prepare the JSON payload
+                    var jsonPayload = JsonSerializer.Serialize(item);
+                    var data = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
+
                     // Send the command to the WebSocket server
-                    await webSocketClient.SendAsync(data, WebSocketMessageType.Text, true, cancellationToken);
+                    await webSocket.SendAsync(data, WebSocketMessageType.Text, true, cancellationToken);
                 }
-                catch(Exception ex)
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
                 {
                     logger.LogError(ex, "Failed to send command to WebSocket server");
                 }
