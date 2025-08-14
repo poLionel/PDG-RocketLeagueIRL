@@ -1,41 +1,67 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using RLIRL.Server.Abstractions;
+using RLIRL.Server.Abstractions.Server;
+using System.Data;
 using System.Net.WebSockets;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace RLIRL.Server.Services.Server
 {
-    internal class ServerCommandListener(IWebSocketProvider webSocketProvider, IOptions<ServerConfiguration> serverConfiguration) : IHostedService
+    internal class ServerCommandListener(IWebSocketProvider webSocketProvider, IOptions<ServerConfiguration> serverConfiguration, IServiceProvider serviceProvider) : IHostedService
     {
         private Task runningTask = Task.CompletedTask;
 
         private CancellationTokenSource? sharedTokenSource;
 
+        private readonly Lock serviceLock = new();
+
+        private readonly IDictionary<string, Type> commandTypes = GetCommandTypes();
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            sharedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-            // Start the command processing task if it is not already running
-            if (runningTask.IsCompleted)
-                runningTask = ProcessCommandsAsync(cancellationToken);
+            lock (serviceLock)
+            {
+                // Start the command processing task if it is not already running
+                if (runningTask.IsCompleted)
+                {
+                    sharedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    runningTask = ProcessCommandsAsync(cancellationToken);
+                }
+            }
 
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            sharedTokenSource?.Cancel();
-            return runningTask;
+            lock (serviceLock)
+            {
+                sharedTokenSource?.Cancel();
+                return runningTask;
+            }
         }
 
         private async Task ProcessCommandsAsync(CancellationToken cancellationToken)
         {
-            using var webSocket = await webSocketProvider.GetWebSocketClientAsync(cancellationToken);
-
             // Allocate the buffer for receiving messages
             var buffer = new byte[serverConfiguration.Value.MaxPacketSize];
 
+            // Pool web socket clients to handle incoming commands so if one fails, it will retry with a new one
             while (!cancellationToken.IsCancellationRequested)
+            {
+                using var webSocket = await webSocketProvider.GetWebSocketClientAsync(cancellationToken);
+                await ProcessCommandsAsync(webSocket, buffer, cancellationToken);
+            }
+        }
+
+        private async Task ProcessCommandsAsync(ClientWebSocket webSocket, byte[] buffer, CancellationToken cancellationToken)
+        {
+            // Ensure the WebSocket is connected before processing commands
+            while (webSocket.State == WebSocketState.Open)
             {
                 try
                 {
@@ -51,8 +77,24 @@ namespace RLIRL.Server.Services.Server
                         break;
                     }
 
-                    // Parse the received command
+                    // Retrieve the message and its command action
                     var message = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    var commandAction = JsonNode.Parse(message)?["action"]?.GetValue<string>();
+                    if(string.IsNullOrEmpty(commandAction)) throw new InvalidOperationException("Received command with no action type");
+                    if(!commandTypes.TryGetValue(commandAction, out var commandType))
+                        throw new InvalidOperationException($"No command type found for action '{commandAction}'");
+
+                    // Deserialize the command message into the appropriate command object
+                    var command = JsonSerializer.Deserialize(message, commandType)
+                        ?? throw new InvalidOperationException($"Failed to deserialize command of type '{commandType.Name}'");
+
+                    // Get the command processor from the service provider
+                    var commandHandlerType = typeof(IServerCommandProcessor<>).MakeGenericType(commandType);
+                    var commandHandler = serviceProvider.GetService(commandType) as IServerCommandProcessor
+                        ?? throw new InvalidOperationException($"No command handler found for command type '{commandType.Name}'");
+
+                    // Process the command using the command handler
+                    await commandHandler.ProcessCommandAsync(command);
                 }
                 catch (OperationCanceledException)
                 {
@@ -64,6 +106,20 @@ namespace RLIRL.Server.Services.Server
                     Console.WriteLine($"Error processing command: {ex.Message}");
                 }
             }
+        }
+
+        private static IDictionary<string, Type> GetCommandTypes()
+        {
+            // Retrieve all types that implement the IClientCommand interface
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .Where(type => 
+                    type.IsClass &&
+                    !type.IsAbstract &&
+                    type.GetInterface(nameof(IServerCommand)) != null &&
+                    type.GetCustomAttribute<CommandNameAttribute>() != null
+                )
+                .ToDictionary(type => type.GetCustomAttribute<CommandNameAttribute>()!.Name, type => type);
         }
     }
 }

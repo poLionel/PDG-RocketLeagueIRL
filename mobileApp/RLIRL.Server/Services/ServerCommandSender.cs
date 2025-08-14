@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RLIRL.Server.Abstractions;
 using RLIRL.Server.Abstractions.Server;
 using System.Net.WebSockets;
+using System.Reflection;
 using System.Text.Json;
 
 namespace RLIRL.Server.Services.Server
@@ -13,21 +14,30 @@ namespace RLIRL.Server.Services.Server
 
         private CancellationTokenSource? sharedTokenSource;
 
+        private readonly Lock serviceLock = new();
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            sharedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-
-            // Start the command processing task if it is not already running
-            if (runningTask.IsCompleted)
-                runningTask = ProcessCommandsAsync(cancellationToken);
+            lock(serviceLock)
+            {
+                // Start the command processing task if it is not already running
+                if (runningTask.IsCompleted)
+                {
+                    sharedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    runningTask = ProcessCommandsAsync(cancellationToken);
+                }
+            }
 
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            sharedTokenSource?.Cancel();
-            return runningTask;
+            lock (serviceLock)
+            {
+                sharedTokenSource?.Cancel();
+                return runningTask;
+            }
         }
 
         private async Task ProcessCommandsAsync(CancellationToken cancellationToken)
