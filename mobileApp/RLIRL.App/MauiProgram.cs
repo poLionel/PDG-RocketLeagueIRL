@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RLIRL.Business;
+using RLIRL.Server;
 
 namespace RLIRL.App
 {
@@ -31,6 +32,7 @@ namespace RLIRL.App
 #endif
 
             builder.Services.RegisterBusiness(builder.Configuration);
+            builder.Services.RegisterServer(builder.Configuration);
 
             return builder.Build();
         }

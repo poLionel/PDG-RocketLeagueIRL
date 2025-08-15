@@ -16,5 +16,11 @@ namespace RLIRL.Business.Abstractions
         /// Event triggered when the game status changes
         /// </summary>
         event EventHandler<GameStatus?>? GameStatusChanged;
+
+        /// <summary>
+        /// Updates the game status
+        /// </summary>
+        /// <param name="status">Status to set</param>
+        void UpdateGameStatus(GameStatus? status);
     }
 }
