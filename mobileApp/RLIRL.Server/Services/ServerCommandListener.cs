@@ -64,7 +64,7 @@ namespace RLIRL.Server.Services.Server
             while (webSocket.State == WebSocketState.Open)
             {
                 try
-                {
+                { 
                     // Clear the buffer before receiving a new message
                     Array.Clear(buffer, 0, buffer.Length);
 
