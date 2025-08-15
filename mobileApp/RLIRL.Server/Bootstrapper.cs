@@ -4,8 +4,8 @@ using RLIRL.Server.Abstractions;
 using RLIRL.Server.Abstractions.Server;
 using RLIRL.Server.Services;
 using RLIRL.Server.Services.Server;
-using RLIRL.Server.Services.Server.CommandProcessors;
-using RLIRL.Server.Services.Server.ServerCommands;
+using RLIRL.Server.Services.ServerCommands;
+using RLIRL.Server.Services.ServerCommandsProcessors;
 
 namespace RLIRL.Server
 {
@@ -16,7 +16,7 @@ namespace RLIRL.Server
             services.Configure<ServerConfiguration>(configuration.GetSection(nameof(ServerConfiguration)));
 
             services.AddSingleton<IClientCommandQueue, ClientCommandQueue>()
-                .AddSingleton<IServerCommandProcessor<ExampleServerCommand>, ExampleClientCommandProcessor>()
+                .AddSingleton<IServerCommandProcessor<GameStatusServerCommand>, GameStatusCommandProcessor>()
                 .AddSingleton<IWebSocketProvider, WebSocketProvider>()
                 .AddHostedService<ServerCommandListener>()
                 .AddHostedService<ServerCommandSender>();

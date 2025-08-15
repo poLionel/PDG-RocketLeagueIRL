@@ -71,5 +71,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\RLIRL.Business\RLIRL.Business.csproj" />
+	  <ProjectReference Include="..\RLIRL.Server\RLIRL.Server.csproj" />
 	</ItemGroup>
 </Project>

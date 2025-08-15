@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using RLIRL.Business.Abstractions;
 using RLIRL.Business.Services;
-using RLIRL.Server;
 
 namespace RLIRL.Business
 {
@@ -11,8 +10,6 @@ namespace RLIRL.Business
         public static IServiceCollection RegisterBusiness(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton<IGameService, GameService>();
-
-            services.RegisterServer(configuration);
 
             return services;
         }

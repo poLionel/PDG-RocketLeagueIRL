@@ -3,18 +3,18 @@
 namespace RLIRL.Business.Abstractions
 {
     /// <summary>
-    /// Interface for managing game data and state
+    /// Interface for managing game status
     /// </summary>
     public interface IGameService
     {
         /// <summary>
-        /// Gets the current game data
+        /// Gets the current game status
         /// </summary>
-        GameData? CurrentGameData { get; }
+        GameStatus? CurrentGameStatus { get; }
 
         /// <summary>
-        /// Event triggered when the game data is updated
+        /// Event triggered when the game status changes
         /// </summary>
-        event EventHandler<GameData>? GameDataUpdated;
+        event EventHandler<GameStatus?>? GameStatusChanged;
     }
 }

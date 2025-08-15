@@ -8,7 +8,5 @@ namespace RLIRL.Business.Services
         public GameStatus? CurrentGameStatus { get; private set; }
 
         public event EventHandler<GameStatus?>? GameStatusChanged;
-
-        private Lock statusLock = new();
     }
 }
