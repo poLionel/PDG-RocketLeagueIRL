@@ -13,7 +13,7 @@
 //----------------------------------------------------------------------------------
 //- VARIABLES GLOBALES
 // Configurations
-static const char* prefix_of_name          = "RL-CAR-";
+static const char* ble_prefix_of_name          = "RL-CAR-";
 // UUIDs du service et des caractéristiques
 static const NimBLEUUID SERVICE_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f0");
 static const NimBLEUUID CHAR_SSID_UUID     ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f1");
@@ -30,12 +30,14 @@ class ble_provisioner {
 public:
     ble_provisioner();
 
-    void                init();     // crée serveur/service/caractéristiques (mais ne lance pas l’advertising)
+    void                init(const char* device_id = nullptr);
     void                start();    // démarre service + advertising
     void                stop();     // stop advertising (+ stop service)
 
     String              get_ssid() const { return ssid_; }
     String              get_pass() const { return pass_; }
+    String              get_status() const { return status_; }
+    String              get_device_id() const { return device_id_; }
     bool                is_connected() const { return is_connected_; }
 
 private:
@@ -45,7 +47,11 @@ private:
 
     String              ssid_;
     String              pass_;
+    String              status_;
+    String              device_id_;
     bool                is_connected_   = false;
+
+    void                set_status(const char* value, bool notify);
 };
 
 #endif // BLE_PROVISIONER_H

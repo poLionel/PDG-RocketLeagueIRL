@@ -59,11 +59,12 @@ ble_provisioner::ble_provisioner() : ssid_(""), pass_("") {
 
 //----------------------------------------------------------------------------------
 //- MÉTHODES MEMBRES
-void ble_provisioner::init(){
+void ble_provisioner::init(const char* device_id) {
     // Nom dynamique basé sur l’adresse MAC
-    NimBLEDevice::init(prefix_of_name); // init d'abord
-    String name = String(prefix_of_name) + NimBLEDevice::getAddress().toString().c_str();
-    NimBLEDevice::setDeviceName(name.c_str());   // met vraiment le nom d’advertising
+    NimBLEDevice::init(ble_prefix_of_name); // init d'abord
+    if (!device_id || !*device_id) device_id_ = String(ble_prefix_of_name) + NimBLEDevice::getAddress().toString().c_str();
+    else device_id_ = device_id;
+    NimBLEDevice::setDeviceName(device_id_.c_str());   // met vraiment le nom d’advertising
     NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_DEFAULT);
 
     // Création du servuer et service
@@ -75,7 +76,7 @@ void ble_provisioner::init(){
     // Device ID
     NimBLECharacteristic* ch_dev_id = service_->createCharacteristic(
         CHAR_DEVID_UUID, NIMBLE_PROPERTY::READ);
-    ch_dev_id->setValue(name.c_str());
+    ch_dev_id->setValue(device_id_.c_str());
     // Status
     NimBLECharacteristic* ch_status = service_->createCharacteristic(
         CHAR_STATUS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
