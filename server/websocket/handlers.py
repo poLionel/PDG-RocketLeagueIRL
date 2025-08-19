@@ -34,17 +34,20 @@ def handle_move_car(data, car_manager=None):
             
             return {
                 "status": "success",
+                "action": "move_car",
                 "message": f"Car {car_id} command received and executed",
                 "car_status": car.get_status()
             }
         else:
             return {
                 "status": "error",
+                "action": "move_car",
                 "message": f"Car {car_id} not found"
             }
     
     return {
         "status": "success",
+        "action": "move_car",
         "message": f"Car {car_id} command received"
     }
 
@@ -60,39 +63,30 @@ def handle_get_car_status(data, car_manager=None):
         if car:
             return {
                 "status": "success",
+                "action": "get_car_status",
                 "car_status": car.get_status()
-            }
-        else:
-            return {
-                "status": "error",
-                "message": f"Car {car_id} not found"
-            }
+            }            
     
-    # Fallback to mock data if no car manager
+    # If car manager is not available, return an error response
     return {
-        "status": "success",
-        "car_status": {
-            "car": car_id,
-            "battery_level": 85,
-            "move": "forward",
-            "boost": "false",
-            "boost_value": 100
-        }
+        "status": "error",
+        "action": "get_car_status",
+        "message": f"Car {car_id} not found"
     }
 
 def handle_unknown_action(data):
     """Handle unknown action commands."""
-    return {
+    response = {
         "status": "error",
         "message": "Unknown action"
     }
+    
+    # Include the action if it was provided
+    if isinstance(data, dict) and "action" in data:
+        response["action"] = data["action"]
+    
+    return response
 
-def handle_invalid_json():
-    """Handle invalid JSON format errors."""
-    return {
-        "status": "error",
-        "message": "Invalid JSON format"
-    }
 
 # Action dispatch dictionary
 ACTION_HANDLERS = {
