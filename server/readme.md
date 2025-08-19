@@ -2,6 +2,7 @@
 
 - [v0.2](#v02)
   - [App communication](#app-communication)
+    - [Return data from the server](#return-data-from-the-server)
   - [Car communication](#car-communication)
     - [Bluetooth](#bluetooth)
 - [v0.3](#v03)
@@ -27,6 +28,15 @@ Use JSONs to send data.
   "car": 1,
   "move": "forward",
   "boost": "false"
+}
+```
+
+### Return data from the server
+
+```
+{
+  "status": "success",
+  "action": "move_car"
 }
 ```
 
@@ -61,6 +71,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_free_cars",
   "free_cars": [0, 1, 2, 3]
 }
 ```
@@ -82,7 +93,8 @@ Server responds:
 
 ```
 {
-  "status": "success"
+  "status": "success",
+  "action": "move_car"
 }
 ```
 
@@ -102,6 +114,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_car_status",
   "car_status": {
     "car": 1,
     "battery_level": 85,
@@ -127,6 +140,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_accessible_car_feeds",
   "accessible_feeds": [0, 1, 2, 3]
 }
 ```
@@ -160,6 +174,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "goal_scored",
   "message": "Goal scored by red team!"
 }
 ```
@@ -179,6 +194,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_game_status",
   "game_status": {
     "teams": {
       "red": {
@@ -210,6 +226,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "start_game",
   "message": "Game started!"
 }
 ```
@@ -240,7 +257,8 @@ Server responds:
 
 ```
 {
-  "status": "success"
+  "status": "success",
+  "action": "send_video_feed"
 }
 ```
 
