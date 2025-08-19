@@ -1,348 +1,365 @@
 """
-Bluetooth service for automatic device discovery and pairing.
-Handles finding and connecting to cars (and test devices like headsets).
+Bluetooth Low Energy (BLE) service for PDG-RocketLeagueIRL car detection and communication.
 """
 
 import asyncio
-import bluetooth
-import subprocess
-import sys
 import logging
-import time
-import os
 from typing import Dict, List, Optional, Callable
+from bleak import BleakScanner, BleakClient
+from bleak.backends.device import BLEDevice
 
-# Add parent directory to path for imports when run directly
-if __name__ == "__main__":
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(current_dir)
-    sys.path.insert(0, parent_dir)
+# BLE Service and Characteristic UUIDs for PDG cars
+SERVICE_UUID = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f0"
+CHAR_DEVID = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f9"
+CHAR_STATUS = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f4"
+CHAR_SSID = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f1"
+CHAR_PASS = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f2"
+CHAR_APPLY = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f3"
 
-try:
-    from models import Car, CarManager
-except ImportError:
-    # Try relative import if absolute import fails
-    from ..models import Car, CarManager
+# Car device name pattern
+CAR_DEVICE_PREFIX = "pdg-car"
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class BluetoothDevice:
-    """Represents a discovered Bluetooth device."""
-    
-    def __init__(self, address: str, name: str = None):
-        self.address = address
-        self.name = name or "Unknown Device"
-        self.paired = False
-        self.connected = False
-        self.last_seen = time.time()
-    
-    def __str__(self):
-        return f"BluetoothDevice({self.address}, {self.name}, paired={self.paired})"
 
-class BluetoothService:
-    """Service for managing Bluetooth device discovery and pairing."""
+class PDGCarDevice:
+    """Represents a PDG car BLE device with connection capabilities."""
     
-    def __init__(self, car_manager: CarManager):
-        self.car_manager = car_manager
-        self.discovered_devices: Dict[str, BluetoothDevice] = {}
-        self.paired_devices: Dict[str, BluetoothDevice] = {}
-        self.is_scanning = False
-        self.scan_interval = 10  # seconds between scans
-        self.device_callbacks: List[Callable] = []
+    def __init__(self, device: BLEDevice, device_id: str = None):
+        self.device = device
+        self.device_id = device_id
+        self.name = device.name or "Unknown"
+        self.address = device.address
+        self.rssi = getattr(device, 'rssi', None)
+        self.is_connected = False
+        self.client: Optional[BleakClient] = None
+        self.status_callback: Optional[Callable] = None
+    
+    async def connect(self) -> bool:
+        """Connect to the BLE device."""
+        try:
+            self.client = BleakClient(self.device)
+            await self.client.connect()
+            self.is_connected = True
+            
+            # Read device ID if not already known
+            if not self.device_id:
+                try:
+                    devid_data = await self.client.read_gatt_char(CHAR_DEVID)
+                    self.device_id = devid_data.decode(errors="ignore")
+                    logger.info(f"Device ID for {self.name}: {self.device_id}")
+                except Exception as e:
+                    logger.warning(f"Could not read device ID from {self.name}: {e}")
+            
+            logger.info(f"Connected to PDG car: {self.name} ({self.address})")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to connect to {self.name}: {e}")
+            self.is_connected = False
+            return False
+    
+    async def disconnect(self):
+        """Disconnect from the BLE device."""
+        if self.client and self.is_connected:
+            try:
+                if self.status_callback:
+                    await self.client.stop_notify(CHAR_STATUS)
+                    self.status_callback = None
+                await self.client.disconnect()
+                self.is_connected = False
+                logger.info(f"Disconnected from {self.name}")
+            except Exception as e:
+                logger.error(f"Error disconnecting from {self.name}: {e}")
+    
+    async def subscribe_to_status(self, callback: Callable):
+        """Subscribe to status notifications from the device."""
+        if not self.is_connected or not self.client:
+            raise RuntimeError("Device not connected")
         
-        # Device name patterns that identify cars vs test devices
-        self.car_patterns = ["RLIRL", "RocketLeague", "Car"]
-        self.test_device_patterns = ["headset", "headphone", "speaker", "airpods"]
+        def on_status(_, data: bytearray):
+            status = data.decode(errors="ignore")
+            logger.info(f"Status from {self.name}: {status}")
+            callback(self, status)
+        
+        self.status_callback = on_status
+        await self.client.start_notify(CHAR_STATUS, on_status)
+        logger.info(f"Subscribed to status notifications from {self.name}")
+    
+    async def set_wifi_credentials(self, ssid: str, password: str) -> bool:
+        """Set WiFi credentials on the device."""
+        if not self.is_connected or not self.client:
+            raise RuntimeError("Device not connected")
+        
+        try:
+            logger.info(f"Setting WiFi credentials on {self.name}: SSID={ssid}")
+            
+            # Write SSID and password
+            await self.client.write_gatt_char(CHAR_SSID, ssid.encode())
+            await self.client.write_gatt_char(CHAR_PASS, password.encode())
+            
+            # Apply the settings
+            await self.client.write_gatt_char(CHAR_APPLY, b"\x01")
+            
+            logger.info(f"WiFi credentials successfully set on {self.name}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set WiFi credentials on {self.name}: {e}")
+            return False
+    
+    def to_dict(self) -> dict:
+        """Convert device to dictionary representation."""
+        return {
+            "name": self.name,
+            "address": self.address,
+            "device_id": self.device_id,
+            "rssi": self.rssi,
+            "is_connected": self.is_connected
+        }
+
+
+class BLEService:
+    """Service for managing BLE car device discovery and communication."""
+    
+    def __init__(self):
+        self.discovered_devices: Dict[str, PDGCarDevice] = {}
+        self.is_scanning = False
+        self.scan_task: Optional[asyncio.Task] = None
+        self.device_callbacks: List[Callable] = []
     
     def add_device_callback(self, callback: Callable):
-        """Add a callback that gets called when a new device is discovered."""
+        """Add a callback to be called when devices are discovered."""
         self.device_callbacks.append(callback)
     
-    def _notify_device_callbacks(self, device: BluetoothDevice, event: str):
-        """Notify all registered callbacks about device events."""
+    def remove_device_callback(self, callback: Callable):
+        """Remove a device callback."""
+        if callback in self.device_callbacks:
+            self.device_callbacks.remove(callback)
+    
+    def _notify_device_callbacks(self, device: PDGCarDevice, event_type: str):
+        """Notify all callbacks about device events."""
         for callback in self.device_callbacks:
             try:
-                callback(device, event)
+                callback(device, event_type)
             except Exception as e:
                 logger.error(f"Error in device callback: {e}")
     
-    def is_car_device(self, device_name: str) -> bool:
-        """Check if a device name indicates it's a car."""
-        device_name_lower = device_name.lower()
-        return any(pattern.lower() in device_name_lower for pattern in self.car_patterns)
+    def is_car_device(self, device: BLEDevice) -> bool:
+        """Check if a BLE device is a PDG car based on its name."""
+        if not device.name:
+            return False
+        return device.name.lower().startswith(CAR_DEVICE_PREFIX.lower())
     
-    def is_test_device(self, device_name: str) -> bool:
-        """Check if a device name indicates it's a test device (like headset)."""
-        device_name_lower = device_name.lower()
-        return any(pattern.lower() in device_name_lower for pattern in self.test_device_patterns)
-    
-    def discover_devices(self, duration: int = 8) -> List[BluetoothDevice]:
-        """
-        Discover nearby Bluetooth devices.
-        
-        Args:
-            duration (int): Duration in seconds to scan for devices
-            
-        Returns:
-            List[BluetoothDevice]: List of discovered devices
-        """
-        logger.info(f"Starting Bluetooth device discovery (duration: {duration}s)")
-        discovered = []
+    async def discover_cars(self, timeout: float = 10.0) -> List[PDGCarDevice]:
+        """Discover PDG car devices via BLE."""
+        logger.info(f"Scanning for PDG cars with service UUID {SERVICE_UUID} (timeout: {timeout}s)...")
         
         try:
-            # Discover devices using PyBluez
-            nearby_devices = bluetooth.discover_devices(duration=duration, lookup_names=True)
-            
-            for address, name in nearby_devices:
-                device = BluetoothDevice(address, name)
-                discovered.append(device)
-                
-                # Update our discovered devices cache
-                self.discovered_devices[address] = device
-                
-                logger.info(f"Discovered device: {device}")
-                self._notify_device_callbacks(device, "discovered")
-                
-        except Exception as e:
-            logger.error(f"Error during device discovery: {e}")
-        
-        return discovered
-    
-    def get_paired_devices(self) -> List[BluetoothDevice]:
-        """Get list of already paired devices from the system."""
-        paired = []
-        
-        try:
-            # Use bluetoothctl to get paired devices
-            result = subprocess.run(
-                ["bluetoothctl", "paired-devices"],
-                capture_output=True,
-                text=True,
-                timeout=10
+            # Scan for devices with our specific service UUID
+            ble_devices = await BleakScanner.discover(
+                timeout=timeout, 
+                service_uuids=[SERVICE_UUID]
             )
             
-            if result.returncode == 0:
-                lines = result.stdout.strip().split('\n')
-                for line in lines:
-                    if line.startswith("Device "):
-                        parts = line.split(' ', 2)
-                        if len(parts) >= 3:
-                            address = parts[1]
-                            name = parts[2] if len(parts) > 2 else "Unknown"
-                            device = BluetoothDevice(address, name)
-                            device.paired = True
-                            paired.append(device)
-                            self.paired_devices[address] = device
-                            
-        except Exception as e:
-            logger.error(f"Error getting paired devices: {e}")
-        
-        return paired
-    
-    def pair_device(self, device: BluetoothDevice) -> bool:
-        """
-        Attempt to pair with a Bluetooth device.
-        
-        Args:
-            device (BluetoothDevice): Device to pair with
-            
-        Returns:
-            bool: True if pairing successful, False otherwise
-        """
-        logger.info(f"Attempting to pair with device: {device}")
-        
-        try:
-            # Use bluetoothctl for pairing
-            commands = [
-                f"scan on",
-                f"pair {device.address}",
-                f"trust {device.address}",
-                f"connect {device.address}"
-            ]
-            
-            for command in commands:
-                logger.info(f"Executing: bluetoothctl {command}")
-                result = subprocess.run(
-                    ["bluetoothctl", command],
-                    capture_output=True,
-                    text=True,
-                    timeout=30
-                )
+            cars = []
+            for ble_device in ble_devices:
+                logger.debug(f"Found BLE device: {ble_device.name} ({ble_device.address})")
                 
-                if result.returncode != 0:
-                    logger.warning(f"Command failed: {command}, output: {result.stderr}")
-                    # Continue with next command as some might fail but pairing could still work
-                
-                time.sleep(2)  # Wait between commands
-            
-            # Check if pairing was successful
-            time.sleep(3)
-            paired_devices = self.get_paired_devices()
-            
-            for paired_device in paired_devices:
-                if paired_device.address == device.address:
-                    device.paired = True
-                    device.connected = True
-                    self.paired_devices[device.address] = device
-                    logger.info(f"Successfully paired with {device}")
-                    self._notify_device_callbacks(device, "paired")
+                if self.is_car_device(ble_device):
+                    car_device = PDGCarDevice(ble_device)
+                    cars.append(car_device)
                     
-                    # If this is a car device, add it to car manager
-                    if self.is_car_device(device.name):
-                        self._add_car_from_device(device)
+                    # Update our discovered devices
+                    self.discovered_devices[ble_device.address] = car_device
+                    self._notify_device_callbacks(car_device, "discovered")
                     
-                    return True
+                    logger.info(f"Found PDG car: {car_device.name} ({car_device.address})")
             
-            logger.warning(f"Pairing with {device} may have failed")
-            return False
+            logger.info(f"BLE discovery complete. Found {len(cars)} PDG cars out of {len(ble_devices)} total devices.")
+            return cars
             
         except Exception as e:
-            logger.error(f"Error pairing with device {device}: {e}")
-            return False
+            logger.error(f"Error during BLE discovery: {e}")
+            return []
     
-    def _add_car_from_device(self, device: BluetoothDevice):
-        """Add a car to the car manager based on a paired Bluetooth device."""
-        # Generate a car ID based on the device address
-        car_id = hash(device.address) % 1000  # Simple ID generation
-        if car_id < 0:
-            car_id = abs(car_id)
+    async def start_continuous_scan(self, scan_interval: float = 10.0):
+        """Start continuous scanning for PDG cars."""
+        if self.is_scanning:
+            logger.warning("Continuous scan already running")
+            return
         
-        # Check if car already exists
-        existing_car = self.car_manager.get_car(car_id)
-        if existing_car:
-            # Update existing car connection status
-            existing_car.connected = device.connected
-            logger.info(f"Updated existing car {car_id} connection status")
-        else:
-            # Create new car
-            car = Car(car_id=car_id, name=device.name)
-            car.connected = device.connected
-            self.car_manager.add_car(car)
-            logger.info(f"Added new car from Bluetooth device: {car}")
-    
-    async def start_auto_discovery(self):
-        """Start automatic device discovery and pairing."""
-        logger.info("Starting automatic Bluetooth discovery and pairing service")
         self.is_scanning = True
+        logger.info(f"Starting continuous BLE scan for PDG cars (interval: {scan_interval}s)...")
         
-        while self.is_scanning:
+        async def scan_loop():
+            while self.is_scanning:
+                try:
+                    await self.discover_cars(timeout=scan_interval)
+                    await asyncio.sleep(1.0)  # Brief pause between scans
+                except Exception as e:
+                    logger.error(f"Error in continuous scan: {e}")
+                    await asyncio.sleep(5.0)  # Longer pause on error
+        
+        self.scan_task = asyncio.create_task(scan_loop())
+    
+    async def stop_continuous_scan(self):
+        """Stop continuous scanning."""
+        if not self.is_scanning:
+            return
+        
+        self.is_scanning = False
+        if self.scan_task:
+            self.scan_task.cancel()
             try:
-                logger.info("Scanning for Bluetooth devices...")
+                await self.scan_task
+            except asyncio.CancelledError:
+                pass
+        
+        logger.info("Stopped continuous BLE scan")
+    
+    async def connect_to_device(self, address: str) -> Optional[PDGCarDevice]:
+        """Connect to a specific device by address."""
+        if address not in self.discovered_devices:
+            logger.error(f"Device {address} not found in discovered devices")
+            return None
+        
+        device = self.discovered_devices[address]
+        if await device.connect():
+            self._notify_device_callbacks(device, "connected")
+            return device
+        return None
+    
+    async def disconnect_from_device(self, address: str):
+        """Disconnect from a specific device."""
+        if address in self.discovered_devices:
+            device = self.discovered_devices[address]
+            await device.disconnect()
+            self._notify_device_callbacks(device, "disconnected")
+    
+    async def disconnect_all(self):
+        """Disconnect from all connected devices."""
+        disconnection_tasks = []
+        for device in self.discovered_devices.values():
+            if device.is_connected:
+                disconnection_tasks.append(device.disconnect())
+        
+        if disconnection_tasks:
+            await asyncio.gather(*disconnection_tasks, return_exceptions=True)
+            logger.info("Disconnected from all devices")
+    
+    async def set_wifi_on_all_cars(self, ssid: str, password: str) -> Dict[str, bool]:
+        """Set WiFi credentials on all discovered cars."""
+        results = {}
+        
+        for address, device in self.discovered_devices.items():
+            try:
+                if not device.is_connected:
+                    logger.info(f"Connecting to {device.name} to set WiFi credentials...")
+                    if not await device.connect():
+                        logger.error(f"Failed to connect to {device.name}")
+                        results[address] = False
+                        continue
                 
-                # Discover new devices
-                discovered = self.discover_devices()
-                
-                # Try to pair with new devices that look like cars or test devices
-                for device in discovered:
-                    if device.address not in self.paired_devices:
-                        if self.is_car_device(device.name) or self.is_test_device(device.name):
-                            logger.info(f"Attempting to pair with potential car/test device: {device}")
-                            success = self.pair_device(device)
-                            if success:
-                                logger.info(f"Successfully paired with {device}")
-                            else:
-                                logger.warning(f"Failed to pair with {device}")
-                        else:
-                            logger.info(f"Skipping device (not a car or test device): {device}")
-                
-                # Wait before next scan
-                await asyncio.sleep(self.scan_interval)
+                results[address] = await device.set_wifi_credentials(ssid, password)
                 
             except Exception as e:
-                logger.error(f"Error in auto discovery loop: {e}")
-                await asyncio.sleep(5)  # Wait a bit before retrying
+                logger.error(f"Error setting WiFi on {device.name} ({address}): {e}")
+                results[address] = False
+        
+        return results
     
-    def stop_auto_discovery(self):
-        """Stop automatic device discovery."""
-        logger.info("Stopping automatic Bluetooth discovery")
-        self.is_scanning = False
+    def get_discovered_devices(self) -> Dict[str, dict]:
+        """Get all discovered devices as dictionaries."""
+        return {addr: device.to_dict() for addr, device in self.discovered_devices.items()}
     
-    def get_device_status(self) -> Dict:
-        """Get status of all discovered and paired devices."""
+    def get_connected_devices(self) -> Dict[str, dict]:
+        """Get all connected devices as dictionaries."""
         return {
-            "discovered_devices": [
-                {
-                    "address": device.address,
-                    "name": device.name,
-                    "paired": device.paired,
-                    "connected": device.connected,
-                    "last_seen": device.last_seen
-                }
-                for device in self.discovered_devices.values()
-            ],
-            "paired_devices": [
-                {
-                    "address": device.address,
-                    "name": device.name,
-                    "paired": device.paired,
-                    "connected": device.connected
-                }
-                for device in self.paired_devices.values()
-            ],
-            "is_scanning": self.is_scanning
+            addr: device.to_dict() 
+            for addr, device in self.discovered_devices.items() 
+            if device.is_connected
+        }
+    
+    def get_status(self) -> dict:
+        """Get the current status of the BLE service."""
+        return {
+            "is_scanning": self.is_scanning,
+            "total_discovered": len(self.discovered_devices),
+            "total_connected": len([d for d in self.discovered_devices.values() if d.is_connected]),
+            "devices": self.get_discovered_devices()
         }
 
-def check_bluetooth_dependencies():
-    """Check if required Bluetooth tools are available."""
-    required_tools = ["bluetoothctl", "hciconfig"]
-    missing_tools = []
-    
-    for tool in required_tools:
-        try:
-            result = subprocess.run([tool, "--version"], capture_output=True, timeout=5)
-            if result.returncode != 0:
-                # Some tools don't support --version, try --help
-                result = subprocess.run([tool, "--help"], capture_output=True, timeout=5)
-                if result.returncode != 0:
-                    missing_tools.append(tool)
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            missing_tools.append(tool)
-    
-    if missing_tools:
-        logger.error(f"Missing required Bluetooth tools: {missing_tools}")
-        logger.error("Please install bluez and bluez-tools: sudo apt-get install bluez bluez-tools")
-        return False
-    
-    return True
 
-# Test function for development
-async def test_bluetooth_service():
-    """Test function to verify Bluetooth service functionality."""
-    logger.info("Testing Bluetooth service...")
+# Global BLE service instance (maintains compatibility with existing code)
+bluetooth_service = BLEService()
+ble_service = bluetooth_service  # Alias for clarity
+
+
+async def test_ble_functionality():
+    """Test function to demonstrate BLE functionality."""
+    logger.info("=== Testing BLE Functionality ===")
     
-    # Check dependencies
-    if not check_bluetooth_dependencies():
-        logger.error("Bluetooth dependencies not available")
+    # Test device discovery
+    logger.info("Starting device discovery...")
+    cars = await ble_service.discover_cars(timeout=15.0)
+    
+    if not cars:
+        logger.info("No PDG cars found during test")
+        logger.info("Make sure your PDG car device is:")
+        logger.info("1. Powered on")
+        logger.info("2. Has BLE enabled")
+        logger.info("3. Is advertising the service UUID")
+        logger.info("4. Has a name starting with 'pdg-car'")
         return
     
-    # Create car manager and Bluetooth service
-    try:
-        from models import CarManager
-    except ImportError:
-        from ..models import CarManager
-    car_manager = CarManager()
-    bluetooth_service = BluetoothService(car_manager)
+    # Show discovered cars
+    logger.info(f"Found {len(cars)} PDG cars:")
+    for car in cars:
+        logger.info(f"  - {car.name} ({car.address}) RSSI: {car.rssi}")
     
-    # Add callback to log device events
-    def device_callback(device: BluetoothDevice, event: str):
-        logger.info(f"Device event: {event} - {device}")
+    # Connect to the first car found
+    first_car = cars[0]
+    logger.info(f"Testing connection to {first_car.name}...")
     
-    bluetooth_service.add_device_callback(device_callback)
+    if await first_car.connect():
+        # Subscribe to status updates
+        def status_handler(device, status):
+            logger.info(f"Status update from {device.name}: {status}")
+        
+        try:
+            await first_car.subscribe_to_status(status_handler)
+            
+            # Test WiFi credential setting
+            test_ssid = "TestWiFi"
+            test_password = "TestPassword123"
+            
+            logger.info(f"Setting WiFi credentials (SSID: {test_ssid})...")
+            success = await first_car.set_wifi_credentials(test_ssid, test_password)
+            
+            if success:
+                logger.info("WiFi credentials set successfully")
+                # Wait a bit for status updates
+                await asyncio.sleep(3.0)
+            else:
+                logger.error("Failed to set WiFi credentials")
+                
+        except Exception as e:
+            logger.error(f"Error during testing: {e}")
+        
+        await first_car.disconnect()
+    else:
+        logger.error(f"Failed to connect to {first_car.name}")
     
-    # Get current paired devices
-    paired = bluetooth_service.get_paired_devices()
-    logger.info(f"Currently paired devices: {paired}")
+    # Test service status
+    status = ble_service.get_status()
+    logger.info(f"Service status: {status}")
     
-    # Discover devices
-    discovered = bluetooth_service.discover_devices()
-    logger.info(f"Discovered devices: {discovered}")
-    
-    # Print status
-    status = bluetooth_service.get_device_status()
-    logger.info(f"Device status: {status}")
+    logger.info("=== BLE Test Complete ===")
+
 
 if __name__ == "__main__":
-    # Run test when script is executed directly
-    asyncio.run(test_bluetooth_service())
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
+    
+    asyncio.run(test_ble_functionality())
