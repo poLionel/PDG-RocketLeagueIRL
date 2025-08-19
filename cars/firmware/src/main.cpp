@@ -1,18 +1,37 @@
-#include <Arduino.h>
+//----------------------------------------------------------------------------------
+// INCLUDES
+#include <core.h>
 
-// put function declarations here:
-int myFunction(int, int);
 
+
+//----------------------------------------------------------------------------------
+// OBJETS GLOBAUX
+ble_provisioner             ble_prov;
+wifi_provisioner            wifi_prov;
+
+
+
+//----------------------------------------------------------------------------------
+// SETUP
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  Serial.begin(115200);
+  Serial.println("\n[MAIN] Boot...");
+  delay(8000);
+
+  Serial.println("[MAIN] [BLE] provisioner init");
+  ble_prov.init();
+  ble_prov.start();
+
+  Serial.println("[MAIN] [WIFI] provisioner init");
+  wifi_prov.init(ble_prov.get_device_id().c_str());
+  Serial.printf("[MAIN] device_id = %s\n", wifi_prov.get_device_id().c_str());
+
+  core_init(&ble_prov, &wifi_prov);
+  core_start();
 }
 
+//----------------------------------------------------------------------------------
+// LOOP (vide)
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  vTaskDelay(pdMS_TO_TICKS(1000));
 }
