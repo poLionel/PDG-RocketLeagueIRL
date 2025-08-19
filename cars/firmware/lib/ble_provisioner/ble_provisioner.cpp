@@ -8,31 +8,34 @@
 //- CALLBACKS
 class write_cb : public NimBLECharacteristicCallbacks {
 public:
-    write_cb(String* target, const char* label) : target_(target), label_(label) {}
+    write_cb(gatt_slot<String>* slot, gatt_slot<String>* status)
+    : slot_(slot), status_(status) {}
     void onWrite(NimBLECharacteristic* c) override {
         std::string v = c->getValue();
-        *target_ = String(v.c_str());
+        slot_->value = String(v.c_str());         // MAJ cache local
     }
 private:
-    String* target_;
-    const char* label_;
+    gatt_slot<String>* slot_;
+    gatt_slot<String>* status_;
 };
 class apply_cb : public NimBLECharacteristicCallbacks {
 public:
-    apply_cb(String* ssid, String* pass) : ssid_(ssid), pass_(pass) {}
-    void onWrite(NimBLECharacteristic* c) override {
-        NimBLECharacteristic* st = c->getService()->getCharacteristic(CHAR_STATUS_UUID);
-        if (ssid_->length() && pass_->length()) {
-            st->setValue("ok");
-            st->notify();
-        } else {
-            st->setValue("missing");
-            st->notify();
+    apply_cb(gatt_slot<bool>* apply, gatt_slot<String>* ssid, gatt_slot<String>* pass, gatt_slot<String>* status)
+    : apply_(apply), ssid_(ssid), pass_(pass), status_(status) {}
+    void onWrite(NimBLECharacteristic*) override {
+        if (!ssid_->get().isEmpty() && !pass_->get().isEmpty()){
+            apply_->set(true); // on mémorise le trigger côté app
+            status_->set("configured", true);
+        }
+        else {
+            status_->set("idle", true);
         }
     }
 private:
-    String* ssid_;
-    String* pass_;
+    gatt_slot<bool>*   apply_;
+    gatt_slot<String>* ssid_;
+    gatt_slot<String>* pass_;
+    gatt_slot<String>* status_;
 };
 class server_cb : public NimBLEServerCallbacks {
 public:
@@ -42,6 +45,7 @@ public:
     }
     void onDisconnect(NimBLEServer* pServer) override {
         *is_connected_ = false;
+        NimBLEDevice::getAdvertising()->start();
     }
 private:
     bool* is_connected_;
@@ -51,7 +55,7 @@ private:
 
 //----------------------------------------------------------------------------------
 //- CONSTRUCTEURS / DESCTRUCTEURS
-ble_provisioner::ble_provisioner() : ssid_(""), pass_("") {
+ble_provisioner::ble_provisioner() {
 
 }
 
@@ -62,9 +66,8 @@ ble_provisioner::ble_provisioner() : ssid_(""), pass_("") {
 void ble_provisioner::init(const char* device_id) {
     // Nom dynamique basé sur l’adresse MAC
     NimBLEDevice::init(ble_prefix_of_name); // init d'abord
-    if (!device_id || !*device_id) device_id_ = String(ble_prefix_of_name) + NimBLEDevice::getAddress().toString().c_str();
-    else device_id_ = device_id;
-    NimBLEDevice::setDeviceName(device_id_.c_str());   // met vraiment le nom d’advertising
+    String id = (device_id && *device_id) ? String(device_id) : (String(ble_prefix_of_name) + NimBLEDevice::getAddress().toString().c_str());
+    NimBLEDevice::setDeviceName(id.c_str());   // met vraiment le nom d’advertising
     NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_DEFAULT);
 
     // Création du servuer et service
@@ -74,25 +77,32 @@ void ble_provisioner::init(const char* device_id) {
 
     // Caractéristiques
     // Device ID
-    NimBLECharacteristic* ch_dev_id = service_->createCharacteristic(
-        CHAR_DEVID_UUID, NIMBLE_PROPERTY::READ);
-    ch_dev_id->setValue(device_id_.c_str());
+    device_id_.bind(service_->createCharacteristic(
+        CHAR_DEVID_UUID, NIMBLE_PROPERTY::READ));
+    device_id_.set(id);
     // Status
-    NimBLECharacteristic* ch_status = service_->createCharacteristic(
-        CHAR_STATUS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY);
-    ch_status->setValue("idle");
+    status_.bind(service_->createCharacteristic(
+        CHAR_STATUS_UUID, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY));
+    status_.set("idle");
     // SSID
-    NimBLECharacteristic* ch_ssid = service_->createCharacteristic(
-        CHAR_SSID_UUID, NIMBLE_PROPERTY::WRITE);
-    ch_ssid->setCallbacks(new write_cb(&ssid_, "SSID"));
+    ssid_.bind(service_->createCharacteristic(
+        CHAR_SSID_UUID, NIMBLE_PROPERTY::WRITE));
+    ssid_.set("");
+    ssid_.ch->setCallbacks(
+        new write_cb(&ssid_, &status_));
     // Password
-    NimBLECharacteristic* ch_pass = service_->createCharacteristic(
-        CHAR_PASS_UUID, NIMBLE_PROPERTY::WRITE);
-    ch_pass->setCallbacks(new write_cb(&pass_, "PASS"));
-    // Apply
-    NimBLECharacteristic* ch_apply = service_->createCharacteristic(
-        CHAR_APPLY_UUID, NIMBLE_PROPERTY::WRITE);
-    ch_apply->setCallbacks(new apply_cb(&ssid_, &pass_));
+    pass_.bind(service_->createCharacteristic(
+        CHAR_PASS_UUID, NIMBLE_PROPERTY::WRITE));
+    pass_.set("");
+    pass_.ch->setCallbacks(
+        new write_cb(&pass_, &status_));
+    // Application des credentials
+    apply_wifi_credentials_.bind(service_->createCharacteristic(
+        CHAR_APPLY_UUID, NIMBLE_PROPERTY::WRITE));
+    apply_wifi_credentials_.set(false);
+    apply_wifi_credentials_.ch->setCallbacks(
+        new apply_cb(&apply_wifi_credentials_, &ssid_, &pass_, &status_));
+
 }
 void ble_provisioner::start(){
     if (!service_) return;
@@ -106,4 +116,11 @@ void ble_provisioner::start(){
 void ble_provisioner::stop() {
     // Arrête proprement l’advertising et le service.
     if (adv_) adv_->stop();
+}
+void ble_provisioner::consume_wifi_credentiels(String& ssid, String& pass){
+    if(apply_wifi_credentials_.get()){
+        ssid = ssid_.get();
+        pass = pass_.get();
+        apply_wifi_credentials_.set(false);
+    }
 }

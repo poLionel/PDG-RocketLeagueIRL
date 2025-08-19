@@ -33,32 +33,30 @@ void setup() {
 //----------------------------------------------------------------------------------
 //- LOOP
 void loop() {
-    static bool last_state = false;
+    static bool ble_last_state = false;
+    static bool wifi_last_state = false;
     static String last_ssid;
     static String last_pass;
 
     // Vérifie l’état de connexion
-    bool connected = ble_prov.is_connected();
-    if (connected != last_state) {
-        Serial.printf("[MAIN] [BLE] Connexion %s\n", connected ? "établie" : "perdue");
-        last_state = connected;
+    bool ble_connected = ble_prov.is_connected();
+    if (ble_connected != ble_last_state) {
+        Serial.printf("[MAIN] [BLE] Connexion %s\n", ble_connected ? "établie" : "perdue");
+        ble_last_state = ble_connected;
+    }
+    bool wifi_connected = wifi_prov.is_connected();
+    if(wifi_connected != wifi_last_state){
+        Serial.printf("[MAIN] [WFi] Connexion %s\n", wifi_connected ? "établie" : "perdue");
+        if (wifi_connected) Serial.printf("[MAIN] [WFi] IP=%s  RSSI=%d dBm\n", wifi_prov.ip().c_str(), wifi_prov.rssi());
+        wifi_last_state = wifi_connected;
     }
 
     // Vérifie si un SSID/PASS ont été reçus et différents de la dernière fois
-    String ssid = ble_prov.get_ssid();
-    String pass = ble_prov.get_pass();
-    if (ssid.length() > 0 && pass.length() > 0) {
-        if (ssid != last_ssid || pass != last_pass) {
-            Serial.printf("[MAIN] [BLE] Identifiants reçus → SSID: '%s' | PASS: '%s'\n", ssid.c_str(), pass.c_str());
-
-            bool ok = wifi_prov.connect(ssid, pass, 15000);
-            Serial.printf("[MAIN] [WFi] Connexion %s\n", ok ? "établie" : "perdue");
-            if (ok) Serial.printf("[MAIN] [WFi] IP=%s  RSSI=%d dBm\n", wifi_prov.ip().c_str(), wifi_prov.rssi());
-
-            last_ssid = ssid;
-            last_pass = pass;
-        }
+    if(ble_prov.wifi_credentials_available()){
+      String ssid, pass;
+      ble_prov.consume_wifi_credentiels(ssid, pass);
+      Serial.printf("[MAIN] [BLE] Identifiants reçus → SSID: '%s' | PASS: '%s'\n", ssid.c_str(), pass.c_str());
+      Serial.printf("[MAIN] [WFi] Connexion %s\n", wifi_prov.connect(ssid, pass, 15000) ? "établie" : "perdue");
     }
-
     delay(500);
 }
