@@ -5,15 +5,7 @@
 
 //----------------------------------------------------------------------------------
 //- INCLUDES
-#include <Arduino.h>
-#include <WiFi.h>
-
-
-
-//----------------------------------------------------------------------------------
-//- VARIABLES GLOBALES
-// Configurations
-static const char* wifi_prefix_of_name          = "RL-CAR-";
+#include <wifi_defs.h>
 
 
 
