@@ -22,6 +22,8 @@ static constexpr EventBits_t    BIT_RUN                 = (1u << 2); // autorisa
 //----------------------------------------------------------------------------------
 static ble_provisioner*         g_ble                   = nullptr;
 static wifi_provisioner*        g_wifi                  = nullptr;
+static motor_controller*        g_motor                 = nullptr;
+static battery_monitor*         g_battery               = nullptr;
 
 static EventGroupHandle_t       g_evt                   = nullptr;
 static TaskHandle_t             h_task_connector        = nullptr;
@@ -42,10 +44,12 @@ static void                     task_worker(void*);     // fait le job tant que 
 //----------------------------------------------------------------------------------
 // API
 //----------------------------------------------------------------------------------
-void core_init(ble_provisioner* ble, wifi_provisioner* wifi) {
-  g_ble  = ble;
-  g_wifi = wifi;
-  g_evt  = xEventGroupCreate();
+void core_init(ble_provisioner* ble, wifi_provisioner* wifi, motor_controller* motor, battery_monitor* battery) {
+  g_ble       = ble;
+  g_wifi      = wifi;
+  g_motor     = motor;
+  g_battery   = battery;
+  g_evt       = xEventGroupCreate();
 }
 void core_start() {
   // Création des tâches (pinnées sur core 1 — ajuste si besoin)
