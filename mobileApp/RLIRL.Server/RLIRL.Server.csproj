@@ -15,4 +15,9 @@
   	<ProjectReference Include="..\RLIRL.Business\RLIRL.Business.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\ServerCommandsProcessors\" />
+    <Folder Include="Services\ServerCommands\" />
+  </ItemGroup>
+
 </Project>

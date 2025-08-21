@@ -2,13 +2,14 @@
 using RLIRL.Server.Abstractions;
 using RLIRL.Server.Abstractions.Server;
 using System.Net.WebSockets;
-using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace RLIRL.Server.Services.Server
 {
-    internal class ServerCommandSender(IWebSocketProvider webSocketProvider, IClientCommandQueue clientCommandQueue, ILogger<ServerCommandSender> logger) : IServerCommandSender
+    internal class ServerCommandSender(
+        IWebSocketProvider webSocketProvider,
+        IClientCommandQueue clientCommandQueue,
+        IServerCommandSerializer commandSerializer,
+        ILogger<ServerCommandSender> logger) : IServerCommandSender
     {
         private Task runningTask = Task.CompletedTask;
 
@@ -57,17 +58,7 @@ namespace RLIRL.Server.Services.Server
                         continue;
                     }
 
-                    // If the command has a CommandNameAttribute, use it as the action property
-                    var action = item.GetType().GetCustomAttribute<CommandNameAttribute>()?.Name;
-                    var jsonNode = JsonSerializer.SerializeToNode(item) as JsonObject;
-                    if (jsonNode != null && action != null)
-                    {
-                        jsonNode["Action"] = action;
-                    }
-
-                    // Prepare the payload
-                    var jsonPayload = jsonNode?.ToJsonString() ?? JsonSerializer.Serialize(item);
-                    var data = System.Text.Encoding.UTF8.GetBytes(jsonPayload);
+                    var data = commandSerializer.SerializeCommand(item);
 
                     // Send the command to the WebSocket server
                     await webSocket.SendAsync(data, WebSocketMessageType.Text, true, cancellationToken);
