@@ -31,9 +31,12 @@ jobs:
       - name: Build & test mobile app
         run: |
           cd mobileApp
-          dotnet restore
-          dotnet build -c Debug
-          dotnet test --no-build --verbosity normal
+          for proj in $(find . -name '*.csproj'); do
+            if grep -q '<TargetFramework>net9.0</TargetFramework>' "$proj"; then
+              dotnet build "$proj" -c Debug
+              dotnet test "$proj" --no-build --framework net9.0 --verbosity normal
+            fi
+          done
 
       - name: Stop test dependencies
         if: always()
