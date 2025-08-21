@@ -20,6 +20,12 @@ jobs:
       - name: Select Xcode 16.4
         run: sudo xcode-select --switch /Applications/Xcode_16.4.app
 
+      - name: Start test dependencies
+        run: |
+          cd server
+          docker compose up -d
+          docker ps
+
       - name: Restore solution workloads
         run: |
           cd mobileApp
@@ -31,6 +37,13 @@ jobs:
           dotnet restore
           dotnet build -c Debug
           dotnet test --no-build --verbosity normal
+
+      - name: Stop test dependencies
+        if: always()
+        run: |
+          cd server
+          docker compose down
+
 
       - name: Notify successfull mobile app build and test
         run: |
