@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-mobileApp:
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -16,15 +16,6 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
-
-      - name: Select Xcode 16.4
-        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
-
-      - name: Setup docker
-        if: runner.os == 'macos'
-        run: |
-          brew install docker
-          colima start
 
       - name: Start test dependencies
         run: |
@@ -50,10 +41,8 @@ jobs:
           cd server
           docker compose down
 
-
-      - name: Notify successfull mobile app build and test
-        run: |
-          echo "Mobile app build and tests successfull"
+      - name: Notify successful mobile app build and test
+        run: echo "Mobile app build and tests successful"
 
   test-server:
     runs-on: ubuntu-latest
