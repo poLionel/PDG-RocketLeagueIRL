@@ -20,6 +20,12 @@ jobs:
       - name: Select Xcode 16.4
         run: sudo xcode-select --switch /Applications/Xcode_16.4.app
 
+      - name: Setup docker
+        if: runner.os == 'macos'
+        run: |
+          brew install docker
+          colima start
+
       - name: Start test dependencies
         run: |
           cd server
