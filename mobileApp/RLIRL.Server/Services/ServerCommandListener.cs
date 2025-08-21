@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using RLIRL.Server.Abstractions;
 using RLIRL.Server.Abstractions.Server;
 using System.Data;
@@ -11,37 +9,35 @@ using System.Text.Json.Nodes;
 
 namespace RLIRL.Server.Services.Server
 {
-    internal class ServerCommandListener(IWebSocketProvider webSocketProvider, IOptions<ServerConfiguration> serverConfiguration, IServiceProvider serviceProvider) : IHostedService
+    internal class ServerCommandListener(IWebSocketProvider webSocketProvider, IOptions<ServerConfiguration> serverConfiguration, IServiceProvider serviceProvider) : IServerCommandListener
     {
         private Task runningTask = Task.CompletedTask;
 
-        private CancellationTokenSource? sharedTokenSource;
+        private CancellationTokenSource? tokenSource;
 
         private readonly Lock serviceLock = new();
 
         private readonly IDictionary<string, Type> commandTypes = GetCommandTypes();
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public void Start()
         {
             lock (serviceLock)
             {
                 // Start the command processing task if it is not already running
                 if (runningTask.IsCompleted)
                 {
-                    sharedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    runningTask = ProcessCommandsAsync(cancellationToken);
+                    tokenSource = new();
+                    var token = tokenSource.Token;
+                    runningTask = ProcessCommandsAsync(token);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public void Stop()
         {
             lock (serviceLock)
             {
-                sharedTokenSource?.Cancel();
-                return runningTask;
+                tokenSource?.Cancel();
             }
         }
 
@@ -64,7 +60,7 @@ namespace RLIRL.Server.Services.Server
             while (webSocket.State == WebSocketState.Open)
             {
                 try
-                { 
+                {
                     // Clear the buffer before receiving a new message
                     Array.Clear(buffer, 0, buffer.Length);
 
@@ -80,8 +76,8 @@ namespace RLIRL.Server.Services.Server
                     // Retrieve the message and its command action
                     var message = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                     var commandAction = JsonNode.Parse(message)?["action"]?.GetValue<string>();
-                    if(string.IsNullOrEmpty(commandAction)) throw new InvalidOperationException("Received command with no action type");
-                    if(!commandTypes.TryGetValue(commandAction, out var commandType))
+                    if (string.IsNullOrEmpty(commandAction)) throw new InvalidOperationException("Received command with no action type");
+                    if (!commandTypes.TryGetValue(commandAction, out var commandType))
                         throw new InvalidOperationException($"No command type found for action '{commandAction}'");
 
                     // Deserialize the command message into the appropriate command object
@@ -113,7 +109,7 @@ namespace RLIRL.Server.Services.Server
             // Retrieve all types that implement the IClientCommand interface
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => 
+                .Where(type =>
                     type.IsClass &&
                     !type.IsAbstract &&
                     type.GetInterface(nameof(IServerCommand)) != null &&

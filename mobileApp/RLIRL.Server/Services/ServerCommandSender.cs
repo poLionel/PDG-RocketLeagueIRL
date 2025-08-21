@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using RLIRL.Server.Abstractions;
 using RLIRL.Server.Abstractions.Server;
 using System.Net.WebSockets;
@@ -9,35 +8,35 @@ using System.Text.Json.Nodes;
 
 namespace RLIRL.Server.Services.Server
 {
-    internal class ServerCommandSender(IWebSocketProvider webSocketProvider, IClientCommandQueue clientCommandQueue, ILogger<ServerCommandSender> logger) : IHostedService
+    internal class ServerCommandSender(IWebSocketProvider webSocketProvider, IClientCommandQueue clientCommandQueue, ILogger<ServerCommandSender> logger) : IServerCommandSender
     {
         private Task runningTask = Task.CompletedTask;
 
-        private CancellationTokenSource? sharedTokenSource;
+        private CancellationTokenSource? tokenSource;
 
         private readonly Lock serviceLock = new();
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        private const int POOLING_DELAY_MS = 100;
+
+        public void Start()
         {
-            lock(serviceLock)
+            lock (serviceLock)
             {
                 // Start the command processing task if it is not already running
                 if (runningTask.IsCompleted)
                 {
-                    sharedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    runningTask = ProcessCommandsAsync(cancellationToken);
+                    tokenSource = new();
+                    var token = tokenSource.Token;
+                    runningTask = ProcessCommandsAsync(token);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public void Stop()
         {
             lock (serviceLock)
             {
-                sharedTokenSource?.Cancel();
-                return runningTask;
+                tokenSource?.Cancel();
             }
         }
 
@@ -51,7 +50,12 @@ namespace RLIRL.Server.Services.Server
                 {
                     // Fetch the next command from the queue or exit if none are available
                     var item = clientCommandQueue.DequeueCommand();
-                    if (item == null) continue;
+                    if (item == null)
+                    {
+                        // Wait for a short period before checking the queue again
+                        await Task.Delay(POOLING_DELAY_MS, cancellationToken);
+                        continue;
+                    }
 
                     // If the command has a CommandNameAttribute, use it as the action property
                     var action = item.GetType().GetCustomAttribute<CommandNameAttribute>()?.Name;

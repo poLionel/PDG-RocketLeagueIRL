@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RLIRL.Business;
 using RLIRL.Server;
+using RLIRL.Server.Abstractions;
 
 namespace RLIRL.App
 {
@@ -34,7 +36,16 @@ namespace RLIRL.App
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
 
-            return builder.Build();
+            var app = builder.Build();
+
+            // Start the server command sender and listener
+            var commandListener = app.Services.GetRequiredService<IServerCommandListener>();
+            commandListener.Start();
+
+            var commandSender = app.Services.GetRequiredService<IServerCommandSender>();
+            commandSender.Start();
+
+            return app;
         }
     }
 }

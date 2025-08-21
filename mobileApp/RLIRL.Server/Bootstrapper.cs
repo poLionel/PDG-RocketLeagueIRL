@@ -18,8 +18,8 @@ namespace RLIRL.Server
             services.AddSingleton<IClientCommandQueue, ClientCommandQueue>()
                 .AddSingleton<IServerCommandProcessor<GameStatusServerCommand>, GameStatusCommandProcessor>()
                 .AddSingleton<IWebSocketProvider, WebSocketProvider>()
-                .AddHostedService<ServerCommandListener>()
-                .AddHostedService<ServerCommandSender>();
+                .AddSingleton<IServerCommandListener, ServerCommandListener>()
+                .AddSingleton<IServerCommandSender, ServerCommandSender>();
 
             return services;
         }
