@@ -5,8 +5,17 @@ namespace RLIRL.Business.Services
 {
     internal class GameService : IGameService
     {
-        public GameData? CurrentGameData => throw new NotImplementedException();
+        public GameStatus? CurrentGameStatus { get; private set; }
+            
+        public event EventHandler<GameStatus?>? GameStatusChanged;
 
-        public event EventHandler<GameData>? GameDataUpdated;
+        public void UpdateGameStatus(GameStatus? status)
+        {
+            if (CurrentGameStatus != status)
+            {
+                CurrentGameStatus = status;
+                GameStatusChanged?.Invoke(this, status);
+            }
+        }
     }
 }

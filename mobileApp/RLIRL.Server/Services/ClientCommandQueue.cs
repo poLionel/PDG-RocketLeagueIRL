@@ -1,17 +1,20 @@
 ﻿using RLIRL.Server.Abstractions.Server;
+using System.Collections.Concurrent;
 
 namespace RLIRL.Server.Services.Server
 {
     internal class ClientCommandQueue : IClientCommandQueue
     {
+        private ConcurrentQueue<IClientCommand> commandQueue = new();
+
         public void EnqueueCommand(IClientCommand command)
         {
-            throw new NotImplementedException();
+            commandQueue.Enqueue(command);
         }
 
         public IClientCommand? DequeueCommand()
         {
-            throw new NotImplementedException();
+            return commandQueue.TryDequeue(out IClientCommand? command) ? command : null;
         }
     }
 }

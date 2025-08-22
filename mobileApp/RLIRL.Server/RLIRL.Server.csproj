@@ -8,6 +8,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.8" />
+	<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+  	<ProjectReference Include="..\RLIRL.Business\RLIRL.Business.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\ServerCommandsProcessors\" />
+    <Folder Include="Services\ServerCommands\" />
   </ItemGroup>
 
 </Project>

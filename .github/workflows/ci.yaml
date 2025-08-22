@@ -8,7 +8,7 @@ on:
 
 jobs:
   test-mobileApp:
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
@@ -17,8 +17,11 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Select Xcode 16.4
-        run: sudo xcode-select --switch /Applications/Xcode_16.4.app
+      - name: Start test dependencies
+        run: |
+          cd server
+          docker compose up -d
+          docker ps
 
       - name: Restore solution workloads
         run: |
@@ -28,13 +31,21 @@ jobs:
       - name: Build & test mobile app
         run: |
           cd mobileApp
-          dotnet restore
-          dotnet build -c Debug
-          dotnet test --no-build --verbosity normal
+          for proj in $(find . -name '*.csproj'); do
+            if grep -q '<TargetFramework>net9.0</TargetFramework>' "$proj"; then
+              dotnet build "$proj" -c Debug
+              dotnet test "$proj" --no-build --framework net9.0 --verbosity normal
+            fi
+          done
 
-      - name: Notify successfull mobile app build and test
+      - name: Stop test dependencies
+        if: always()
         run: |
-          echo "Mobile app build and tests successfull"
+          cd server
+          docker compose down
+
+      - name: Notify successful mobile app build and test
+        run: echo "Mobile app build and tests successful"
 
   test-server:
     runs-on: ubuntu-latest

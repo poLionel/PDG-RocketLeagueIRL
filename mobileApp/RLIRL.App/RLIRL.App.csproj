@@ -57,15 +57,20 @@
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+		
+		<!-- App Configuration -->
+		<MauiAsset Include="Resources\Configuration\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.5" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.5" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\RLIRL.Business\RLIRL.Business.csproj" />
+	  <ProjectReference Include="..\RLIRL.Server\RLIRL.Server.csproj" />
 	</ItemGroup>
-
 </Project>

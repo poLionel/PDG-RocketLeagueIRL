@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RLIRL.App\RLIRL.App.csproj" />
+    <ProjectReference Include="..\RLIRL.Server\RLIRL.Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>
