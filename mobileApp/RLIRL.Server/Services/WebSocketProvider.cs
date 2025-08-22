@@ -43,7 +43,8 @@ namespace RLIRL.Server.Services
                 if (await IsServerAvailableAsync(gateway.Address, serverConfiguration.Value.Port))
                 {
                     var protocole = serverConfiguration.Value.Secure ? "wss" : "ws";
-                    return new Uri($"{protocole}://{gateway.Address}:{serverConfiguration.Value.Port}");
+                    var protocol = serverConfiguration.Value.Secure ? "wss" : "ws";
+                    return new Uri($"{protocol}://{gateway.Address}:{serverConfiguration.Value.Port}");
                 }
             }
 
