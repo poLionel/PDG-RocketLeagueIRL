@@ -86,7 +86,7 @@ namespace RLIRL.Server.Services.Server
 
                     // Get the command processor from the service provider
                     var commandHandlerType = typeof(IServerCommandProcessor<>).MakeGenericType(commandType);
-                    var commandHandler = serviceProvider.GetService(commandType) as IServerCommandProcessor
+                    var commandHandler = serviceProvider.GetService(commandHandlerType) as IServerCommandProcessor
                         ?? throw new InvalidOperationException($"No command handler found for command type '{commandType.Name}'");
 
                     // Process the command using the command handler
