@@ -2,6 +2,7 @@
 // INCLUDES
 #include <core.h>
 #include "car_pins.h"
+#include "car_defines.h"
 
 
 
@@ -19,11 +20,24 @@ battery_monitor             battery_mon({
 
 
 //----------------------------------------------------------------------------------
+// FONCTIONS LOCALES
+String make_device_id(){
+  uint64_t chip_id = ESP.getEfuseMac();
+  char buf[17];
+  snprintf(buf, sizeof(buf), "%012llX", (unsigned long long)chip_id);
+  return (String(DEVICE_ID_PREFIX) + String(buf));
+}
+
+
+
+//----------------------------------------------------------------------------------
 // SETUP
 void setup() {
   Serial.begin(115200);
   Serial.println("\n[MAIN] Boot...");
   delay(8000);
+  String device_id = make_device_id();
+
 
   //--------
   //--INIT--
@@ -35,13 +49,14 @@ void setup() {
   battery_mon.read();
 
   Serial.println("[MAIN] [BLE] provisioner init");
-  ble_prov.init();
+  ble_prov.init(device_id);
   ble_prov.start();
+  ble_prov.set_battery_level(battery_mon.get_percent_value());
 
   Serial.println("[MAIN] [WIFI] provisioner init");
-  wifi_prov.init(ble_prov.get_device_id().c_str());
+  wifi_prov.init(device_id);
   
-  Serial.printf("[MAIN] device_id = %s\n", wifi_prov.get_device_id().c_str());
+  Serial.printf("[MAIN] device_id = %s\n", device_id.c_str());
   Serial.printf("[MAIN] battery = %f / %f\n", battery_mon.get_volt_value(), battery_mon.get_percent_value());
 
 

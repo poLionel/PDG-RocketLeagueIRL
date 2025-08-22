@@ -98,15 +98,17 @@ struct gatt_slot {
 //----------------------------------------------------------------------------------
 //- VARIABLES GLOBALES
 //----------------------------------------------------------------------------------
-// Configurations
-static const char* ble_prefix_of_name          = "RL-CAR-";
 // UUIDs du service et des caractéristiques
-static const NimBLEUUID SERVICE_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f0");
-static const NimBLEUUID CHAR_SSID_UUID     ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f1");
-static const NimBLEUUID CHAR_PASS_UUID     ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f2");
-static const NimBLEUUID CHAR_DEVID_UUID    ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f9");
-static const NimBLEUUID CHAR_STATUS_UUID   ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f4");
-static const NimBLEUUID CHAR_APPLY_UUID    ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f3");
+static const NimBLEUUID SERVICE_UUID            ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f0");
+static const NimBLEUUID CHAR_DEVID_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f9");
+
+static const NimBLEUUID CHAR_SSID_UUID          ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f1");
+static const NimBLEUUID CHAR_PASS_UUID          ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f2");
+static const NimBLEUUID CHAR_APPLY_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f3");
+
+static const NimBLEUUID CHAR_STATUS_UUID        ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f4");
+static const NimBLEUUID CHAR_BATTERY_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f5");
+
 
 
 

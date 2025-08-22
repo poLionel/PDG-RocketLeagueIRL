@@ -15,7 +15,7 @@ class ble_provisioner {
 public:
     ble_provisioner();
 
-    void                init(const char* device_id = nullptr);
+    void                init(String device_id);
     void                start();
     void                stop();
 
@@ -23,6 +23,8 @@ public:
     String              get_pass() const { return pass_.get(); }
     String              get_status() const { return status_.get(); }
     String              get_device_id() const { return device_id_.get(); }
+
+    void                set_battery_level(uint8_t percent) { battery_.set(percent); battery_.publish(); } 
 
     bool                wifi_credentials_available() const { return apply_wifi_credentials_.get(); }
     void                consume_wifi_credentiels(String& ssid, String& pass);
@@ -38,6 +40,7 @@ private:
     gatt_slot<bool>     apply_wifi_credentials_         { CHAR_APPLY_UUID       , false };
     gatt_slot<String>   status_                         { CHAR_STATUS_UUID      , "idle" };
     gatt_slot<String>   device_id_                      { CHAR_DEVID_UUID       , "" };
+    gatt_slot<uint8_t>  battery_                        { CHAR_BATTERY_UUID     , 100};
 
     bool                is_connected_                   = false;
 };

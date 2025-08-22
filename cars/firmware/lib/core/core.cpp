@@ -28,6 +28,8 @@ static battery_monitor*         g_battery               = nullptr;
 static EventGroupHandle_t       g_evt                   = nullptr;
 static TaskHandle_t             h_task_connector        = nullptr;
 static TaskHandle_t             h_task_monitor          = nullptr;
+static TaskHandle_t             h_task_hardware         = nullptr;
+//
 static TaskHandle_t             h_task_worker           = nullptr;
 
 
@@ -37,6 +39,8 @@ static TaskHandle_t             h_task_worker           = nullptr;
 //----------------------------------------------------------------------------------
 static void                     task_connector(void*);  // attend BLE + creds, connecte Wi-Fi, arme RUN et réveille monitor
 static void                     task_monitor(void*);    // surveille BLE/Wi-Fi; sur perte -> coupe RUN, réveille connector, se suspend
+static void                     task_hardware(void*);   // réaliser toutes interactions avec le hardware
+//
 static void                     task_worker(void*);     // fait le job tant que RUN est set
 
 
@@ -53,9 +57,10 @@ void core_init(ble_provisioner* ble, wifi_provisioner* wifi, motor_controller* m
 }
 void core_start() {
   // Création des tâches (pinnées sur core 1 — ajuste si besoin)
-  xTaskCreatePinnedToCore(task_connector, "TaskConnector", 4096, nullptr, 3, &h_task_connector, 1);
-  xTaskCreatePinnedToCore(task_monitor,   "TaskMonitor",   4096, nullptr, 2, &h_task_monitor,   1);
-  xTaskCreatePinnedToCore(task_worker,    "TaskWorker",    4096, nullptr, 1, &h_task_worker,    1);
+  xTaskCreatePinnedToCore(task_connector  ,"TASK_CON"       ,4096   ,nullptr    ,4  , &h_task_connector   ,1);
+  xTaskCreatePinnedToCore(task_monitor    ,"TASK_MON"       ,4096   ,nullptr    ,3  , &h_task_monitor     ,1);
+  xTaskCreatePinnedToCore(task_hardware   ,"TASK_HW"        ,4096   ,nullptr    ,2  , &h_task_hardware    ,1);
+  xTaskCreatePinnedToCore(task_worker     ,"TASK_WK"        ,4096   ,nullptr    ,1  , &h_task_worker      ,1);
 
   // Au départ, seul le connector doit travailler
   vTaskSuspend(h_task_monitor);   // monitor attendra la première connexion
@@ -168,12 +173,38 @@ static void task_monitor(void*) {
   }
 }
 
-// 3) WORKER — tourne quand BIT_RUN est set; s'arrête quand il est clear
-static void task_worker(void*) {
+// 4) // HARDWARE - réaliser toutes interactions avec le hardware
+static void task_hardware(void*) {
+  const char* name = pcTaskGetName(NULL);
   for(;;){
     // Attendre l'autorisation
     xEventGroupWaitBits(g_evt, BIT_RUN, pdFALSE, pdTRUE, portMAX_DELAY);
-    Serial.println("[WORKER] START");
+    Serial.printf("[%s] START\n", name);
+
+    // Tant que RUN reste set, on travaille
+    for(;;){
+      EventBits_t bits = xEventGroupGetBits(g_evt);
+      if ((bits != BIT_RUN) == 0) {
+        Serial.printf("[%s] STOP\n", name);
+        break;
+      }
+
+      // Récupérer l'état de la batterie
+      g_battery->read();
+      g_ble->set_battery_level(g_battery->get_percent_value());
+
+      vTaskDelay(pdMS_TO_TICKS(100));
+    }
+  }
+}
+
+// 3) WORKER — tourne quand BIT_RUN est set; s'arrête quand il est clear
+static void task_worker(void*) {
+  const char* name = pcTaskGetName(NULL);
+  for(;;){
+    // Attendre l'autorisation
+    xEventGroupWaitBits(g_evt, BIT_RUN, pdFALSE, pdTRUE, portMAX_DELAY);
+    Serial.printf("[%s] START\n", name);
 
     // Tant que RUN reste set, on travaille
     for(;;){

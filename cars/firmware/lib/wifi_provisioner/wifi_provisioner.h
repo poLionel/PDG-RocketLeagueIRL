@@ -13,7 +13,7 @@
 //- Classe
 class wifi_provisioner {
 public:
-  void                  init(const char* device_id = nullptr);
+  void                  init(String device_id);
   bool                  connect(const String& ssid, const String& pass, uint32_t timeout_ms = 15000);
   void                  disconnect(bool erase_cfg = true);   // coupe le Wi-Fi (option: effacer cfg)
   

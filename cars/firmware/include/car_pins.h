@@ -1,5 +1,5 @@
-#ifndef ADAFRUIT_DRV8833_PINS_H
-#define ADAFRUIT_DRV8833_PINS_H
+#ifndef CAR_PINS_H
+#define CAR_PINS_H
 
 
 
@@ -20,4 +20,4 @@
 
 
 
-#endif //ADAFRUIT_DRV8833_PINS_H
+#endif //CAR_PINS_H
