@@ -99,7 +99,7 @@ namespace RLIRL.Server.Services.Server
                 catch (Exception ex)
                 {
                     // Log any exceptions that occur during command processing
-                    Console.WriteLine($"Error processing command: {ex.Message}");
+                    logger.LogError(ex, "Error processing command");
                 }
             }
         }
