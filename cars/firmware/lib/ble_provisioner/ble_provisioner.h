@@ -23,6 +23,9 @@ public:
     String              get_pass() const { return pass_.get(); }
     String              get_status() const { return status_.get(); }
     String              get_device_id() const { return device_id_.get(); }
+    int8_t              get_x_direction() const { return x_direction_.get(); }
+    int8_t              get_y_direction() const { return y_direction_.get(); }
+    int8_t              get_speed_direction() const { return speed_direction_.get(); }
 
     void                set_battery_level(uint8_t percent) { battery_.set(percent); battery_.publish(); } 
 
@@ -41,6 +44,10 @@ private:
     gatt_slot<String>   status_                         { CHAR_STATUS_UUID      , "idle" };
     gatt_slot<String>   device_id_                      { CHAR_DEVID_UUID       , "" };
     gatt_slot<uint8_t>  battery_                        { CHAR_BATTERY_UUID     , 100};
+
+    gatt_slot<int8_t>   x_direction_                    { CHAR_DIR_X_UUID       , 0}; //-128(-1.28)(min:-1.00) à +127(+1.27)(max:+1.00)
+    gatt_slot<int8_t>   y_direction_                    { CHAR_DIR_Y_UUID       , 0}; //-128(-1.28)(min:-1.00) à +127(+1.27)(max:+1.00)
+    gatt_slot<int8_t>   speed_direction_                { CHAR_DIR_SPEED_UUID   , 0}; //-128(-1.28)(min:-1.00) à +127(+1.27)(max:+1.00) 
 
     bool                is_connected_                   = false;
 };

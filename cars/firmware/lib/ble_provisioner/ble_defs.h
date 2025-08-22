@@ -109,6 +109,9 @@ static const NimBLEUUID CHAR_APPLY_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0
 static const NimBLEUUID CHAR_STATUS_UUID        ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f4");
 static const NimBLEUUID CHAR_BATTERY_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f5");
 
+static const NimBLEUUID CHAR_DIR_X_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f6");
+static const NimBLEUUID CHAR_DIR_Y_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f7");
+static const NimBLEUUID CHAR_DIR_SPEED_UUID     ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f8");
 
 
 
@@ -121,7 +124,9 @@ public:
     : slot_(slot), status_(status) {}
     void onWrite(NimBLECharacteristic* c) override {
         std::string v = c->getValue();
-        slot_->value = String(v.c_str());         // MAJ cache local
+        if (!v.empty()) {
+            slot_->value = String(v.c_str());         // MAJ cache local
+        }
     }
 private:
     gatt_slot<String>* slot_;
@@ -133,10 +138,30 @@ public:
     : slot_(slot), status_(status) {}
     void onWrite(NimBLECharacteristic* c) override {
         std::string v = c->getValue();
-        slot_->value = String(v.c_str());         // MAJ cache local
+        if (!v.empty()) {
+            slot_->value = String(v.c_str());         // MAJ cache local
+        }
     }
 private:
     gatt_slot<String>* slot_;
+    gatt_slot<String>* status_;
+};
+class cb_write_direction : public NimBLECharacteristicCallbacks{
+public:
+    cb_write_direction(gatt_slot<int8_t>* direction, gatt_slot<String>* status)
+    : direction_(direction), status_(status) {}
+    void onWrite(NimBLECharacteristic* c) override {
+        std::string v = c->getValue();
+        if (!v.empty()) {
+            int8_t dir = static_cast<int8_t>(v[0]);  // premier octet
+            direction_->value = dir;
+
+            // LOG série (tu verras enfin quelque chose)
+            Serial.printf("[BLE][DIR] %s = %d\n", c->getUUID().toString().c_str(), (int)dir);
+        }
+    }
+private:
+    gatt_slot<int8_t>* direction_;
     gatt_slot<String>* status_;
 };
 class cb_apply_wifi_credentials : public NimBLECharacteristicCallbacks {

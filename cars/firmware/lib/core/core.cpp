@@ -191,7 +191,11 @@ static void task_hardware(void*) {
 
       // Récupérer l'état de la batterie
       g_battery->read();
-      g_ble->set_battery_level(g_battery->get_percent_value());
+      float battery_level_percent = g_battery->get_percent_value();
+      float battery_level_volt = g_battery->get_volt_value();
+      float max_value_of_duty_cycle = 3 / battery_level_volt;
+
+      g_ble->set_battery_level(battery_level_percent);
 
       vTaskDelay(pdMS_TO_TICKS(100));
     }

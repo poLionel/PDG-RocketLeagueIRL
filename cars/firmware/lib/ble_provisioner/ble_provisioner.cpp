@@ -37,6 +37,12 @@ ble_provisioner::ble_provisioner() {
         nullptr);
     battery_.set_callback(
         nullptr);
+    x_direction_.set_callback(
+        new cb_write_direction(&x_direction_, &status_));
+    y_direction_.set_callback(
+        new cb_write_direction(&y_direction_, &status_));
+    speed_direction_.set_callback(
+        new cb_write_direction(&speed_direction_, &status_));
 }
 
 
@@ -62,7 +68,10 @@ void ble_provisioner::init(String device_id) {
 
     device_id_.create(service_, NIMBLE_PROPERTY::READ, true);
     status_.create(service_, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY, true);
-    battery_.create(service_, NIMBLE_PROPERTY::READ);
+    battery_.create(service_, NIMBLE_PROPERTY::READ, true);
+    x_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
+    y_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
+    speed_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
 
     // Caractéristiques (autres)
     device_id_.set(device_id);
