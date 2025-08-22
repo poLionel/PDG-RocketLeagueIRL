@@ -52,9 +52,54 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Notify successfull server build and test
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
         run: |
-          echo "Server build and tests successfull"
+          cd server
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio
+
+      - name: Run Python linting
+        run: |
+          cd server
+          pip install flake8
+          # Stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test Python imports
+        run: |
+          cd server
+          python -c "import models; print('Models import successful')"
+          python -c "from websocket.websocket import start_server_with_cars; print('WebSocket import successful')"
+
+      - name: Build Docker image
+        run: |
+          cd server
+          docker build -t rocket-league-server:test .
+
+      - name: Test Docker container
+        run: |
+          cd server
+          # Start container in background
+          docker run -d --name test-server -p 8001:8000 rocket-league-server:test
+          # Wait a moment for server to start
+          sleep 5
+          # Check if container is running
+          docker ps | grep test-server
+          # Stop and remove test container
+          docker stop test-server
+          docker rm test-server
+
+      - name: Notify successful server build and test
+        run: |
+          echo "Server build and tests successful"
 
   test-cars:
     runs-on: ubuntu-latest
