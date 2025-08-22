@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RLIRL.Server.Abstractions;
 using RLIRL.Server.Abstractions.Server;
 using System.Data;
@@ -9,7 +10,11 @@ using System.Text.Json.Nodes;
 
 namespace RLIRL.Server.Services.Server
 {
-    internal class ServerCommandListener(IWebSocketProvider webSocketProvider, IOptions<ServerConfiguration> serverConfiguration, IServiceProvider serviceProvider) : IServerCommandListener
+    internal class ServerCommandListener(
+        IWebSocketProvider webSocketProvider,
+        IOptions<ServerConfiguration> serverConfiguration,
+        IServiceProvider serviceProvider,
+        ILogger<ServerCommandListener> logger) : IServerCommandListener
     {
         private Task runningTask = Task.CompletedTask;
 
