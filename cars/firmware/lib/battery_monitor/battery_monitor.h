@@ -18,13 +18,7 @@ struct battery_monitor_config {
     int         adc_pin;
     float       r_battery_side;
     float       r_ground_side;
-
-    // ADC et mesures
-    float       vref;
-    uint16_t    adc_max;
     uint8_t     samples;
-
-    // Niveau de batterie
     float       vfull;
     float       vempty;
 };

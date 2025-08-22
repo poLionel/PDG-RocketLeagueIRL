@@ -13,7 +13,7 @@ motor_controller            motor_ctrl({
   GPIO_MOT_A_DIR, GPIO_MOT_A_DIR_PWM, GPIO_MOT_B_DIR, GPIO_MOT_B_DIR_PWM, GPIO_MOT_SLP
 });
 battery_monitor             battery_mon({
-  GPIO_BAT_SENSE, 100000, 100000, 3.3f, 4095, 8, 4.2f, 3.3f
+  GPIO_BAT_SENSE, 100000, 100000, 8, 4.2f, 3.3f
 });
 
 

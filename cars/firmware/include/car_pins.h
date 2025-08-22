@@ -16,7 +16,7 @@
 #define     GPIO_ACC_SDA             5
 #define     GPIO_ACC_SCL             6
 // MESURE BATTERY
-#define     GPIO_BAT_SENSE           9
+#define     GPIO_BAT_SENSE           7
 
 
 
