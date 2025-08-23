@@ -12,32 +12,6 @@ def initialize_cars():
     """Initialize static cars for testing purposes."""
     car_manager = CarManager()
     
-    # Add some static cars for testing
-    car1 = Car(car_id=1, name="Lightning McQueen")
-    car1.battery_level = 85
-    car1.move = "forward"
-    car1.boost = False
-    car1.boost_value = 100
-    car1.connected = True
-    
-    car2 = Car(car_id=2, name="Speed Racer")
-    car2.battery_level = 72
-    car2.move = "stopped"
-    car2.boost = False
-    car2.boost_value = 85
-    car2.connected = True
-    
-    car3 = Car(car_id=3, name="Knight Rider")
-    car3.battery_level = 95
-    car3.move = "backward"
-    car3.boost = True
-    car3.boost_value = 60
-    car3.connected = False
-    
-    car_manager.add_car(car1)
-    car_manager.add_car(car2)
-    car_manager.add_car(car3)
-    
     print(f"Initialized {car_manager.get_car_count()} cars:")
     for car in car_manager.get_all_cars():
         print(f"  {car}")
@@ -57,6 +31,12 @@ async def start_bluetooth_service(car_manager: CarManager):
     # Add callback to log device events
     def device_callback(device, event):
         logger.info(f"Bluetooth event: {event} - {device}")
+        
+        # Log car manager status after device events
+        if event == "discovered":
+            logger.info(f"Car manager now has {car_manager.get_car_count()} cars:")
+            for car in car_manager.get_all_cars():
+                logger.info(f"  {car}")
     
     bluetooth_service.add_device_callback(device_callback)
     

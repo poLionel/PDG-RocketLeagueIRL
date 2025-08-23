@@ -65,43 +65,6 @@
             gap: 10px;
             align-items: center;
         }
-        .bluetooth-section {
-            border-top: 2px solid #007bff;
-            padding-top: 20px;
-            margin-top: 20px;
-        }
-        .device-list {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
-        .device-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .device-item:last-child {
-            border-bottom: none;
-        }
-        .device-info {
-            flex-grow: 1;
-        }
-        .device-address {
-            font-family: monospace;
-            color: #666;
-            font-size: 0.9em;
-        }
-        .paired-badge {
-            background-color: #28a745;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.8em;
-        }
         #messages {
             height: 200px;
             overflow-y: scroll;
@@ -110,6 +73,33 @@
             background-color: #f8f9fa;
             font-family: monospace;
             font-size: 12px;
+        }
+        .command-section {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .command-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .command-inputs label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .command-inputs input, .command-inputs select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .quick-commands {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
         }
     </style>
 </head>
@@ -131,29 +121,48 @@
         </div>
     </div>
 
-    <div class="container bluetooth-section">
-        <h2>🔵 Bluetooth Management</h2>
-        <div>
-            <button onclick="getBluetoothStatus()">Get Bluetooth Status</button>
-            <button onclick="startBluetoothScan()">Start Scan</button>
-            <button onclick="stopBluetoothScan()">Stop Auto-Discovery</button>
-        </div>
-        
-        <div id="bluetoothStatus" class="status">
-            Bluetooth status unknown
-        </div>
-        
-        <h3>Discovered Devices</h3>
-        <div id="discoveredDevices" class="device-list">
-            <div style="padding: 20px; text-align: center; color: #666;">
-                No devices discovered yet. Click "Start Scan" to begin.
+    <div class="container">
+        <h2>🔧 BLE Car Commands</h2>
+        <p>Send commands directly to cars via Bluetooth Low Energy:</p>
+        <div class="command-section">
+            <div class="command-inputs">
+                <label for="commandCarId">Car ID:</label>
+                <input type="number" id="commandCarId" placeholder="Enter car ID">
+                
+                <label for="commandType">Command:</label>
+                <select id="commandType">
+                    <option value="test">Test Command</option>
+                    <option value="wifi">WiFi Credentials</option>
+                    <option value="move">Move Command</option>
+                    <option value="status">Status Request</option>
+                    <option value="ping">Ping</option>
+                    <option value="custom">Custom</option>
+                </select>
+                
+                <label for="commandMessage">Message:</label>
+                <input type="text" id="commandMessage" placeholder="Enter message" value="Hello from WebSocket!">
+                
+                <button onclick="sendCustomCommand()">📡 Send Command</button>
             </div>
-        </div>
-        
-        <h3>Paired Devices</h3>
-        <div id="pairedDevices" class="device-list">
-            <div style="padding: 20px; text-align: center; color: #666;">
-                No paired devices found.
+            
+            <div class="wifi-section" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+                <h4>📶 WiFi Credentials</h4>
+                <div class="command-inputs">
+                    <label for="wifiSSID">SSID:</label>
+                    <input type="text" id="wifiSSID" placeholder="WiFi Network Name" value="TestWiFi">
+                    
+                    <label for="wifiPassword">Password:</label>
+                    <input type="password" id="wifiPassword" placeholder="WiFi Password" value="TestPassword123">
+                    
+                    <button onclick="sendWiFiToAllCars()">📶 Set WiFi on All Cars</button>
+                </div>
+            </div>
+            
+            <div class="quick-commands">
+                <h4>Quick Commands:</h4>
+                <button onclick="sendQuickCommand('ping', 'Are you there?')">🏓 Ping All Cars</button>
+                <button onclick="sendQuickCommand('status', 'Send status update')">📊 Request Status</button>
+                <button onclick="sendQuickCommand('test', 'Test from HTML interface')">🧪 Test Message</button>
             </div>
         </div>
     </div>
@@ -207,7 +216,6 @@
                 addMessage('Connected to WebSocket server', 'success');
                 updateConnectionStatus(true);
                 getAllCars(); // Load cars when connected
-                getBluetoothStatus(); // Load Bluetooth status
             };
 
             socket.onmessage = function(event) {
@@ -249,12 +257,6 @@
             if (data.cars) {
                 // Handle get_all_cars response
                 updateCarControls(data.cars);
-            } else if (data.bluetooth_status) {
-                // Handle Bluetooth status response
-                updateBluetoothStatus(data.bluetooth_status);
-            } else if (data.discovered_devices) {
-                // Handle scan results
-                updateDiscoveredDevices(data.discovered_devices);
             }
         }
 
@@ -291,72 +293,13 @@
                         <button onclick="moveCar(${car.car}, '${car.move}', true)">⚡ On</button>
                         <button onclick="moveCar(${car.car}, '${car.move}', false)">⚪ Off</button>
                     </div>
+                    <div class="boost-controls" style="margin-top: 10px;">
+                        <label>BLE Commands:</label>
+                        <button onclick="sendWiFiCredentials(${car.car})">📶 Set WiFi</button>
+                    </div>
+                    ${car.ble_address ? `<div style="font-size: 0.8em; color: #666; margin-top: 5px;">BLE: ${car.ble_address}</div>` : ''}
                 `;
                 controlsDiv.appendChild(carDiv);
-            });
-        }
-
-        function updateBluetoothStatus(status) {
-            const statusDiv = document.getElementById('bluetoothStatus');
-            statusDiv.innerHTML = `
-                <strong>Scanning:</strong> ${status.is_scanning ? '🟢 Active' : '🔴 Inactive'}<br>
-                <strong>Discovered:</strong> ${status.discovered_devices.length} devices<br>
-                <strong>Paired:</strong> ${status.paired_devices.length} devices
-            `;
-            
-            updateDiscoveredDevices(status.discovered_devices);
-            updatePairedDevices(status.paired_devices);
-        }
-
-        function updateDiscoveredDevices(devices) {
-            const devicesDiv = document.getElementById('discoveredDevices');
-            
-            if (devices.length === 0) {
-                devicesDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No devices discovered</div>';
-                return;
-            }
-
-            devicesDiv.innerHTML = '';
-            devices.forEach(device => {
-                const deviceDiv = document.createElement('div');
-                deviceDiv.className = 'device-item';
-                deviceDiv.innerHTML = `
-                    <div class="device-info">
-                        <div><strong>${device.name}</strong></div>
-                        <div class="device-address">${device.address}</div>
-                    </div>
-                    <div>
-                        ${device.paired ? '<span class="paired-badge">Paired</span>' : ''}
-                        ${!device.paired ? `<button onclick="pairDevice('${device.address}', '${device.name}')">Pair</button>` : ''}
-                    </div>
-                `;
-                devicesDiv.appendChild(deviceDiv);
-            });
-        }
-
-        function updatePairedDevices(devices) {
-            const devicesDiv = document.getElementById('pairedDevices');
-            
-            if (devices.length === 0) {
-                devicesDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No paired devices</div>';
-                return;
-            }
-
-            devicesDiv.innerHTML = '';
-            devices.forEach(device => {
-                const deviceDiv = document.createElement('div');
-                deviceDiv.className = 'device-item';
-                deviceDiv.innerHTML = `
-                    <div class="device-info">
-                        <div><strong>${device.name}</strong></div>
-                        <div class="device-address">${device.address}</div>
-                    </div>
-                    <div>
-                        <span class="paired-badge">Paired</span>
-                        ${device.connected ? '<span style="color: green;">🟢</span>' : '<span style="color: red;">🔴</span>'}
-                    </div>
-                `;
-                devicesDiv.appendChild(deviceDiv);
             });
         }
 
@@ -383,32 +326,62 @@
             });
         }
 
-        // Bluetooth control functions
-        function getBluetoothStatus() {
+        // BLE Car command functions
+        function sendCustomCommand() {
+            const carId = document.getElementById('commandCarId').value;
+            const command = document.getElementById('commandType').value;
+            const message = document.getElementById('commandMessage').value;
+            
+            if (!carId) {
+                addMessage('Please enter a car ID', 'error');
+                return;
+            }
+            
+            if (command === 'wifi') {
+                sendWiFiCredentials(parseInt(carId));
+            } else {
+                sendToCar(parseInt(carId), command, message);
+            }
+        }
+
+        function sendWiFiCredentials(carId) {
+            const ssid = document.getElementById('wifiSSID').value || "TestWiFi";
+            const password = document.getElementById('wifiPassword').value || "TestPassword123";
+            
+            addMessage(`Setting WiFi credentials on car ${carId}: SSID=${ssid}`);
             sendMessage({
-                "action": "get_bluetooth_status"
+                "action": "set_wifi_credentials",
+                "car": carId,
+                "ssid": ssid,
+                "password": password
             });
         }
 
-        function startBluetoothScan() {
-            sendMessage({
-                "action": "start_bluetooth_scan"
-            });
+        function sendWiFiToAllCars() {
+            const ssid = document.getElementById('wifiSSID').value || "TestWiFi";
+            const password = document.getElementById('wifiPassword').value || "TestPassword123";
+            
+            // Send to all available cars
+            for (const carId in cars) {
+                sendWiFiCredentials(parseInt(carId));
+            }
         }
 
-        function stopBluetoothScan() {
-            sendMessage({
-                "action": "stop_bluetooth_scan"
-            });
-        }
-
-        function pairDevice(address, name) {
-            addMessage(`Attempting to pair with ${name} (${address})...`);
-            sendMessage({
-                "action": "pair_bluetooth_device",
-                "address": address,
-                "name": name
-            });
+        function sendQuickCommand(command, message) {
+            // Send to all available cars using direct WebSocket messages
+            for (const carId in cars) {
+                addMessage(`Sending ${command} command to car ${carId}: ${message}`);
+                if (command === 'wifi') {
+                    sendWiFiCredentials(parseInt(carId));
+                } else {
+                    sendMessage({
+                        "action": "send_to_car",
+                        "car": parseInt(carId),
+                        "command": command,
+                        "message": message
+                    });
+                }
+            }
         }
 
         // Auto-connect on page load

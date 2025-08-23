@@ -3,6 +3,7 @@ import websockets
 import websockets.exceptions
 import json
 from .handlers import *
+from .async_handlers import ASYNC_HANDLERS
 
 # Global car manager reference
 car_manager = None
@@ -25,7 +26,10 @@ async def handle_message(websocket, path=None):
             
             action = data.get("action")
             
-            if action in ACTION_HANDLERS:
+            # Check if this is an async action first
+            if action in ASYNC_HANDLERS:
+                response = await ASYNC_HANDLERS[action](data, car_manager)
+            elif action in ACTION_HANDLERS:
                 response = ACTION_HANDLERS[action](data, car_manager)
             else:
                 response = handle_unknown_action(data)
