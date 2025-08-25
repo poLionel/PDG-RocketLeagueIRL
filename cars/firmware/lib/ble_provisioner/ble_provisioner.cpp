@@ -75,6 +75,7 @@ void ble_provisioner::init(String device_id) {
 
     // Caractéristiques (autres)
     device_id_.set(device_id);
+    device_id_.publish();
 }
 void ble_provisioner::start(){
     if (!service_) return;
