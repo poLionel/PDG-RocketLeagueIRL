@@ -8,6 +8,7 @@
 //----------------------------------------------------------------------------------
 #include <Arduino.h>
 #include <NimBLEDevice.h>
+#include <optional>
 
 
 
@@ -57,17 +58,47 @@ struct gatt_codec<bool> {
         return !s.empty() && s[0] != 0;
     }
 };
+// Valeur de slot générique
+template<typename T>
+struct gatt_slot_value {
+    gatt_slot_value(const T& v = T{}) : value_(v) {}
+    gatt_slot_value(const T& v, const T& mn, const T& mx)
+        : value_(v)
+        , min_((mn <= mx) ? mn : mx)
+        , max_((mn <= mx) ? mx : mn)
+    { clamp(); }
+
+    void set(const T& v) { value_ = v; clamp(); }
+    const T& get() const { return value_; }
+private:
+    T value_{};
+    std::optional<T> min_{};
+    std::optional<T> max_{};
+
+    bool has_bounds() const { return min_.has_value() && max_.has_value(); }
+    void clamp() {
+        if constexpr (std::is_arithmetic_v<T>) {
+            if (has_bounds()) {
+                if (value_ < *min_) value_ = *min_;
+                else if (value_ > *max_) value_ = *max_;
+            }
+        }
+    }
+};
 // Slot générique
 template<typename T>
 struct gatt_slot {
     NimBLEUUID                        uuid{};
-    T                                 value{};
     NimBLECharacteristic*             ch          = nullptr;
-    NimBLECharacteristicCallbacks*    cb          = nullptr; // propriété laissée à NimBLE
+    NimBLECharacteristicCallbacks*    cb          = nullptr;
 
-    gatt_slot() = default;
-    gatt_slot(const NimBLEUUID& u, const T& initial = T{}, NimBLECharacteristicCallbacks* callbacks = nullptr)
+
+    gatt_slot() = delete;
+    gatt_slot(const NimBLEUUID& u,
+              const gatt_slot_value<T>& initial,
+              NimBLECharacteristicCallbacks* callbacks = nullptr)
         : uuid(u), value(initial), cb(callbacks) {}
+
 
     // Création réelle quand tu as le service
     NimBLECharacteristic* 
@@ -81,16 +112,29 @@ struct gatt_slot {
 
 
     // Valeurs 
-    void        set(const T& v) { value = v; }
-    const T&    get() const { return value; }
+    void        set(const T& v) { value.set(v); }
+    const T&    get() const     { return value.get(); }
 
-    void        publish(bool notify=false) { if (ch) { gatt_codec<T>::set(ch, value); if (notify) ch->notify(); } }
-    void        pull() { if (ch) value = gatt_codec<T>::get(ch); }
+    void        publish(bool notify=false) {
+        if (ch) {
+            gatt_codec<T>::set(ch, value.get());
+            if (notify) ch->notify();
+        }
+    }
+    void        pull() {
+        if (ch) {
+            T v = gatt_codec<T>::get(ch);
+            value.set(v); // re-clamp éventuel
+        }
+    }
 
     void        bind(NimBLECharacteristic* c) { ch = c; if (cb && ch) ch->setCallbacks(cb); }
     bool        is_bound() const { return ch != nullptr; }
 
     void        clear(bool notify=false) { set(T{}); if(notify) publish(true);}
+
+private:
+    gatt_slot_value<T>                value{};
 };
 
 
@@ -125,7 +169,7 @@ public:
     void onWrite(NimBLECharacteristic* c) override {
         std::string v = c->getValue();
         if (!v.empty()) {
-            slot_->value = String(v.c_str());         // MAJ cache local
+            slot_->set(String(v.c_str()));         // MAJ cache local
         }
     }
 private:
@@ -139,7 +183,7 @@ public:
     void onWrite(NimBLECharacteristic* c) override {
         std::string v = c->getValue();
         if (!v.empty()) {
-            slot_->value = String(v.c_str());         // MAJ cache local
+            slot_->set(String(v.c_str()));         // MAJ cache local
         }
     }
 private:
@@ -154,10 +198,10 @@ public:
         std::string v = c->getValue();
         if (!v.empty()) {
             int8_t dir = static_cast<int8_t>(v[0]);  // premier octet
-            direction_->value = dir;
+            direction_->set(dir);
 
             // LOG série (tu verras enfin quelque chose)
-            Serial.printf("[BLE][DIR] %s = %d\n", c->getUUID().toString().c_str(), (int)dir);
+            Serial.printf("[BLE][DIR] %s = %d / %d\n", c->getUUID().toString().c_str(), (int)dir, direction_->get());
         }
     }
 private:

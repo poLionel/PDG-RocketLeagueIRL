@@ -38,16 +38,16 @@ private:
     NimBLEService*      service_                        = nullptr;
     NimBLEAdvertising*  adv_                            = nullptr;
 
-    gatt_slot<String>   ssid_                           { CHAR_SSID_UUID        , ""};
-    gatt_slot<String>   pass_                           { CHAR_PASS_UUID        , ""};
-    gatt_slot<bool>     apply_wifi_credentials_         { CHAR_APPLY_UUID       , false };
-    gatt_slot<String>   status_                         { CHAR_STATUS_UUID      , "idle" };
-    gatt_slot<String>   device_id_                      { CHAR_DEVID_UUID       , "" };
-    gatt_slot<uint8_t>  battery_                        { CHAR_BATTERY_UUID     , 100};
+    gatt_slot<String>   ssid_                           { CHAR_SSID_UUID        , {""} };
+    gatt_slot<String>   pass_                           { CHAR_PASS_UUID        , {""} };
+    gatt_slot<bool>     apply_wifi_credentials_         { CHAR_APPLY_UUID       , {false} };
+    gatt_slot<String>   status_                         { CHAR_STATUS_UUID      , {"idle"} };
+    gatt_slot<String>   device_id_                      { CHAR_DEVID_UUID       , {""} };
+    gatt_slot<uint8_t>  battery_                        { CHAR_BATTERY_UUID     , {100, 0, 100} };
 
-    gatt_slot<int8_t>   x_direction_                    { CHAR_DIR_X_UUID       , 0}; //-128(-1.28)(min:-1.00) à +127(+1.27)(max:+1.00)
-    gatt_slot<int8_t>   y_direction_                    { CHAR_DIR_Y_UUID       , 0}; //-128(-1.28)(min:-1.00) à +127(+1.27)(max:+1.00)
-    gatt_slot<int8_t>   speed_direction_                { CHAR_DIR_SPEED_UUID   , 0}; //-128(-1.28)(min:-1.00) à +127(+1.27)(max:+1.00) 
+    gatt_slot<int8_t>   x_direction_                    { CHAR_DIR_X_UUID       , {0, -100, 100} }; //-128(-1.28)(min:-1.00) à +127(+1.27)(max:+1.00)
+    gatt_slot<int8_t>   y_direction_                    { CHAR_DIR_Y_UUID       , {0, -100, 100}}; //-128(-1.28)(min:-1.00) à +127(+1.27)(max:+1.00)
+    gatt_slot<int8_t>   speed_direction_                { CHAR_DIR_SPEED_UUID   , {0, 0, 100}}; //-128(-1.28)(min:-1.00) à +127(+1.27)(max:+1.00) 
 
     bool                is_connected_                   = false;
 };
