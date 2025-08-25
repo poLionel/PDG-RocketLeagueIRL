@@ -44,6 +44,7 @@ public:
                 
     void                        drive(float x, motor::Direction direction, float speed = 0.7f);
 
+    const motor_component       get_component() const { return cfg_.component; }
 private:
     motor_controller_config     cfg_;
     motor::DRV8833              drv;

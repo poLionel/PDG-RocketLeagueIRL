@@ -14,7 +14,7 @@
 //- STRUCTURES
 //----------------------------------------------------------------------------------
 struct battery_component { 
-    const                       char* description; 
+    const char*                 description; 
     float                       nominal_voltage; 
     float                       minimum_voltage; 
     float                       maximum_voltage; 
@@ -39,11 +39,12 @@ public:
     battery_monitor(battery_monitor_config cfg);
 
     void                        init();
+    
     void                        read();
 
     float                       get_volt_value() const { return battery_value_volt; };
     float                       get_percent_value() const { return battery_value_percent; };
-
+    const battery_component     get_component() const { return cfg_.component; }
 private:
     battery_monitor_config      cfg_;
     float                       battery_value_volt        = 0.0f;
