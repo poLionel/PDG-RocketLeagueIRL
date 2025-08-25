@@ -189,13 +189,19 @@ static void task_hardware(void*) {
         break;
       }
 
-      // Récupérer l'état de la batterie
+      // Récupérer es données
       g_battery->read();
       float battery_level_percent = g_battery->get_percent_value();
-      float battery_level_volt = g_battery->get_volt_value();
-      float max_value_of_duty_cycle = 3 / battery_level_volt;
 
+      // Conversion / Calcul des données
+      float max_speed = g_motor->get_component().nominal_voltage / g_battery->get_volt_value();
+      float x_direction = (float)g_ble->get_x_direction() / 100.0f;
+      motor::Direction y_direction = (g_ble->get_y_direction() == 100 ? motor::Direction::Forward : motor::Direction::Backward);
+      float speed = max_speed * ((float)g_ble->get_speed_direction() / 100.0f);
+
+      // Envoie des données
       g_ble->set_battery_level(battery_level_percent);
+      g_motor->drive(x_direction, y_direction, speed);
 
       vTaskDelay(pdMS_TO_TICKS(100));
     }
