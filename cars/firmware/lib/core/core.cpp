@@ -177,11 +177,14 @@ static void task_monitor(void*) {
 static void task_hardware(void*) {
   const char* name = pcTaskGetName(NULL);
   for(;;){
+    g_motor->stop();
+
     // Attendre l'autorisation
     xEventGroupWaitBits(g_evt, BIT_RUN, pdFALSE, pdTRUE, portMAX_DELAY);
     Serial.printf("[%s] START\n", name);
 
     // Tant que RUN reste set, on travaille
+    g_motor->start();
     for(;;){
       EventBits_t bits = xEventGroupGetBits(g_evt);
       if ((bits != BIT_RUN) == 0) {
@@ -201,9 +204,13 @@ static void task_hardware(void*) {
 
       // Envoie des données
       g_ble->set_battery_level(battery_level_percent);
+
+
+      Serial.printf("Battery : %.2f / y : %.2f / x : %.2f / s : %.2f\n", 
+                    g_battery->get_volt_value(), ((float)g_ble->get_y_direction() / 100.0f), x_direction, speed);
       g_motor->drive(x_direction, y_direction, speed);
 
-      vTaskDelay(pdMS_TO_TICKS(100));
+      vTaskDelay(pdMS_TO_TICKS(500));
     }
   }
 }
