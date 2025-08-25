@@ -8,7 +8,8 @@
 //----------------------------------------------------------------------------------
 //- CONSTRUCTEURS / DESCTRUCTEURS
 //----------------------------------------------------------------------------------
-battery_monitor::battery_monitor(battery_monitor_config cfg) : cfg_(cfg) {}
+battery_monitor::battery_monitor(battery_monitor_config cfg) : 
+    cfg_(cfg) {}
 
 
 
@@ -32,12 +33,12 @@ void battery_monitor::read() {
     }
     const float v_meas = (acc_mV / float(cfg_.samples)) / 1000.0f; // Volts au milieu du pont
     battery_value_volt = v_meas * ((cfg_.r_battery_side + cfg_.r_ground_side) / cfg_.r_ground_side);
-    if (battery_value_volt <= cfg_.vempty) {
+    if (battery_value_volt <= cfg_.component.minimum_voltage) {
         battery_value_percent = 0.0f;
-    } else if (battery_value_volt >= cfg_.vfull) {
+    } else if (battery_value_volt >= cfg_.component.maximum_voltage) {
         battery_value_percent = 100.0f;
     } else {
-        const float t = (battery_value_volt - cfg_.vempty) / (cfg_.vfull - cfg_.vempty);
+        const float t = (battery_value_volt - cfg_.component.minimum_voltage) / (cfg_.component.maximum_voltage - cfg_.component.minimum_voltage);
         battery_value_percent = t * 100.0f;
     }
 }

@@ -14,12 +14,19 @@
 //----------------------------------------------------------------------------------
 //- STRUCTURES
 //----------------------------------------------------------------------------------
+struct motor_component {
+    const char*                 description;
+    float                       nominal_voltage;
+    float                       no_load_current;
+    float                       no_load_speed_rpm;
+};
 struct motor_controller_config {
-    uint8_t         ain1;
-    uint8_t         ain2;
-    uint8_t         bin1;
-    uint8_t         bin2;
-    uint8_t         slp_pin;
+    uint8_t                     ain1;
+    uint8_t                     ain2;
+    uint8_t                     bin1;
+    uint8_t                     bin2;
+    uint8_t                     slp_pin;
+    motor_component             component;
 };
 
 
@@ -29,17 +36,17 @@ struct motor_controller_config {
 //----------------------------------------------------------------------------------
 class motor_controller {
 public:
-    motor_controller(motor_controller_config cfg)
-        : drv(cfg.ain1, cfg.ain2, cfg.bin1, cfg.bin2, cfg.slp_pin) {}
+    motor_controller(motor_controller_config cfg);
 
-    void        init();
-    void        start();
-    void        stop();
-
-    void        drive(float x, motor::Direction direction, float speed = 0.7f);
+    void                        init();
+    void                        start();
+    void                        stop();
+                
+    void                        drive(float x, motor::Direction direction, float speed = 0.7f);
 
 private:
-    motor::DRV8833 drv;   // instance du driver
+    motor_controller_config     cfg_;
+    motor::DRV8833              drv;
 };
 
 

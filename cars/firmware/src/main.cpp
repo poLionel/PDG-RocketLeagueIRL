@@ -7,14 +7,29 @@
 
 
 //----------------------------------------------------------------------------------
+// COMPOSANTS
+battery_component battery_comp{
+  "LP803040 LiPo",
+  3.7f,
+  3.3f,
+  4.2f,
+  1000.0f
+};
+motor_component motor_comp{
+  "Micro-moteur N20",
+  3.0f,
+  0.2f,
+  100.0f
+};
+//----------------------------------------------------------------------------------
 // OBJETS GLOBAUX
 ble_provisioner             ble_prov;
 wifi_provisioner            wifi_prov;
 motor_controller            motor_ctrl({
-  GPIO_MOT_A_DIR, GPIO_MOT_A_DIR_PWM, GPIO_MOT_B_DIR, GPIO_MOT_B_DIR_PWM, GPIO_MOT_SLP
+  GPIO_MOT_A_DIR, GPIO_MOT_A_DIR_PWM, GPIO_MOT_B_DIR, GPIO_MOT_B_DIR_PWM, GPIO_MOT_SLP, motor_comp
 });
 battery_monitor             battery_mon({
-  GPIO_BAT_SENSE, 100000, 100000, 8, 4.2f, 3.3f
+  GPIO_BAT_SENSE, 100000, 100000, 8, battery_comp
 });
 
 

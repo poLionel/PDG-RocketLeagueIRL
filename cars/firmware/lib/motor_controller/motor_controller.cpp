@@ -6,6 +6,8 @@
 
 //----------------------------------------------------------------------------------
 //- CONSTRUCTEURS / DESCTRUCTEURS
+motor_controller::motor_controller(motor_controller_config cfg) : 
+    cfg_(cfg), drv(cfg.ain1, cfg.ain2, cfg.bin1, cfg.bin2, cfg.slp_pin) {}
 
 
 
