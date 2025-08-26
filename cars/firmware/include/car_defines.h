@@ -1,18 +1,14 @@
-#ifndef WIFI_DEFS_H
-#define WIFI_DEFS_H
+#ifndef CAF_DEFINES
+#define CAF_DEFINES
 
 
 
 //----------------------------------------------------------------------------------
-//- INCLUDES
-#include <Arduino.h>
-#include <WiFi.h>
-
-
-
+// DEFINES
 //----------------------------------------------------------------------------------
-//- VARIABLES GLOBALES
+// DRIVER MOTEURS
+#define     DEVICE_ID_PREFIX        "RL-CAR-"
 
 
 
-#endif // WIFI_DEFS_H
+#endif //CAF_DEFINES
