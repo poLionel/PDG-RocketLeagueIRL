@@ -7,13 +7,18 @@
 //- INCLUDES
 //----------------------------------------------------------------------------------
 #include <Arduino.h>
-#include <DRV8833.h>  // lib installée via PlatformIO
 
 
 
 //----------------------------------------------------------------------------------
 //- STRUCTURES
 //----------------------------------------------------------------------------------
+enum class motor_decay_mode {
+    slow, fast
+};
+enum class motor_direction{
+    forward, backward,
+};
 struct motor_component {
     const char*                 description;
     float                       nominal_voltage;
@@ -42,12 +47,16 @@ public:
     void                        start();
     void                        stop();
                 
-    void                        drive(float x, motor::Direction direction, float speed = 0.7f);
+    void                        drive(float x, motor_direction direction, float speed = 0.7f);
 
     const motor_component       get_component() const { return cfg_.component; }
+    void                        set_decay_mode(motor_decay_mode mode) { decay_mode_ = mode; }
 private:
     motor_controller_config     cfg_;
-    motor::DRV8833              drv;
+    motor_decay_mode            decay_mode_;
+
+    void                        drive_a(motor_decay_mode mode, motor_direction direction, float speed);
+    void                        drive_b(motor_decay_mode mode, motor_direction direction, float speed);
 };
 
 

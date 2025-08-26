@@ -156,6 +156,7 @@ static const NimBLEUUID CHAR_BATTERY_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0
 static const NimBLEUUID CHAR_DIR_X_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f6");
 static const NimBLEUUID CHAR_DIR_Y_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f7");
 static const NimBLEUUID CHAR_DIR_SPEED_UUID     ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f8");
+static const NimBLEUUID CHAR_DECAY_MODE_UUID    ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fa");
 
 
 
