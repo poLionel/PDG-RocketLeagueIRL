@@ -1,6 +1,6 @@
 ﻿namespace RLIRL.Business.Models
 {
-    public class GameData
+    public class GameStatus
     {
     }
 }
