@@ -43,6 +43,8 @@ ble_provisioner::ble_provisioner() {
         new cb_write_direction(&y_direction_, &status_));
     speed_direction_.set_callback(
         new cb_write_direction(&speed_direction_, &status_));
+    decay_mode_.set_callback(
+        new cb_write_direction(&decay_mode_, &status_));
 }
 
 
@@ -72,6 +74,7 @@ void ble_provisioner::init(String device_id) {
     x_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
     y_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
     speed_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
+    decay_mode_.create(service_, NIMBLE_PROPERTY::WRITE, true);
 
     // Caractéristiques (autres)
     device_id_.set(device_id);
