@@ -237,6 +237,95 @@ def handle_send_to_car(data, car_manager=None):
             "message": f"Error sending to car: {str(e)}"
         }
 
+def handle_switch_to_scan_phase(data, car_manager=None):
+    """Handle switch to scan phase requests."""
+    print("Switching to scan phase")
+    
+    if not BLUETOOTH_AVAILABLE:
+        return {
+            "status": "error",
+            "message": "Bluetooth service not available"
+        }
+    
+    bluetooth_service = get_bluetooth_service()
+    if not bluetooth_service:
+        return {
+            "status": "error",
+            "message": "Bluetooth service not initialized"
+        }
+    
+    try:
+        # This will be called async in the WebSocket handler
+        return {
+            "status": "pending",
+            "action": "switch_to_scan_phase",
+            "message": "Switching to scan phase..."
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error switching to scan phase: {str(e)}"
+        }
+
+def handle_switch_to_control_phase(data, car_manager=None):
+    """Handle switch to control phase requests."""
+    print("Switching to control phase")
+    
+    if not BLUETOOTH_AVAILABLE:
+        return {
+            "status": "error",
+            "message": "Bluetooth service not available"
+        }
+    
+    bluetooth_service = get_bluetooth_service()
+    if not bluetooth_service:
+        return {
+            "status": "error",
+            "message": "Bluetooth service not initialized"
+        }
+    
+    try:
+        # This will be called async in the WebSocket handler
+        return {
+            "status": "pending",
+            "action": "switch_to_control_phase",
+            "message": "Switching to control phase..."
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error switching to control phase: {str(e)}"
+        }
+
+def handle_get_phase_status(data, car_manager=None):
+    """Handle get phase status requests."""
+    print("Getting phase status")
+    
+    if not BLUETOOTH_AVAILABLE:
+        return {
+            "status": "error",
+            "message": "Bluetooth service not available"
+        }
+    
+    bluetooth_service = get_bluetooth_service()
+    if not bluetooth_service:
+        return {
+            "status": "error",
+            "message": "Bluetooth service not initialized"
+        }
+    
+    try:
+        ble_status = bluetooth_service.ble_service.get_status()
+        return {
+            "status": "success",
+            "phase_status": ble_status
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error getting phase status: {str(e)}"
+        }
+
 def handle_unknown_action(data):
     """Handle unknown action commands."""
     return {
@@ -258,6 +347,9 @@ ACTION_HANDLERS = {
     "get_all_cars": handle_get_all_cars,
     "send_to_car": handle_send_to_car,
     "connect_to_car": handle_connect_to_car,
+    "switch_to_scan_phase": handle_switch_to_scan_phase,
+    "switch_to_control_phase": handle_switch_to_control_phase,
+    "get_phase_status": handle_get_phase_status,
 }
 
 # Add Bluetooth handlers if available

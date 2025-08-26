@@ -51,14 +51,49 @@ class PDGCarDevice:
         self.device_id = device_id
         self.name = device.name or "Unknown"
         self.address = device.address
-        self.rssi = getattr(device, 'rssi', None)
+        self.rssi = None  # Will be set separately from AdvertisementData
         self.is_connected = False
         self.client: Optional[BleakClient] = None
         self.status_callback: Optional[Callable] = None
-        self.adapter = adapter or "hci0"
+        self.adapter = adapter or "hci1"
 
-    async def connect(self, retries: int = 3) -> bool:
-        """Connect to the BLE device with retry logic and adapter support."""
+    async def _clear_system_connections(self):
+        """Clear any existing system-level connections to this device."""
+        try:
+            import subprocess
+            # Check for existing connections using hcitool
+            result = subprocess.run(
+                ['hcitool', 'con'], 
+                capture_output=True, 
+                text=True, 
+                timeout=5
+            )
+            
+            if self.address.upper() in result.stdout or self.address.lower() in result.stdout:
+                logger.info(f"Found existing connection to {self.address}, clearing...")
+                # Disconnect using hcitool
+                subprocess.run(
+                    ['sudo', 'hcitool', 'dc', self.address], 
+                    capture_output=True, 
+                    text=True, 
+                    timeout=5
+                )
+                await asyncio.sleep(1.0)
+                
+                # Also try bluetoothctl disconnect as backup
+                subprocess.run(
+                    ['bluetoothctl', 'disconnect', self.address], 
+                    capture_output=True, 
+                    text=True, 
+                    timeout=5
+                )
+                await asyncio.sleep(0.5)
+                
+        except Exception as e:
+            logger.debug(f"Could not clear system connections for {self.address}: {e}")
+
+    async def connect(self, retries: int = 5) -> bool:
+        """Connect to the BLE device with enhanced retry logic for Raspberry Pi."""
         # Ensure any previous client is properly closed
         if self.client:
             try:
@@ -68,14 +103,35 @@ class PDGCarDevice:
             self.client = None
             self.is_connected = False
         
+        # Clear any potential system-level connection conflicts
+        await self._clear_system_connections()
+        
         for attempt in range(1, retries + 1):
             try:
-                # Create a fresh client for each attempt
-                self.client = BleakClient(self.device.address, adapter=self.adapter)
-                await self.client.__aenter__()
-                logger.info(f"Connected to device: {self.name} ({self.address}) [adapter={self.adapter}]")
-                await asyncio.sleep(0.3)
+                # Add a small delay before each attempt to let the Bluetooth stack settle
+                if attempt > 1:
+                    await asyncio.sleep(0.5)
+                
+                # Create a fresh client for each attempt with timeout
+                self.client = BleakClient(
+                    self.device.address, 
+                    adapter=self.adapter,
+                    timeout=15.0  # Longer timeout for Raspberry Pi
+                )
+                
+                # Try to connect with timeout
+                connect_task = asyncio.create_task(self.client.__aenter__())
+                try:
+                    await asyncio.wait_for(connect_task, timeout=12.0)
+                    logger.info(f"Connected to device: {self.name} ({self.address}) [adapter={self.adapter}]")
+                except asyncio.TimeoutError:
+                    logger.warning(f"Connection timeout for {self.name} on attempt {attempt}")
+                    raise Exception("Connection timeout")
+                
+                # Give the connection time to stabilize
+                await asyncio.sleep(0.5)
                 self.is_connected = True
+                
                 # Read device ID if not already known
                 if not self.device_id:
                     try:
@@ -85,14 +141,19 @@ class PDGCarDevice:
                         logger.info(f"Device ID for {self.name}: {self.device_id}")
                     except Exception as e:
                         logger.warning(f"Could not read device ID from {self.name}: {e}")
+                
                 # Read initial status
                 try:
                     status_data = await self.client.read_gatt_char(CHAR_STATUS)
                     dump("STATUS(read)", status_data)
                 except Exception as e:
                     logger.warning(f"Could not read initial status from {self.name}: {e}")
+                
+                logger.info(f"Successfully connected to {self.name} on attempt {attempt}")
                 return True
+                
             except Exception as e:
+                error_msg = str(e).lower()
                 logger.error(f"Attempt {attempt}/{retries} failed to connect to {self.name}: {e}")
                 
                 # Clean up failed client
@@ -103,32 +164,82 @@ class PDGCarDevice:
                         pass
                     self.client = None
                 
-                # If the error is 'InProgress', wait longer before retrying
-                if "InProgress" in str(e):
-                    await asyncio.sleep(2.5)
-                elif "connection abort" in str(e).lower() or "failed" in str(e).lower():
-                    # Device reference may be stale, wait a bit longer
-                    await asyncio.sleep(3.0)
-                elif attempt < retries:
-                    await asyncio.sleep(1.0)
-                if attempt < retries:
-                    logger.info("Retrying BLE connection...")
+                # Error-specific retry delays for Raspberry Pi
+                if "inprogress" in error_msg:
+                    # BlueZ operation already in progress
+                    delay = 3.0 + (attempt * 0.5)
+                    logger.info(f"BlueZ InProgress error, waiting {delay}s before retry...")
+                    await asyncio.sleep(delay)
+                elif "connection abort" in error_msg or "software caused" in error_msg:
+                    # Connection aborted - often due to timing or device state
+                    delay = 2.0 + (attempt * 1.0)
+                    logger.info(f"Connection abort error, waiting {delay}s before retry...")
+                    await asyncio.sleep(delay)
+                    # Try to clear any stuck connections
+                    await self._clear_system_connections()
+                elif "failed" in error_msg or "timeout" in error_msg:
+                    # General failure - device may not be responsive
+                    delay = 1.5 + (attempt * 0.5)
+                    logger.info(f"Connection failed, waiting {delay}s before retry...")
+                    await asyncio.sleep(delay)
+                elif "device not found" in error_msg or "not available" in error_msg:
+                    # Device disappeared - wait longer
+                    delay = 4.0
+                    logger.info(f"Device not found, waiting {delay}s before retry...")
+                    await asyncio.sleep(delay)
                 else:
+                    # Unknown error - standard delay
+                    await asyncio.sleep(1.0 + (attempt * 0.5))
+                
+                if attempt < retries:
+                    logger.info(f"Retrying BLE connection to {self.name}...")
+                else:
+                    logger.error(f"Failed to connect to {self.name} after {retries} attempts")
                     self.is_connected = False
                     return False
     
     async def disconnect(self):
-        """Disconnect from the BLE device."""
+        """Disconnect from the BLE device with proper cleanup."""
         if self.client and self.is_connected:
             try:
+                # Stop any active notifications first
                 if self.status_callback:
-                    await self.client.stop_notify(CHAR_STATUS)
+                    try:
+                        await self.client.stop_notify(CHAR_STATUS)
+                    except Exception as e:
+                        logger.debug(f"Could not stop notifications: {e}")
                     self.status_callback = None
+                
+                # Disconnect the client
                 await self.client.__aexit__(None, None, None)
                 self.is_connected = False
                 logger.info(f"Disconnected from {self.name}")
+                
+                # Clear any system-level connections as well
+                await self._clear_system_connections()
+                
             except Exception as e:
                 logger.error(f"Error disconnecting from {self.name}: {e}")
+                # Force disconnect regardless of errors
+                self.is_connected = False
+            finally:
+                self.client = None
+
+    async def is_connection_healthy(self) -> bool:
+        """Check if the BLE connection is still healthy."""
+        if not self.is_connected or not self.client:
+            return False
+        
+        try:
+            # Try to read a characteristic to verify connection
+            await asyncio.wait_for(
+                self.client.read_gatt_char(CHAR_STATUS),
+                timeout=3.0
+            )
+            return True
+        except Exception as e:
+            logger.debug(f"Connection health check failed for {self.name}: {e}")
+            return False
     
     # --- BLE helpers ---
     async def write_string(self, char_uuid: str, s: str):
@@ -205,13 +316,27 @@ class BLEService:
         self.is_scanning = False
         self.scan_task: Optional[asyncio.Task] = None
         self.device_callbacks: List[Callable] = []
-        self.adapter = adapter or "hci0"
-        # Scan/Send window separation
-        self.in_scan_window = False
-        self.scan_window_duration = 10.0  # 10 seconds for scanning
-        self.send_window_duration = 60.0  # 60 seconds for operations
-        self.cycle_task: Optional[asyncio.Task] = None
-        self.is_cycling = False
+        self.adapter = adapter or "hci1"
+        # Phase management
+        self.current_phase = "scan"  # "scan" or "control"
+        self.phase_callbacks: List[Callable] = []
+
+    def add_phase_callback(self, callback: Callable):
+        """Add a callback to be called when phase changes."""
+        self.phase_callbacks.append(callback)
+    
+    def remove_phase_callback(self, callback: Callable):
+        """Remove a phase callback."""
+        if callback in self.phase_callbacks:
+            self.phase_callbacks.remove(callback)
+    
+    def _notify_phase_callbacks(self, new_phase: str, discovered_cars: List[PDGCarDevice] = None):
+        """Notify all callbacks about phase changes."""
+        for callback in self.phase_callbacks:
+            try:
+                callback(new_phase, discovered_cars or [])
+            except Exception as e:
+                logger.error(f"Error in phase callback: {e}")
 
     def add_device_callback(self, callback: Callable):
         """Add a callback to be called when devices are discovered."""
@@ -236,224 +361,366 @@ class BLEService:
             return False
         return device.name.startswith(CAR_DEVICE_PREFIX)
     
-    async def discover_cars(self, timeout: float = 6.0) -> List[PDGCarDevice]:
-        """Discover PDG car devices via BLE using the working approach."""
+    async def discover_cars(self, timeout: float = 8.0) -> List[PDGCarDevice]:
+        """Discover PDG car devices via BLE using Raspberry Pi optimized approach."""
         logger.info(f"Scanning for Rocket League cars with service UUID {SERVICE_UUID} (timeout: {timeout}s)...")
         async with BLEService.ble_operation_lock:
             try:
-                # Scan for devices with our specific service UUID
-                ble_devices = await BleakScanner.discover(
-                    timeout=timeout, 
+                # Clean up any stale connections first
+                await self.cleanup_stale_connections()
+                
+                # Dictionary to store discovered devices with their advertisement data
+                discovered_devices_with_rssi = {}
+                
+                # Use the callback-based scanner to get RSSI values
+                def detection_callback(device: BLEDevice, advertisement_data):
+                    if self.is_car_device(device):
+                        discovered_devices_with_rssi[device.address] = {
+                            'device': device,
+                            'rssi': advertisement_data.rssi
+                        }
+                
+                # Start scanning with callback
+                scanner = BleakScanner(
+                    detection_callback=detection_callback,
                     service_uuids=[SERVICE_UUID],
                     adapter=self.adapter
                 )
-                if not ble_devices:
+                
+                await scanner.start()
+                await asyncio.sleep(timeout)
+                await scanner.stop()
+                
+                if not discovered_devices_with_rssi:
                     logger.debug("No BLE devices found with the specified service UUID")
                     return []
+                
                 cars = []
                 new_discoveries = 0
-                for ble_device in ble_devices:
-                    logger.debug(f"Found BLE device: {ble_device.name} ({ble_device.address})")
-                    # Check if this is a Rocket League car
-                    if not self.is_car_device(ble_device):
-                        logger.debug(f"Skipping non-car device: {ble_device.name}")
-                        continue
+                
+                for address, device_info in discovered_devices_with_rssi.items():
+                    ble_device = device_info['device']
+                    rssi_value = device_info['rssi']
+                    
+                    logger.debug(f"Found BLE device: {ble_device.name} ({ble_device.address}) RSSI: {rssi_value}")
+                    
                     # Check if we already know about this device
                     if ble_device.address in self.discovered_devices:
                         logger.debug(f"Already discovered car: {ble_device.name} ({ble_device.address})")
                         existing_device = self.discovered_devices[ble_device.address]
+                        # Update with fresh device reference and RSSI
+                        existing_device.device = ble_device
+                        existing_device.rssi = rssi_value
                         cars.append(existing_device)
+                        
                         # Update car manager with latest discovery
                         if self.car_manager:
                             self.car_manager.add_or_update_car_from_ble(ble_device.name, ble_device.address)
                         continue
+                    
                     # New car discovered
                     car_device = PDGCarDevice(ble_device, adapter=self.adapter)
+                    car_device.rssi = rssi_value  # Set RSSI from advertisement data
                     cars.append(car_device)
+                    
                     # Update our discovered devices
                     self.discovered_devices[ble_device.address] = car_device
                     self._notify_device_callbacks(car_device, "discovered")
-                    
-                    # Try to connect immediately while device reference is fresh
-                    logger.info(f"Attempting immediate connection to fresh device: {car_device.name}")
-                    try:
-                        if await car_device.connect(retries=1):
-                            logger.info(f"Successfully connected to {car_device.name} during discovery")
-                            self._notify_device_callbacks(car_device, "connected")
-                        else:
-                            logger.info(f"Immediate connection failed for {car_device.name}, will retry later")
-                    except Exception as e:
-                        logger.warning(f"Immediate connection attempt failed for {car_device.name}: {e}")
                     
                     # Add/update car in CarManager
                     if self.car_manager:
                         car = self.car_manager.add_or_update_car_from_ble(ble_device.name, ble_device.address)
                         logger.info(f"Added/updated car in manager: {car}")
+                    
                     new_discoveries += 1
-                    logger.info(f"Discovered new Rocket League car: {car_device.name} ({car_device.address})")
+                    logger.info(f"Discovered new Rocket League car: {car_device.name} ({car_device.address}) RSSI: {rssi_value}")
+                
                 if new_discoveries > 0:
                     logger.info(f"BLE discovery complete. Found {new_discoveries} new cars, {len(cars)} total cars discovered.")
                 else:
                     logger.debug(f"BLE discovery complete. No new cars found, {len(cars)} total cars known.")
+                
                 return cars
+                
             except Exception as e:
                 logger.error(f"Error during BLE discovery: {e}")
                 return []
     
-    async def start_scan_send_cycle(self, scan_duration: float = 10.0, send_duration: float = 60.0):
-        """Start the scan/send cycle: scan for cars, then allow operations for a window."""
-        if self.is_cycling:
-            logger.warning("Scan/send cycle already running")
-            return
+    async def start_scan_phase(self) -> List[PDGCarDevice]:
+        """Start scanning phase - discover cars and switch to control phase when found."""
+        if self.current_phase == "control":
+            logger.info("Switching from control phase to scan phase")
         
-        self.scan_window_duration = scan_duration
-        self.send_window_duration = send_duration
-        self.is_cycling = True
+        self.current_phase = "scan"
+        logger.info("=== SCAN PHASE STARTED ===")
         
-        logger.info(f"Starting scan/send cycle: {scan_duration}s scan + {send_duration}s send windows")
+        # Discover cars
+        discovered_cars = await self.discover_cars(timeout=10.0)
         
-        async def cycle_loop():
-            while self.is_cycling:
-                try:
-                    # SCAN WINDOW
-                    logger.info("=== SCAN WINDOW STARTED ===")
-                    self.in_scan_window = True
-                    await self.discover_cars(timeout=self.scan_window_duration)
-                    self.in_scan_window = False
-                    logger.info("=== SCAN WINDOW ENDED ===")
-                    
-                    # SEND WINDOW
-                    logger.info(f"=== SEND WINDOW STARTED ({self.send_window_duration}s) ===")
-                    await asyncio.sleep(self.send_window_duration)
-                    logger.info("=== SEND WINDOW ENDED ===")
-                    
-                except Exception as e:
-                    logger.error(f"Error in scan/send cycle: {e}")
-                    await asyncio.sleep(5.0)  # Brief pause on error
+        if discovered_cars:
+            logger.info(f"Found {len(discovered_cars)} cars, switching to control phase")
+            self.current_phase = "control"
+            self._notify_phase_callbacks("control", discovered_cars)
+            logger.info("=== CONTROL PHASE STARTED ===")
+        else:
+            logger.info("No cars found, staying in scan phase")
+            self._notify_phase_callbacks("scan", [])
         
-        self.cycle_task = asyncio.create_task(cycle_loop())
+        return discovered_cars
     
-    async def stop_scan_send_cycle(self):
-        """Stop the scan/send cycle."""
-        if not self.is_cycling:
-            return
-        
-        self.is_cycling = False
-        self.in_scan_window = False
-        
-        if self.cycle_task:
-            self.cycle_task.cancel()
-            try:
-                await self.cycle_task
-            except asyncio.CancelledError:
-                pass
-        
-        logger.info("Stopped scan/send cycle")
+    async def switch_to_control_phase(self):
+        """Manually switch to control phase."""
+        if self.current_phase != "control":
+            self.current_phase = "control"
+            logger.info("=== SWITCHED TO CONTROL PHASE ===")
+            self._notify_phase_callbacks("control", list(self.discovered_devices.values()))
     
-    def is_in_send_window(self) -> bool:
-        """Check if we're currently in a send window (operations allowed)."""
-        return self.is_cycling and not self.in_scan_window
+    async def switch_to_scan_phase(self):
+        """Manually switch back to scan phase."""
+        if self.current_phase != "scan":
+            self.current_phase = "scan"
+            logger.info("=== SWITCHED TO SCAN PHASE ===")
+            self._notify_phase_callbacks("scan", [])
     
-    def is_in_scan_window(self) -> bool:
-        """Check if we're currently in a scan window (no operations allowed)."""
-        return self.in_scan_window
+    def get_current_phase(self) -> str:
+        """Get the current phase."""
+        return self.current_phase
+    
+    def is_in_control_phase(self) -> bool:
+        """Check if we're currently in control phase (operations allowed)."""
+        return self.current_phase == "control"
+    
+    def is_in_scan_phase(self) -> bool:
+        """Check if we're currently in scan phase."""
+        return self.current_phase == "scan"
     
     async def check_existing_connections(self, address: str):
-        """Check if device already has active connections and disconnect them."""
+        """Check if device already has active connections and disconnect them (Raspberry Pi optimized)."""
         try:
             import subprocess
-            # Check for existing connections
-            result = subprocess.run(['hcitool', 'con'], capture_output=True, text=True)
-            if address.upper() in result.stdout:
-                logger.warning(f"Found existing connection to {address}, disconnecting...")
-                subprocess.run(['sudo', 'hcitool', 'dc', address], capture_output=True, text=True)
+            # Check for existing connections using multiple methods
+            
+            # Method 1: hcitool
+            result = subprocess.run(['hcitool', 'con'], capture_output=True, text=True, timeout=5)
+            address_found = False
+            if address.upper() in result.stdout or address.lower() in result.stdout:
+                address_found = True
+                logger.warning(f"Found existing hcitool connection to {address}")
+                
+                # Try multiple disconnect methods
+                subprocess.run(['sudo', 'hcitool', 'dc', address], 
+                             capture_output=True, text=True, timeout=5)
                 await asyncio.sleep(1.0)
+            
+            # Method 2: bluetoothctl
+            result = subprocess.run(['bluetoothctl', 'info', address], 
+                                  capture_output=True, text=True, timeout=5)
+            if 'Connected: yes' in result.stdout:
+                address_found = True
+                logger.warning(f"Found existing bluetoothctl connection to {address}")
+                subprocess.run(['bluetoothctl', 'disconnect', address], 
+                             capture_output=True, text=True, timeout=5)
+                await asyncio.sleep(1.0)
+            
+            if address_found:
+                logger.info(f"Cleared existing connections to {address}")
+                # Extra wait to ensure disconnection is complete
+                await asyncio.sleep(1.5)
                 return True
+                
         except Exception as e:
-            logger.debug(f"Could not check existing connections: {e}")
+            logger.debug(f"Could not check existing connections for {address}: {e}")
         return False
 
+    async def cleanup_stale_connections(self):
+        """Clean up any stale connections to discovered devices."""
+        logger.info("Cleaning up stale BLE connections...")
+        for address, device in self.discovered_devices.items():
+            if device.is_connected:
+                if not await device.is_connection_healthy():
+                    logger.warning(f"Found stale connection to {device.name}, cleaning up...")
+                    await device.disconnect()
+        logger.info("Stale connection cleanup complete")
+
     async def reset_bluetooth_adapter(self):
-        """Reset the Bluetooth adapter to clear any stuck connections."""
+        """Reset the Bluetooth adapter to clear any stuck connections (Raspberry Pi optimized)."""
         try:
             logger.info("Resetting Bluetooth adapter...")
             import subprocess
-            # Reset the Bluetooth adapter
+            
+            # Step 1: Disconnect all active connections
+            try:
+                result = subprocess.run(['hcitool', 'con'], capture_output=True, text=True, timeout=5)
+                if result.stdout and 'RL-CAR' in result.stdout:
+                    logger.info("Disconnecting active car connections...")
+                    subprocess.run(['sudo', 'hcitool', 'cc'], capture_output=True, text=True, timeout=5)
+                    await asyncio.sleep(1.0)
+            except Exception as e:
+                logger.debug(f"Could not disconnect active connections: {e}")
+            
+            # Step 2: Reset the specific adapter
+            logger.info(f"Resetting adapter {self.adapter}...")
             result = subprocess.run(['sudo', 'hciconfig', self.adapter, 'down'], 
-                                  capture_output=True, text=True, timeout=5)
-            await asyncio.sleep(1.0)
-            result = subprocess.run(['sudo', 'hciconfig', self.adapter, 'up'], 
-                                  capture_output=True, text=True, timeout=5)
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode != 0:
+                logger.warning(f"Failed to bring adapter down: {result.stderr}")
+            
             await asyncio.sleep(2.0)
-            logger.info("Bluetooth adapter reset complete")
-            return True
+            
+            result = subprocess.run(['sudo', 'hciconfig', self.adapter, 'up'], 
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode != 0:
+                logger.warning(f"Failed to bring adapter up: {result.stderr}")
+            
+            await asyncio.sleep(2.0)
+            
+            # Step 3: Clear any cached connections in bluetoothctl
+            try:
+                subprocess.run(['bluetoothctl', 'power', 'off'], 
+                             capture_output=True, text=True, timeout=5)
+                await asyncio.sleep(1.0)
+                subprocess.run(['bluetoothctl', 'power', 'on'], 
+                             capture_output=True, text=True, timeout=5)
+                await asyncio.sleep(1.5)
+            except Exception as e:
+                logger.debug(f"Could not reset via bluetoothctl: {e}")
+            
+            # Step 4: Verify adapter is working
+            result = subprocess.run(['hciconfig', self.adapter], 
+                                  capture_output=True, text=True, timeout=5)
+            if 'UP RUNNING' in result.stdout:
+                logger.info("Bluetooth adapter reset successful")
+                return True
+            else:
+                logger.warning("Bluetooth adapter may not be fully operational after reset")
+                return False
+                
         except Exception as e:
-            logger.warning(f"Failed to reset Bluetooth adapter: {e}")
+            logger.error(f"Failed to reset Bluetooth adapter: {e}")
             return False
 
     async def connect_to_device(self, address: str) -> Optional[PDGCarDevice]:
-        """Connect to a specific device by address using robust logic."""
+        """Connect to a specific device by address using enhanced Raspberry Pi logic."""
         if address not in self.discovered_devices:
             logger.error(f"Device {address} not found in discovered devices")
             return None
         
-        # Check if we're in a send window (operations allowed)
-        if self.is_cycling and self.in_scan_window:
-            logger.warning("Connection blocked: currently in scan window. Wait for send window.")
+        # Check if we're in control phase (operations allowed)
+        if not self.is_in_control_phase():
+            logger.warning("Connection blocked: currently in scan phase. Switch to control phase first.")
             return None
         
         # Ensure no scan is running before connecting
         async with BLEService.ble_operation_lock:
             device = self.discovered_devices[address]
             
-            # If device is already connected, return it
-            if device.is_connected:
-                return device
+            # If device is already connected, verify the connection is still valid
+            if device.is_connected and device.client:
+                try:
+                    # Test the connection by trying to read a characteristic
+                    await device.client.read_gatt_char(CHAR_STATUS)
+                    logger.debug(f"Device {device.name} is already connected and responsive")
+                    return device
+                except Exception as e:
+                    logger.warning(f"Existing connection to {device.name} is stale: {e}")
+                    # Connection is stale, disconnect and reconnect
+                    await device.disconnect()
             
-            # Check for and clear any existing connections
-            await self.check_existing_connections(address)
-            
-            # Try to get a fresh device reference before connecting
+            # Get a fresh device reference for better reliability
+            fresh_device_found = False
             try:
                 logger.info(f"Getting fresh device reference for {address}...")
-                fresh_devices = await BleakScanner.discover(
-                    timeout=3.0, 
+                
+                # Use callback-based scanner to get fresh device with RSSI
+                fresh_device_with_rssi = None
+                
+                def detection_callback(device: BLEDevice, advertisement_data):
+                    nonlocal fresh_device_with_rssi
+                    if device.address.lower() == address.lower():
+                        fresh_device_with_rssi = {
+                            'device': device,
+                            'rssi': advertisement_data.rssi
+                        }
+                
+                scanner = BleakScanner(
+                    detection_callback=detection_callback,
                     service_uuids=[SERVICE_UUID],
                     adapter=self.adapter
                 )
                 
-                # Find our specific device in the fresh scan
-                fresh_device = None
-                for ble_dev in fresh_devices:
-                    if ble_dev.address == address:
-                        fresh_device = ble_dev
-                        break
+                await scanner.start()
+                await asyncio.sleep(5.0)  # Scan for 5 seconds
+                await scanner.stop()
                 
-                if fresh_device:
-                    # Update our device with the fresh reference
-                    device.device = fresh_device
-                    logger.info(f"Updated device reference for {device.name}")
+                if fresh_device_with_rssi:
+                    device.device = fresh_device_with_rssi['device']
+                    device.rssi = fresh_device_with_rssi['rssi']
+                    fresh_device_found = True
+                    logger.info(f"Updated device reference for {device.name} (RSSI: {fresh_device_with_rssi['rssi']})")
                 else:
                     logger.warning(f"Device {address} not found in fresh scan, using cached reference")
                     
             except Exception as e:
                 logger.warning(f"Failed to get fresh device reference: {e}, using cached reference")
             
-            # Now try to connect
+            # Add a small delay to let the Bluetooth stack settle after scanning
+            await asyncio.sleep(0.5)
+            
+            # Now try to connect with multiple strategies
             connection_success = False
-            for connect_attempt in range(2):  # Try twice, with reset if first fails
-                if await device.connect():
+            
+            # Strategy 1: Direct connection
+            logger.info(f"Attempting direct connection to {device.name}...")
+            if await device.connect(retries=3):
+                connection_success = True
+            
+            # Strategy 2: If direct connection failed, try after Bluetooth reset
+            if not connection_success:
+                logger.warning(f"Direct connection failed, trying with Bluetooth reset...")
+                await self.reset_bluetooth_adapter()
+                await asyncio.sleep(3.0)  # Longer wait after reset
+                
+                # Get fresh reference again after reset
+                if fresh_device_found:
+                    try:
+                        # Use callback-based scanner again after reset
+                        fresh_device_after_reset = None
+                        
+                        def reset_detection_callback(device: BLEDevice, advertisement_data):
+                            nonlocal fresh_device_after_reset
+                            if device.address.lower() == address.lower():
+                                fresh_device_after_reset = {
+                                    'device': device,
+                                    'rssi': advertisement_data.rssi
+                                }
+                        
+                        reset_scanner = BleakScanner(
+                            detection_callback=reset_detection_callback,
+                            service_uuids=[SERVICE_UUID],
+                            adapter=self.adapter
+                        )
+                        
+                        await reset_scanner.start()
+                        await asyncio.sleep(3.0)
+                        await reset_scanner.stop()
+                        
+                        if fresh_device_after_reset:
+                            device.device = fresh_device_after_reset['device']
+                            device.rssi = fresh_device_after_reset['rssi']
+                            
+                    except Exception as e:
+                        logger.debug(f"Could not refresh device after reset: {e}")
+                
+                if await device.connect(retries=2):
                     connection_success = True
-                    break
-                elif connect_attempt == 0:  # First attempt failed
-                    logger.warning(f"Connection failed, resetting Bluetooth adapter...")
-                    await self.reset_bluetooth_adapter()
-                    await asyncio.sleep(2.0)
             
             if connection_success:
                 self._notify_device_callbacks(device, "connected")
+                logger.info(f"Successfully connected to {device.name}")
                 return device
-            return None
+            else:
+                logger.error(f"All connection attempts failed for {device.name}")
+                return None
     
     async def disconnect_from_device(self, address: str):
         """Disconnect from a specific device."""
@@ -520,9 +787,9 @@ class BLEService:
             logger.error(f"Car with address {ble_address} not found in discovered devices")
             return False
         
-        # Check if we're in a send window (operations allowed)
-        if self.is_cycling and self.in_scan_window:
-            logger.warning("WiFi operation blocked: currently in scan window. Wait for send window.")
+        # Check if we're in control phase (operations allowed)
+        if not self.is_in_control_phase():
+            logger.warning("WiFi operation blocked: currently in scan phase. Switch to control phase first.")
             return False
         
         device = self.discovered_devices[ble_address]
@@ -555,12 +822,9 @@ class BLEService:
     def get_status(self) -> dict:
         """Get the current status of the BLE service."""
         return {
-            "is_scanning": self.is_scanning,
-            "is_cycling": self.is_cycling,
-            "in_scan_window": self.in_scan_window,
-            "in_send_window": self.is_in_send_window(),
-            "scan_window_duration": self.scan_window_duration,
-            "send_window_duration": self.send_window_duration,
+            "current_phase": self.current_phase,
+            "is_in_control_phase": self.is_in_control_phase(),
+            "is_in_scan_phase": self.is_in_scan_phase(),
             "total_discovered": len(self.discovered_devices),
             "total_connected": len([d for d in self.discovered_devices.values() if d.is_connected]),
             "devices": self.get_discovered_devices()
@@ -573,9 +837,9 @@ class BLEService:
             logger.error(f"Car with address {ble_address} not found in discovered devices")
             return False
         
-        # Check if we're in a send window (operations allowed)
-        if self.is_cycling and self.in_scan_window:
-            logger.warning("Drive operation blocked: currently in scan window. Wait for send window.")
+        # Check if we're in control phase (operations allowed)
+        if not self.is_in_control_phase():
+            logger.warning("Drive operation blocked: currently in scan phase. Switch to control phase first.")
             return False
         
         device = self.discovered_devices[ble_address]
@@ -598,9 +862,9 @@ class BLEService:
             logger.error(f"Car with address {ble_address} not found in discovered devices")
             return None
         
-        # Check if we're in a send window (operations allowed)
-        if self.is_cycling and self.in_scan_window:
-            logger.warning("Battery read blocked: currently in scan window. Wait for send window.")
+        # Check if we're in control phase (operations allowed)
+        if not self.is_in_control_phase():
+            logger.warning("Battery read blocked: currently in scan phase. Switch to control phase first.")
             return None
         
         device = self.discovered_devices[ble_address]
@@ -662,19 +926,19 @@ class BluetoothService:
         return []
     
     async def start_auto_discovery(self):
-        """Start automatic device discovery using scan/send cycles."""
+        """Start automatic device discovery using scan phase."""
         if self.is_auto_discovery_running:
             logger.warning("Auto discovery already running")
             return
         
         self.is_auto_discovery_running = True
-        await self.ble_service.start_scan_send_cycle()
+        # Start with initial scan
+        await self.ble_service.start_scan_phase()
     
     async def stop_auto_discovery(self):
         """Stop automatic device discovery."""
         if self.is_auto_discovery_running:
             self.is_auto_discovery_running = False
-            await self.ble_service.stop_scan_send_cycle()
     
     def get_device_status(self) -> dict:
         """Get the status of all Bluetooth devices."""

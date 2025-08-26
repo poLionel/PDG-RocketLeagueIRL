@@ -259,9 +259,71 @@ async def handle_connect_to_car_async(data, car_manager=None):
             "message": f"Error connecting to car: {str(e)}"
         }
 
+async def handle_switch_to_scan_phase_async(data, car_manager=None):
+    """Handle switching to scan phase (async version)."""
+    logger.info("Switching to scan phase...")
+    
+    try:
+        # Get the Bluetooth service
+        bluetooth_service = get_bluetooth_service()
+        if not bluetooth_service:
+            return {
+                "status": "error",
+                "message": "Bluetooth service not initialized"
+            }
+        
+        # Switch to scan phase and discover cars
+        discovered_cars = await bluetooth_service.ble_service.start_scan_phase()
+        
+        return {
+            "status": "success",
+            "message": f"Switched to scan phase. Found {len(discovered_cars)} cars.",
+            "phase": "scan",
+            "discovered_cars": [car.to_dict() for car in discovered_cars]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in handle_switch_to_scan_phase_async: {e}")
+        return {
+            "status": "error",
+            "message": f"Error switching to scan phase: {str(e)}"
+        }
+
+async def handle_switch_to_control_phase_async(data, car_manager=None):
+    """Handle switching to control phase (async version)."""
+    logger.info("Switching to control phase...")
+    
+    try:
+        # Get the Bluetooth service
+        bluetooth_service = get_bluetooth_service()
+        if not bluetooth_service:
+            return {
+                "status": "error",
+                "message": "Bluetooth service not initialized"
+            }
+        
+        # Switch to control phase
+        await bluetooth_service.ble_service.switch_to_control_phase()
+        
+        return {
+            "status": "success",
+            "message": "Switched to control phase. You can now send commands to cars.",
+            "phase": "control",
+            "discovered_cars": [car.to_dict() for car in bluetooth_service.ble_service.discovered_devices.values()]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in handle_switch_to_control_phase_async: {e}")
+        return {
+            "status": "error",
+            "message": f"Error switching to control phase: {str(e)}"
+        }
+
 # Export the async handler
 ASYNC_HANDLERS = {
     "send_to_car": handle_send_to_car_async,
     "set_wifi_credentials": handle_set_wifi_credentials_async,
     "connect_to_car": handle_connect_to_car_async,
+    "switch_to_scan_phase": handle_switch_to_scan_phase_async,
+    "switch_to_control_phase": handle_switch_to_control_phase_async,
 }
