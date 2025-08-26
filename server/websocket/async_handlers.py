@@ -145,15 +145,15 @@ async def handle_set_wifi_credentials_async(data, car_manager=None):
         # Connect to the device if not already connected
         if not ble_device.is_connected:
             logger.info(f"Connecting to {ble_device.name} to set WiFi credentials...")
-            connected = await ble_device.connect()
-            if not connected:
+            connected_device = await bluetooth_service.ble_service.connect_to_device(car.ble_address)
+            if not connected_device:
                 return {
                     "status": "error",
                     "message": f"Failed to connect to car {car.name} via BLE"
                 }
         
-        # Set WiFi credentials using the PDGCarDevice method
-        success = await ble_device.set_wifi_credentials(ssid, password)
+        # Set WiFi credentials using the new BLE service method
+        success = await bluetooth_service.ble_service.set_wifi_on_car(car.ble_address, ssid, password)
         
         if success:
             # Update car status to show communication
@@ -234,9 +234,9 @@ async def handle_connect_to_car_async(data, car_manager=None):
             }
         
         logger.info(f"Connecting to {ble_device.name}...")
-        connected = await ble_device.connect()
+        connected_device = await bluetooth_service.ble_service.connect_to_device(car.ble_address)
         
-        if connected:
+        if connected_device:
             # Update car status
             if car_manager:
                 car_manager.update_car_status(car_id, connected=True)

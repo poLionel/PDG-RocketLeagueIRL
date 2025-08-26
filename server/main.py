@@ -47,7 +47,7 @@ async def start_bluetooth_service(car_manager: CarManager):
         for device in paired_devices:
             logger.info(f"  {device}")
     
-    # Start auto discovery task
+    # Start auto discovery task using scan/send cycle
     discovery_task = asyncio.create_task(bluetooth_service.start_auto_discovery())
     
     return bluetooth_service, discovery_task
@@ -82,7 +82,7 @@ async def main():
     finally:
         # Clean up Bluetooth service
         if bluetooth_service:
-            bluetooth_service.stop_auto_discovery()
+            await bluetooth_service.stop_auto_discovery()
         if discovery_task:
             discovery_task.cancel()
             try:
