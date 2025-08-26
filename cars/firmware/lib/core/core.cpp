@@ -22,11 +22,13 @@ static constexpr EventBits_t    BIT_RUN                 = (1u << 2); // autorisa
 //----------------------------------------------------------------------------------
 static ble_provisioner*         g_ble                   = nullptr;
 static wifi_provisioner*        g_wifi                  = nullptr;
+static motor_controller*        g_motor                 = nullptr;
+static battery_monitor*         g_battery               = nullptr;
 
 static EventGroupHandle_t       g_evt                   = nullptr;
 static TaskHandle_t             h_task_connector        = nullptr;
 static TaskHandle_t             h_task_monitor          = nullptr;
-static TaskHandle_t             h_task_worker           = nullptr;
+static TaskHandle_t             h_task_hardware         = nullptr;
 
 
 
@@ -35,23 +37,25 @@ static TaskHandle_t             h_task_worker           = nullptr;
 //----------------------------------------------------------------------------------
 static void                     task_connector(void*);  // attend BLE + creds, connecte Wi-Fi, arme RUN et réveille monitor
 static void                     task_monitor(void*);    // surveille BLE/Wi-Fi; sur perte -> coupe RUN, réveille connector, se suspend
-static void                     task_worker(void*);     // fait le job tant que RUN est set
+static void                     task_hardware(void*);   // réaliser toutes interactions avec le hardware
 
 
 
 //----------------------------------------------------------------------------------
 // API
 //----------------------------------------------------------------------------------
-void core_init(ble_provisioner* ble, wifi_provisioner* wifi) {
-  g_ble  = ble;
-  g_wifi = wifi;
-  g_evt  = xEventGroupCreate();
+void core_init(ble_provisioner* ble, wifi_provisioner* wifi, motor_controller* motor, battery_monitor* battery) {
+  g_ble       = ble;
+  g_wifi      = wifi;
+  g_motor     = motor;
+  g_battery   = battery;
+  g_evt       = xEventGroupCreate();
 }
 void core_start() {
   // Création des tâches (pinnées sur core 1 — ajuste si besoin)
-  xTaskCreatePinnedToCore(task_connector, "TaskConnector", 4096, nullptr, 3, &h_task_connector, 1);
-  xTaskCreatePinnedToCore(task_monitor,   "TaskMonitor",   4096, nullptr, 2, &h_task_monitor,   1);
-  xTaskCreatePinnedToCore(task_worker,    "TaskWorker",    4096, nullptr, 1, &h_task_worker,    1);
+  xTaskCreatePinnedToCore(task_connector  ,"TASK_CON"       ,4096   ,nullptr    ,4  , &h_task_connector   ,1);
+  xTaskCreatePinnedToCore(task_monitor    ,"TASK_MON"       ,4096   ,nullptr    ,3  , &h_task_monitor     ,1);
+  xTaskCreatePinnedToCore(task_hardware   ,"TASK_HW"        ,4096   ,nullptr    ,2  , &h_task_hardware    ,1);
 
   // Au départ, seul le connector doit travailler
   vTaskSuspend(h_task_monitor);   // monitor attendra la première connexion
@@ -61,23 +65,11 @@ void core_start() {
 
 
 //----------------------------------------------------------------------------------
-// FONCTION LOCALES
-//----------------------------------------------------------------------------------
-static void fake_task_tick() {
-  static uint32_t t0 = 0;
-  if (millis() - t0 >= 1000) {
-    t0 = millis();
-    Serial.println("[WORKER] doing something...");
-  }
-}
-
-
-
-//----------------------------------------------------------------------------------
 // TÂCHES
 //----------------------------------------------------------------------------------
 // 1) CONNECTOR — attend BLE + credentials, connecte Wi-Fi, arme le RUN, réveille monitor, se suspend
 static void task_connector(void*) {
+  const char* name = pcTaskGetName(NULL);
   const uint32_t WIFI_TIMEOUT_MS = 15000;
 
   for (;;) {
@@ -136,14 +128,15 @@ static void task_connector(void*) {
 
 // 2) MONITOR — surveille; sur perte, coupe RUN, réveille connector, se suspend
 static void task_monitor(void*) {
+  const char* name = pcTaskGetName(NULL);
   for (;;) {
-    Serial.println("[MON] actif (surveillance)...");
+    Serial.printf("[%s] START\n", name);
     for (;;) {
       bool ble_ok  = g_ble->is_connected();
       bool wifi_ok = g_wifi->is_connected();
 
       if (!ble_ok || !wifi_ok) {
-        Serial.printf("[MON] perte détectée: BLE=%d WIFI=%d\n", ble_ok, wifi_ok);
+        Serial.printf("[%s] perte détectée: BLE=%d WIFI=%d\n", name, ble_ok, wifi_ok);
 
         if (!ble_ok)  xEventGroupClearBits(g_evt, BIT_BLE);
         if (!wifi_ok) xEventGroupClearBits(g_evt, BIT_WIFI);
@@ -154,7 +147,7 @@ static void task_monitor(void*) {
 
         // Réveiller le connector et se suspendre
         xTaskNotifyGive(h_task_connector);
-        Serial.println("[MON] suspend → attente reconnection");
+        Serial.printf("[%s] suspend → attente reconnection\n", name);
         vTaskSuspend(NULL);
         break; // sort de la boucle interne; on sera relancé par vTaskResume()
       }
@@ -164,22 +157,46 @@ static void task_monitor(void*) {
   }
 }
 
-// 3) WORKER — tourne quand BIT_RUN est set; s'arrête quand il est clear
-static void task_worker(void*) {
+// 4) // HARDWARE - réaliser toutes interactions avec le hardware
+static void task_hardware(void*) {
+  const char* name = pcTaskGetName(NULL);
   for(;;){
+    g_motor->stop();
+
     // Attendre l'autorisation
     xEventGroupWaitBits(g_evt, BIT_RUN, pdFALSE, pdTRUE, portMAX_DELAY);
-    Serial.println("[WORKER] START");
+    Serial.printf("[%s] START\n", name);
 
     // Tant que RUN reste set, on travaille
+    g_motor->start();
     for(;;){
       EventBits_t bits = xEventGroupGetBits(g_evt);
       if ((bits & BIT_RUN) == 0) {
-        Serial.println("[WORKER] STOP (RUN cleared)");
+        Serial.printf("[%s] STOP\n", name);
         break;
       }
-      fake_task_tick();              // -> remplace par ta logique
-      vTaskDelay(pdMS_TO_TICKS(50));
+
+      // Récupérer es données
+      g_battery->read();
+      float battery_level_percent = g_battery->get_percent_value();
+
+      // Conversion / Calcul des données
+      float max_speed = g_motor->get_component().nominal_voltage / g_battery->get_volt_value();
+      float x_direction = (float)g_ble->get_x_direction() / 100.0f;
+      motor_direction y_direction = (g_ble->get_y_direction() == 100 ? motor_direction::forward : motor_direction::backward);
+      float speed = max_speed * ((float)g_ble->get_speed_direction() / 100.0f);
+
+      // Envoie des données
+      g_ble->set_battery_level(battery_level_percent);
+
+      // Maj HW
+      g_motor->set_decay_mode(g_ble->get_decay_mode() == 0 ? motor_decay_mode::fast : motor_decay_mode::slow);
+      g_motor->drive(x_direction, y_direction, speed);
+      Serial.printf("Battery : %.2f / y : %.2f / x : %.2f / s : %.2f / dm : %d\n", 
+                    g_battery->get_volt_value(), ((float)g_ble->get_y_direction() / 100.0f), x_direction, speed, g_ble->get_decay_mode());
+      
+
+      vTaskDelay(pdMS_TO_TICKS(500));
     }
   }
 }

@@ -8,6 +8,7 @@
 //----------------------------------------------------------------------------------
 #include <Arduino.h>
 #include <NimBLEDevice.h>
+#include <optional>
 
 
 
@@ -57,17 +58,47 @@ struct gatt_codec<bool> {
         return !s.empty() && s[0] != 0;
     }
 };
+// Valeur de slot générique
+template<typename T>
+struct gatt_slot_value {
+    gatt_slot_value(const T& v = T{}) : value_(v) {}
+    gatt_slot_value(const T& v, const T& mn, const T& mx)
+        : value_(v)
+        , min_((mn <= mx) ? mn : mx)
+        , max_((mn <= mx) ? mx : mn)
+    { clamp(); }
+
+    void set(const T& v) { value_ = v; clamp(); }
+    const T& get() const { return value_; }
+private:
+    T value_{};
+    std::optional<T> min_{};
+    std::optional<T> max_{};
+
+    bool has_bounds() const { return min_.has_value() && max_.has_value(); }
+    void clamp() {
+        if constexpr (std::is_arithmetic_v<T>) {
+            if (has_bounds()) {
+                if (value_ < *min_) value_ = *min_;
+                else if (value_ > *max_) value_ = *max_;
+            }
+        }
+    }
+};
 // Slot générique
 template<typename T>
 struct gatt_slot {
     NimBLEUUID                        uuid{};
-    T                                 value{};
     NimBLECharacteristic*             ch          = nullptr;
-    NimBLECharacteristicCallbacks*    cb          = nullptr; // propriété laissée à NimBLE
+    NimBLECharacteristicCallbacks*    cb          = nullptr;
 
-    gatt_slot() = default;
-    gatt_slot(const NimBLEUUID& u, const T& initial = T{}, NimBLECharacteristicCallbacks* callbacks = nullptr)
+
+    gatt_slot() = delete;
+    gatt_slot(const NimBLEUUID& u,
+              const gatt_slot_value<T>& initial,
+              NimBLECharacteristicCallbacks* callbacks = nullptr)
         : uuid(u), value(initial), cb(callbacks) {}
+
 
     // Création réelle quand tu as le service
     NimBLECharacteristic* 
@@ -81,16 +112,29 @@ struct gatt_slot {
 
 
     // Valeurs 
-    void        set(const T& v) { value = v; }
-    const T&    get() const { return value; }
+    void        set(const T& v) { value.set(v); }
+    const T&    get() const     { return value.get(); }
 
-    void        publish(bool notify=false) { if (ch) { gatt_codec<T>::set(ch, value); if (notify) ch->notify(); } }
-    void        pull() { if (ch) value = gatt_codec<T>::get(ch); }
+    void        publish(bool notify=false) {
+        if (ch) {
+            gatt_codec<T>::set(ch, value.get());
+            if (notify) ch->notify();
+        }
+    }
+    void        pull() {
+        if (ch) {
+            T v = gatt_codec<T>::get(ch);
+            value.set(v); // re-clamp éventuel
+        }
+    }
 
     void        bind(NimBLECharacteristic* c) { ch = c; if (cb && ch) ch->setCallbacks(cb); }
     bool        is_bound() const { return ch != nullptr; }
 
     void        clear(bool notify=false) { set(T{}); if(notify) publish(true);}
+
+private:
+    gatt_slot_value<T>                value{};
 };
 
 
@@ -98,15 +142,21 @@ struct gatt_slot {
 //----------------------------------------------------------------------------------
 //- VARIABLES GLOBALES
 //----------------------------------------------------------------------------------
-// Configurations
-static const char* ble_prefix_of_name          = "RL-CAR-";
 // UUIDs du service et des caractéristiques
-static const NimBLEUUID SERVICE_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f0");
-static const NimBLEUUID CHAR_SSID_UUID     ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f1");
-static const NimBLEUUID CHAR_PASS_UUID     ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f2");
-static const NimBLEUUID CHAR_DEVID_UUID    ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f9");
-static const NimBLEUUID CHAR_STATUS_UUID   ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f4");
-static const NimBLEUUID CHAR_APPLY_UUID    ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f3");
+static const NimBLEUUID SERVICE_UUID            ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f0");
+static const NimBLEUUID CHAR_DEVID_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f9");
+
+static const NimBLEUUID CHAR_SSID_UUID          ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f1");
+static const NimBLEUUID CHAR_PASS_UUID          ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f2");
+static const NimBLEUUID CHAR_APPLY_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f3");
+
+static const NimBLEUUID CHAR_STATUS_UUID        ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f4");
+static const NimBLEUUID CHAR_BATTERY_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f5");
+
+static const NimBLEUUID CHAR_DIR_X_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f6");
+static const NimBLEUUID CHAR_DIR_Y_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f7");
+static const NimBLEUUID CHAR_DIR_SPEED_UUID     ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f8");
+static const NimBLEUUID CHAR_DECAY_MODE_UUID    ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fa");
 
 
 
@@ -119,7 +169,9 @@ public:
     : slot_(slot), status_(status) {}
     void onWrite(NimBLECharacteristic* c) override {
         std::string v = c->getValue();
-        slot_->value = String(v.c_str());         // MAJ cache local
+        if (!v.empty()) {
+            slot_->set(String(v.c_str()));         // MAJ cache local
+        }
     }
 private:
     gatt_slot<String>* slot_;
@@ -131,10 +183,30 @@ public:
     : slot_(slot), status_(status) {}
     void onWrite(NimBLECharacteristic* c) override {
         std::string v = c->getValue();
-        slot_->value = String(v.c_str());         // MAJ cache local
+        if (!v.empty()) {
+            slot_->set(String(v.c_str()));         // MAJ cache local
+        }
     }
 private:
     gatt_slot<String>* slot_;
+    gatt_slot<String>* status_;
+};
+class cb_write_direction : public NimBLECharacteristicCallbacks{
+public:
+    cb_write_direction(gatt_slot<int8_t>* direction, gatt_slot<String>* status)
+    : direction_(direction), status_(status) {}
+    void onWrite(NimBLECharacteristic* c) override {
+        std::string v = c->getValue();
+        if (!v.empty()) {
+            int8_t dir = static_cast<int8_t>(v[0]);  // premier octet
+            direction_->set(dir);
+
+            // LOG série (tu verras enfin quelque chose)
+            Serial.printf("[BLE][DIR] %s = %d / %d\n", c->getUUID().toString().c_str(), (int)dir, direction_->get());
+        }
+    }
+private:
+    gatt_slot<int8_t>* direction_;
     gatt_slot<String>* status_;
 };
 class cb_apply_wifi_credentials : public NimBLECharacteristicCallbacks {
