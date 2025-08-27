@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RLIRL.Business;
 using RLIRL.Server;
+using RLIRL.Business;
 using RLIRL.Server.Abstractions;
 
 namespace RLIRL.App
