@@ -209,20 +209,69 @@ static void task_hardware(void*) {
 // 5) // Tâche vidéo: serveur MJPEG sur port 81 ---
 static void task_video(void*) {              // <-- AJOUT
   const char* name = pcTaskGetName(NULL);
+  const uint16_t PORT = 81;
+  WiFiServer server(PORT);
   for(;;){
     // Attendre l'autorisation
     xEventGroupWaitBits(g_evt, BIT_RUN, pdFALSE, pdTRUE, portMAX_DELAY);
     Serial.printf("[%s] START\n", name);
 
-    for(;;){
-      EventBits_t bits = xEventGroupGetBits(g_evt);
-      if ((bits & BIT_RUN) == 0) {
-        Serial.printf("[%s] STOP\n", name);
-        break;
-      }
-      
-      Serial.printf("[%s] RUNNING\n", name);
-      vTaskDelay(pdMS_TO_TICKS(500));
+      // Démarrer serveur (idempotent)
+    server.begin();
+    // Afficher l’URL quand IP dispo
+    if (g_wifi && g_wifi->is_connected()) {
+      Serial.printf("[%s] MJPEG: http://%s:%u/stream\n", name, g_wifi->ip().c_str(), PORT);
     }
+
+    // Boucle tant que RUN est levé
+    while ((xEventGroupGetBits(g_evt) & BIT_RUN) && g_wifi->is_connected()) {
+      WiFiClient client = server.available();
+      if (!client) { vTaskDelay(pdMS_TO_TICKS(10)); continue; }
+
+      // Lire la première ligne de requête (simplement pour vérifier "/stream")
+      // (Optionnel – on sert de toute façon le flux directement)
+      client.setTimeout(2000);
+
+      // Réponse HTTP MJPEG
+      client.print(
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n"
+        "Cache-Control: no-cache\r\n"
+        "Connection: close\r\n\r\n");
+
+      // Boucle client: push de frames tant que connecté & RUN actif
+      while (client.connected() &&
+             (xEventGroupGetBits(g_evt) & BIT_RUN) &&
+             g_wifi->is_connected()) {
+
+        // Capture zéro-copie depuis la caméra
+        camera_fb_t* fb = g_camera ? g_camera->capture_frame() : nullptr;
+        if (!fb) { vTaskDelay(pdMS_TO_TICKS(5)); continue; }
+
+        // Partie MJPEG
+        client.printf(
+          "--frame\r\n"
+          "Content-Type: image/jpeg\r\n"
+          "Content-Length: %u\r\n\r\n", fb->len);
+
+        size_t written = client.write(fb->buf, fb->len);
+        client.print("\r\n");
+
+        g_camera->release_frame(fb);
+
+        // Si le client ne consomme pas → sortir
+        if (written == 0) break;
+
+        // ~15 fps (ajuste selon besoin / débit)
+        vTaskDelay(pdMS_TO_TICKS(66));
+      }
+
+      client.stop();
+    }
+
+    // RUN tombé → fermer le serveur et patienter jusqu’au prochain RUN
+    server.stop();
+    Serial.printf("[%s] STOP\n", name);
+
   }
 }
