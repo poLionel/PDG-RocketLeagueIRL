@@ -1,14 +1,14 @@
 //----------------------------------------------------------------------------------
 //- INCLUDES
 //----------------------------------------------------------------------------------
-#include "battery_monitor.h"
+#include "battery_controller.h"
 
 
 
 //----------------------------------------------------------------------------------
 //- CONSTRUCTEURS / DESCTRUCTEURS
 //----------------------------------------------------------------------------------
-battery_monitor::battery_monitor(battery_monitor_config cfg) : 
+battery_controller::battery_controller(battery_controller_config cfg) : 
     cfg_(cfg) {}
 
 
@@ -16,7 +16,7 @@ battery_monitor::battery_monitor(battery_monitor_config cfg) :
 //----------------------------------------------------------------------------------
 //- MÉTHODES MEMBRES
 //----------------------------------------------------------------------------------
-void battery_monitor::init() {
+void battery_controller::init() {
     pinMode(cfg_.pins.adc, INPUT);
     gpio_pullup_dis((gpio_num_t)cfg_.pins.adc);
     gpio_pulldown_dis((gpio_num_t)cfg_.pins.adc);
@@ -25,7 +25,7 @@ void battery_monitor::init() {
     analogSetPinAttenuation(cfg_.pins.adc, ADC_11db);
 #endif
 }
-void battery_monitor::read() {
+void battery_controller::read() {
     uint32_t acc_mV = 0;
     for (uint8_t i = 0; i < cfg_.settings.samples; ++i) {
         acc_mV += analogReadMilliVolts(cfg_.pins.adc);  // <-- calibré eFuse

@@ -23,7 +23,7 @@ static constexpr EventBits_t    BIT_RUN                 = (1u << 2); // autorisa
 static ble_provisioner*         g_ble                   = nullptr;
 static wifi_provisioner*        g_wifi                  = nullptr;
 static motor_controller*        g_motor                 = nullptr;
-static battery_monitor*         g_battery               = nullptr;
+static battery_controller*      g_battery               = nullptr;
 static camera_controller*       g_camera                = nullptr;
 
 static EventGroupHandle_t       g_evt                   = nullptr;
@@ -47,7 +47,7 @@ static void                     task_video(void*);      // serveur MJPEG sur por
 //----------------------------------------------------------------------------------
 // API
 //----------------------------------------------------------------------------------
-void core_init(ble_provisioner* ble, wifi_provisioner* wifi, motor_controller* motor, battery_monitor* battery, camera_controller* camera) {
+void core_init(ble_provisioner* ble, wifi_provisioner* wifi, motor_controller* motor, battery_controller* battery, camera_controller* camera) {
   g_ble       = ble;
   g_wifi      = wifi;
   g_motor     = motor;
