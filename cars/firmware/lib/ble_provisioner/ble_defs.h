@@ -9,6 +9,7 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
 #include <optional>
+#include <mutex>
 
 
 
@@ -88,53 +89,79 @@ private:
 // Slot générique
 template<typename T>
 struct gatt_slot {
-    NimBLEUUID                        uuid{};
-    NimBLECharacteristic*             ch          = nullptr;
-    NimBLECharacteristicCallbacks*    cb          = nullptr;
-
-
     gatt_slot() = delete;
     gatt_slot(const NimBLEUUID& u,
               const gatt_slot_value<T>& initial,
               NimBLECharacteristicCallbacks* callbacks = nullptr)
-        : uuid(u), value(initial), cb(callbacks) {}
+        : uuid_(u), value_(initial), cb_(callbacks) {}
 
 
-    // Création réelle quand tu as le service
+    ///////////////////////////////////////////////
     NimBLECharacteristic* 
                 create(NimBLEService* service, uint32_t props, bool notify_initial = false) {
-        ch = service->createCharacteristic(uuid, props);
-        if (cb) ch->setCallbacks(cb);            // attache le callback si fourni
-        publish(notify_initial);                 // pousse la valeur initiale si READ/NOTIFY
-        return ch;
+        std::lock_guard<std::mutex> lk(mtx_);
+        ch_ = service->createCharacteristic(uuid_, props);
+        if (cb_) ch_->setCallbacks(cb_);
+        gatt_codec<T>::set(ch_, value_.get());
+        if (notify_initial) ch_->notify();
+        return ch_;
     }
-    void        set_callback(NimBLECharacteristicCallbacks* callbacks) { cb = callbacks;}
+    void        set_callback(NimBLECharacteristicCallbacks* callbacks) {
+        std::lock_guard<std::mutex> lk(mtx_);
+        cb_ = callbacks;
+        if (ch_ && cb_) ch_->setCallbacks(cb_);
+    }
 
 
-    // Valeurs 
-    void        set(const T& v) { value.set(v); }
-    const T&    get() const     { return value.get(); }
+    ///////////////////////////////////////////////
+    void        set(const T& v) {
+        std::lock_guard<std::mutex> lk(mtx_);
+        value_.set(v);
+    }
+    T           get() const {
+        std::lock_guard<std::mutex> lk(mtx_);
+        return value_.get();
+    }
 
+    ///////////////////////////////////////////////
     void        publish(bool notify=false) {
-        if (ch) {
-            gatt_codec<T>::set(ch, value.get());
-            if (notify) ch->notify();
-        }
+        std::lock_guard<std::mutex> lk(mtx_);
+        if (!ch_) return;
+        gatt_codec<T>::set(ch_, value_.get());
+        if (notify) ch_->notify();
     }
     void        pull() {
-        if (ch) {
-            T v = gatt_codec<T>::get(ch);
-            value.set(v); // re-clamp éventuel
+        std::lock_guard<std::mutex> lk(mtx_);
+        if (!ch_) return;
+        T v = gatt_codec<T>::get(ch_);
+        value_.set(v); // re-clamp éventuel
+    }
+
+    ///////////////////////////////////////////////
+    void        bind(NimBLECharacteristic* c) {
+        std::lock_guard<std::mutex> lk(mtx_);
+        ch_ = c;
+        if (cb_ && ch_) ch_->setCallbacks(cb_);
+    }
+    bool        is_bound() const {
+        std::lock_guard<std::mutex> lk(mtx_);
+        return ch_ != nullptr;
+    }
+    void        clear(bool notify=false) { 
+        std::lock_guard<std::mutex> lk(mtx_);
+        value_.set(T{});
+        if (ch_) {
+            gatt_codec<T>::set(ch_, value_.get());
+            if (notify) ch_->notify();
         }
     }
 
-    void        bind(NimBLECharacteristic* c) { ch = c; if (cb && ch) ch->setCallbacks(cb); }
-    bool        is_bound() const { return ch != nullptr; }
-
-    void        clear(bool notify=false) { set(T{}); if(notify) publish(true);}
-
 private:
-    gatt_slot_value<T>                value{};
+    mutable std::mutex                mtx_;
+    gatt_slot_value<T>                value_{};
+    NimBLEUUID                        uuid_{};
+    NimBLECharacteristic*             ch_          = nullptr;
+    NimBLECharacteristicCallbacks*    cb_          = nullptr;
 };
 
 
