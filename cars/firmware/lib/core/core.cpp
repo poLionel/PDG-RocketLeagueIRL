@@ -2,9 +2,7 @@
 // INCLUDES
 //----------------------------------------------------------------------------------
 #include "core.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
+#include "core_task.h"
 
 
 
@@ -27,36 +25,7 @@ static wifi_provisioner*        g_wifi                  = nullptr;
 static motor_controller*        g_motor                 = nullptr;
 static battery_controller*      g_battery               = nullptr;
 static camera_controller*       g_camera                = nullptr;
-
 static EventGroupHandle_t       g_evt                   = nullptr;
-static TaskHandle_t             h_task_connector        = nullptr;
-static TaskHandle_t             h_task_monitor          = nullptr;
-static TaskHandle_t             h_task_hardware         = nullptr;
-static TaskHandle_t             h_task_video            = nullptr;
-
-
-
-//----------------------------------------------------------------------------------
-// STRUCTURES
-//----------------------------------------------------------------------------------
-struct task_params {
-  EventGroupHandle_t    evt;
-  EventBits_t           gate_bit;
-  uint32_t              period_ms;     // 0 = pas de sleep automatique
-  void                  (*on_setup)(void* ctx);      // peut être nullptr
-  void                  (*on_loop)(void* ctx);       // doit faire 1 "itération"; peut bloquer si besoin
-  void                  (*on_teardown)(void* ctx);   // peut être nullptr
-  void*                 ctx;           // contexte optionnel
-};
-
-
-//----------------------------------------------------------------------------------
-// PROTOTYPES TÂCHES
-//----------------------------------------------------------------------------------
-static void                     task_connector(void*);  // attend BLE + creds, connecte Wi-Fi, arme RUN et réveille monitor
-static void                     task_monitor(void*);    // surveille BLE/Wi-Fi; sur perte -> coupe RUN, réveille connector, se suspend
-static void                     task_hardware(void*);   // réaliser toutes interactions avec le hardware
-static void                     task_video(void*);      // serveur MJPEG sur port 81
 
 
 
@@ -64,38 +33,14 @@ static void                     task_video(void*);      // serveur MJPEG sur por
 // TÂCHES
 //----------------------------------------------------------------------------------
 ////////////////////////////////////////////////////////////////////////////////////
-// 0) 
-static void gated_task(void* pv) {
-  task_params* p = static_cast<task_params*>(pv);
-  const char* name = pcTaskGetName(NULL);
-
-  for (;;) {
-    // Gate & START
-    xEventGroupWaitBits(p->evt, p->gate_bit, pdFALSE, pdTRUE, portMAX_DELAY);
-    Serial.printf("[%s] START\n", name);
-
-    // Setup
-    if (p->on_setup) p->on_setup(p->ctx);
-
-    // Boucle tant que le bit gate reste levé
-    while (xEventGroupGetBits(p->evt) & p->gate_bit) {
-      if (p->on_loop) p->on_loop(p->ctx);
-      if (p->period_ms > 0) vTaskDelay(pdMS_TO_TICKS(p->period_ms));
-    }
-
-    // Teardown & STOP
-    if (p->on_teardown) p->on_teardown(p->ctx);
-    Serial.printf("[%s] STOP\n", name);
-  }
-}
 ////////////////////////////////////////////////////////////////////////////////////
 // 1) CONNECTOR — attend BLE + credentials, connecte Wi-Fi, arme le RUN, réveille monitor, se suspend
-static void connector_setup(void* ctx) {
+static void connector_setup(void* ) {
   // Nouveau cycle de (re)connexion → nettoyer états
   xEventGroupClearBits(g_evt, BIT_BLE | BIT_WIFI | BIT_RUN);
   Serial.printf("[TASK_CON] setup: états nettoyés\n");
 }
-static void connector_loop(void* ctx) {
+static void connector_loop(void* ) {
   // a) Attendre BLE connecté
   if (!(xEventGroupGetBits(g_evt) & BIT_BLE)) {
     Serial.printf("[TASK_CON] attente BLE…\n");
@@ -147,15 +92,15 @@ static void connector_loop(void* ctx) {
   xEventGroupSetBits(g_evt, BIT_RUN);
   xEventGroupClearBits(g_evt, BIT_CONNEXION); // force sortie de la boucle générique
 }
-static void connector_teardown(void* ctx) {
+static void connector_teardown(void* ) {
   Serial.printf("[TASK_CON] veille (attente perte)\n");
 }
 ////////////////////////////////////////////////////////////////////////////////////
 // 2) MONITOR — surveille; sur perte, coupe RUN, réveille connector, se suspend
-static void monitor_setup(void* ctx) {
-  // Rien de spécial
+static void monitor_setup(void* ) { 
+  /* rien */ 
 }
-static void monitor_loop(void* ctx) {
+static void monitor_loop(void* ) {
   bool ble_ok  = g_ble->is_connected();
   bool wifi_ok = g_wifi->is_connected();
   if (!ble_ok || !wifi_ok) {
@@ -166,18 +111,17 @@ static void monitor_loop(void* ctx) {
     // stoppe les workers, relance le connecteur
     xEventGroupClearBits(g_evt, BIT_RUN);
     xEventGroupSetBits  (g_evt, BIT_CONNEXION);
-    // la boucle générique sortira (gate RUN tombé)
   }
 }
-static void monitor_teardown(void* ctx) {
+static void monitor_teardown(void* ) {
   Serial.printf("[TASK_MON] attente reconnexion\n");
 }
 ////////////////////////////////////////////////////////////////////////////////////
 // 4) // HARDWARE - réaliser toutes interactions avec le hardware
-static void hardware_setup(void* ctx) {
+static void hardware_setup(void* ) {
   g_motor->start();
 }
-static void hardware_loop(void* ctx) {
+static void hardware_loop(void* ) {
   // Mesures
   g_battery->read();
   float percent = g_battery->get_percent_value();
@@ -201,7 +145,7 @@ static void hardware_loop(void* ctx) {
   Serial.printf("Battery: %.2fV (%.0f%%) / y: %.2f / x: %.2f / s: %.2f / dm: %d\n",
                 v_batt, percent, ((float)g_ble->get_y_direction()/100.0f), x_dir, speed, g_ble->get_decay_mode());
 }
-static void hardware_teardown(void* ctx) {
+static void hardware_teardown(void* ) {
   g_motor->stop();
 }
 ////////////////////////////////////////////////////////////////////////////////////
@@ -211,7 +155,8 @@ struct VideoCtx {
   WiFiServer*    server = nullptr;
   WiFiClient     client;
 };
-static VideoCtx g_video_ctx; // contexte partagé
+static VideoCtx g_video_ctx;
+
 static void video_setup(void* ctxv) {
   auto* ctx = static_cast<VideoCtx*>(ctxv);
   if (!ctx->server) ctx->server = new WiFiServer(ctx->port);
@@ -258,6 +203,8 @@ static void video_teardown(void* ctxv) {
   if (ctx->client) ctx->client.stop();
   Serial.printf("[TASK_VID] serveur arrêté\n");
 }
+////////////////////////////////////////////////////////////////////////////////////
+// 6) // ...
 
 
 
@@ -277,50 +224,29 @@ void core_start() {
   xEventGroupClearBits(g_evt, BIT_BLE | BIT_WIFI | BIT_RUN);
   xEventGroupSetBits  (g_evt, BIT_CONNEXION);
 
-  // Paramètres des tâches (statiques pour durée de vie sûre)
-  static task_params connector_params {
-    .evt        = g_evt,
-    .gate_bit   = BIT_CONNEXION,
-    .period_ms  = 100,
-    .on_setup   = connector_setup,
-    .on_loop    = connector_loop,
-    .on_teardown= connector_teardown,
-    .ctx        = nullptr
-  };
-  static task_params monitor_params {
-    .evt        = g_evt,
-    .gate_bit   = BIT_RUN,
-    .period_ms  = 100,
-    .on_setup   = monitor_setup,
-    .on_loop    = monitor_loop,
-    .on_teardown= monitor_teardown,
-    .ctx        = nullptr
-  };
-  static task_params hardware_params {
-    .evt        = g_evt,
-    .gate_bit   = BIT_RUN,
-    .period_ms  = 500,
-    .on_setup   = hardware_setup,
-    .on_loop    = hardware_loop,
-    .on_teardown= hardware_teardown,
-    .ctx        = nullptr
-  };
-  static task_params video_params {
-    .evt        = g_evt,
-    .gate_bit   = BIT_RUN,
-    .period_ms  = 66,              // ~15 fps
-    .on_setup   = video_setup,
-    .on_loop    = video_loop,
-    .on_teardown= video_teardown,
-    .ctx        = &g_video_ctx
-  };
+  // ---- Instanciation via core_task (settings + component) ----
+  static task_settings  set_con { "TASK_CON", 5, 4096, 1, g_evt, BIT_CONNEXION, 100 };
+  static task_component cmp_con { connector_setup, connector_loop, connector_teardown, nullptr };
+  static core_task      t_con   ( core_task_config{ set_con, cmp_con } );
 
-  // Création des tâches (pinnées sur core 1 — ajuste si besoin)
-  xTaskCreatePinnedToCore(gated_task, "TASK_CON", 4096, &connector_params, 5, &h_task_connector, 1);
-  xTaskCreatePinnedToCore(gated_task, "TASK_MON", 4096, &monitor_params  , 4, &h_task_monitor  , 1);
-  xTaskCreatePinnedToCore(gated_task, "TASK_HAW", 4096, &hardware_params , 3, &h_task_hardware , 1);
-  xTaskCreatePinnedToCore(gated_task, "TASK_VID", 6144, &video_params    , 2, &h_task_video    , 1);
+  static task_settings  set_mon { "TASK_MON", 4, 4096, 1, g_evt, BIT_RUN, 100 };
+  static task_component cmp_mon { monitor_setup, monitor_loop, monitor_teardown, nullptr };
+  static core_task      t_mon   ( core_task_config{ set_mon, cmp_mon } );
 
-  // Lancer la tâche "d'entrée"
+  static task_settings  set_haw { "TASK_HAW", 3, 4096, 1, g_evt, BIT_RUN, 500 };
+  static task_component cmp_haw { hardware_setup, hardware_loop, hardware_teardown, nullptr };
+  static core_task      t_haw   ( core_task_config{ set_haw, cmp_haw } );
+
+  static task_settings  set_vid { "TASK_VID", 2, 6144, 1, g_evt, BIT_RUN, 66 }; // ~15fps
+  static task_component cmp_vid { video_setup, video_loop, video_teardown, &g_video_ctx };
+  static core_task      t_vid   ( core_task_config{ set_vid, cmp_vid } );
+
+  // Lancer les tâches
+  t_con.start();
+  t_mon.start();
+  t_haw.start();
+  t_vid.start();
+
+  // Déclencher la séquence d'entrée
   xEventGroupSetBits(g_evt, BIT_CONNEXION);
 }
