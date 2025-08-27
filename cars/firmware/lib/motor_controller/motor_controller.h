@@ -56,7 +56,7 @@ class motor_controller {
 public:
     motor_controller(motor_controller_config cfg);
 
-    void                        init();
+    bool                        init();
     void                        start();
     void                        stop();
                 

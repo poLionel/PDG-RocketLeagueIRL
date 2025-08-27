@@ -44,7 +44,7 @@ class battery_controller {
 public:
     battery_controller(battery_controller_config cfg);
 
-    void                        init();
+    bool                        init();
     
     void                        read();
 

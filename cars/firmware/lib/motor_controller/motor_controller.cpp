@@ -13,12 +13,13 @@ motor_controller::motor_controller(motor_controller_config cfg) :
 
 //----------------------------------------------------------------------------------
 //- MÉTHODES MEMBRES
-void motor_controller::init() {
+bool motor_controller::init() {
     pinMode(cfg_.pins.ain1, OUTPUT);
     pinMode(cfg_.pins.ain2, OUTPUT);
     pinMode(cfg_.pins.bin1, OUTPUT);
     pinMode(cfg_.pins.bin2, OUTPUT);
     pinMode(cfg_.pins.slp_pin, OUTPUT);
+    return true;
 }
 void motor_controller::start() {
     // Réveille le driver et (re)lance si besoin

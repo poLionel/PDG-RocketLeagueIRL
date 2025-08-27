@@ -16,14 +16,18 @@ battery_controller::battery_controller(battery_controller_config cfg) :
 //----------------------------------------------------------------------------------
 //- MÉTHODES MEMBRES
 //----------------------------------------------------------------------------------
-void battery_controller::init() {
+bool battery_controller::init() {
+    esp_err_t err;
     pinMode(cfg_.pins.adc, INPUT);
-    gpio_pullup_dis((gpio_num_t)cfg_.pins.adc);
-    gpio_pulldown_dis((gpio_num_t)cfg_.pins.adc);
+    err = gpio_pullup_dis((gpio_num_t)cfg_.pins.adc);
+    if (err != ESP_OK) return false;
+    err = gpio_pulldown_dis((gpio_num_t)cfg_.pins.adc);
+    if (err != ESP_OK) return false;
     analogReadResolution(12);
 #if defined(ESP32)
     analogSetPinAttenuation(cfg_.pins.adc, ADC_11db);
 #endif
+    return true;
 }
 void battery_controller::read() {
     uint32_t acc_mV = 0;

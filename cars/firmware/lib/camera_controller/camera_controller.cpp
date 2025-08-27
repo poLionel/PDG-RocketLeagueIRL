@@ -47,9 +47,7 @@ bool camera_controller::init() {
     c.grab_mode    = CAMERA_GRAB_WHEN_EMPTY; // bon défaut
 
     esp_err_t err = esp_camera_init(&c);
-    if (err != ESP_OK) {
-        return false;
-    }
+    if (err != ESP_OK) return false;
 
     // Réglages par défaut (miroir/flip souvent nécessaires sur XIAO Sense)
     if (sensor_t* s = esp_camera_sensor_get()) {

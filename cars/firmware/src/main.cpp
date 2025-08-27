@@ -88,31 +88,31 @@ void setup() {
   //--------
   //--INIT--
   Serial.println("[MAIN] [MOT] motors controller init");
-  motor_ctrl.init();
-
+  if(motor_ctrl.init()) Serial.println("[MAIN] [MOT] -> init successful");
+  else Serial.println("[MAIN] [MOT] -> init failed");
   Serial.println("[MAIN] [BAT] battery monitor init");
-  battery_ctrl.init();
-  battery_ctrl.read();
-
+  if(battery_ctrl.init()) Serial.println("[MAIN] [BAT] -> init successful");
+  else Serial.println("[MAIN] [BAT] -> init failed");
   Serial.println("[MAIN] [CAM] camera controller init");
   if(camera_ctrl.init()) Serial.println("[MAIN] [CAM] -> init successful");
   else Serial.println("[MAIN] [CAM] -> init failed");
 
   Serial.println("[MAIN] [BLE] provisioner init");
   ble_prov.init(device_id);
-  ble_prov.start();
-  ble_prov.set_battery_level(battery_ctrl.get_percent_value());
-
-  Serial.println("[MAIN] [WIFI] provisioner init");
+  Serial.println("[MAIN] [WFI] provisioner init");
   wifi_prov.init(device_id);
   
+  //--------
+  //-- --
+  battery_ctrl.read();
+  ble_prov.start();
+  ble_prov.set_battery_level(battery_ctrl.get_percent_value());
   Serial.printf("[MAIN] device_id = %s\n", device_id.c_str());
   Serial.printf("[MAIN] battery = %f / %f\n", battery_ctrl.get_volt_value(), battery_ctrl.get_percent_value());
 
-
   //--------
   //--CORE--
-  Serial.println("[MAIN] [CORE] core init and start");
+  Serial.println("[MAIN] core init and start");
   core_init(&ble_prov, &wifi_prov, &motor_ctrl, &battery_ctrl, &camera_ctrl);
   core_start();
 }

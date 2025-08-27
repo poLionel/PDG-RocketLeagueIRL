@@ -60,11 +60,7 @@ void core_start() {
   xTaskCreatePinnedToCore(task_connector  ,"TASK_CON"       ,4096   ,nullptr    ,5  , &h_task_connector   ,1);
   xTaskCreatePinnedToCore(task_monitor    ,"TASK_MON"       ,4096   ,nullptr    ,4  , &h_task_monitor     ,1);
   xTaskCreatePinnedToCore(task_video      ,"TASK_VID"       ,6144   ,nullptr    ,3  , &h_task_video       ,1);
-  xTaskCreatePinnedToCore(task_hardware   ,"TASK_HW"        ,4096   ,nullptr    ,2  , &h_task_hardware    ,1);
-
-  // Au départ, seul le connector doit travailler
-  vTaskSuspend(h_task_monitor);   // monitor attendra la première connexion
-  // Le worker attendra BIT_RUN automatiquement
+  xTaskCreatePinnedToCore(task_hardware   ,"TASK_HAW"       ,4096   ,nullptr    ,2  , &h_task_hardware    ,1);
 }
 
 
@@ -78,64 +74,72 @@ static void task_connector(void*) {
   const uint32_t WIFI_TIMEOUT_MS = 15000;
 
   for (;;) {
-    // a) Attendre qu'un client BLE soit connecté
-    Serial.println("[CONN] attente connexion BLE…");
-    while (!g_ble->is_connected()) vTaskDelay(pdMS_TO_TICKS(100));
-    xEventGroupSetBits(g_evt, BIT_BLE);
-    Serial.println("[CONN] BLE connecté");
+    Serial.printf("[%s] START\n", name);
 
-    // b) Attendre des credentials
-    Serial.println("[CONN] attente credentials via BLE…");
-    while (!g_ble->wifi_credentials_available()) {
-      if (!g_ble->is_connected()) {                 // BLE retombe ? on repart
-        xEventGroupClearBits(g_evt, BIT_BLE);
-      }
-      vTaskDelay(pdMS_TO_TICKS(100));
-    }
-    if(!g_ble->is_connected()) continue;
+    for(;;){
+      // a) Attendre qu'un client BLE soit connecté
+      Serial.printf("[%s] attente connexion BLE…\n", name);
+      while (!g_ble->is_connected()) vTaskDelay(pdMS_TO_TICKS(100));
+      xEventGroupSetBits(g_evt, BIT_BLE);
+      Serial.printf("[%s] BLE connecté\n", name);
 
-    String ssid, pass;
-    // NOTE: si ta méthode s'appelle encore consume_wifi_credentiels(), renomme ici.
-    g_ble->consume_wifi_credentiels(ssid, pass);
-    Serial.printf("[CONN] creds: SSID='%s' PASS='%s'\n", ssid.c_str(), pass.c_str());
-
-    // c) Lancer la connexion Wi-Fi (non bloquante) + attendre résultat ou timeout
-    g_wifi->connect(ssid, pass, 0);  // 0 = non bloquant
-    Serial.println("[CONN] tentative Wi-Fi…");
-    {
-      uint32_t t0 = millis();
-      while (!g_wifi->is_connected() && (millis() - t0) < WIFI_TIMEOUT_MS) {
-        if (!g_ble->is_connected()) {               // si BLE perdue pendant la tentative
+      // b) Attendre des credentials
+      Serial.printf("[%s] attente credentials via BLE…\n", name);
+      while (!g_ble->wifi_credentials_available()) {
+        if (!g_ble->is_connected()) {                 // BLE retombe ? on repart
           xEventGroupClearBits(g_evt, BIT_BLE);
-          break;
         }
         vTaskDelay(pdMS_TO_TICKS(100));
       }
+      if(!g_ble->is_connected()) continue;
+
+      String ssid, pass;
+      // NOTE: si ta méthode s'appelle encore consume_wifi_credentiels(), renomme ici.
+      g_ble->consume_wifi_credentiels(ssid, pass);
+      Serial.printf("[%s] creds: SSID='%s' PASS='%s'\n", name, ssid.c_str(), pass.c_str());
+
+      // c) Lancer la connexion Wi-Fi (non bloquante) + attendre résultat ou timeout
+      g_wifi->connect(ssid, pass, 0);  // 0 = non bloquant
+      Serial.printf("[%s] tentative Wi-Fi…\n", name);
+      {
+        uint32_t t0 = millis();
+        while (!g_wifi->is_connected() && (millis() - t0) < WIFI_TIMEOUT_MS) {
+          if (!g_ble->is_connected()) {               // si BLE perdue pendant la tentative
+            xEventGroupClearBits(g_evt, BIT_BLE);
+            break;
+          }
+          vTaskDelay(pdMS_TO_TICKS(100));
+        }
+      }
+      if (!g_wifi->is_connected()) {
+        Serial.printf("[%s] Wi-Fi: échec/timeout → retry\n", name);
+        continue;                                      // relancer le cycle
+      }
+
+      // d) Succès -> signaler états, autoriser le worker, réveiller le monitor
+      xEventGroupSetBits(g_evt, BIT_WIFI);
+      Serial.printf("[%s] Wi-Fi OK → IP=%s RSSI=%d dBm\n", name, g_wifi->ip().c_str(), g_wifi->rssi());
+      xEventGroupSetBits(g_evt, BIT_RUN);             // le worker peut tourner
+      vTaskResume(h_task_monitor);                    // le monitor commence sa surveillance
+
+      // e) Se suspendre jusqu'à notification du monitor (perte détectée)
+      ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+      Serial.printf("[%s] réveillé (perte détectée) → reprise du cycle\n", name);
+
+      vTaskDelay(pdMS_TO_TICKS(100));
     }
-    if (!g_wifi->is_connected()) {
-      Serial.println("[CONN] Wi-Fi: échec/timeout → retry");
-      continue;                                      // relancer le cycle
-    }
-
-    // d) Succès -> signaler états, autoriser le worker, réveiller le monitor
-    xEventGroupSetBits(g_evt, BIT_WIFI);
-    Serial.printf("[CONN] Wi-Fi OK → IP=%s RSSI=%d dBm\n", g_wifi->ip().c_str(), g_wifi->rssi());
-    xEventGroupSetBits(g_evt, BIT_RUN);             // le worker peut tourner
-    vTaskResume(h_task_monitor);                    // le monitor commence sa surveillance
-
-    // e) Se suspendre jusqu'à notification du monitor (perte détectée)
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-    Serial.println("[CONN] réveillé (perte détectée) → reprise du cycle");
-
-    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
 
 // 2) MONITOR — surveille; sur perte, coupe RUN, réveille connector, se suspend
 static void task_monitor(void*) {
   const char* name = pcTaskGetName(NULL);
+
   for (;;) {
+    // Attendre l'autorisation
+    xEventGroupWaitBits(g_evt, BIT_RUN, pdFALSE, pdTRUE, portMAX_DELAY);
     Serial.printf("[%s] START\n", name);
+
     for (;;) {
       bool ble_ok  = g_ble->is_connected();
       bool wifi_ok = g_wifi->is_connected();
@@ -147,17 +151,12 @@ static void task_monitor(void*) {
         if (!wifi_ok) xEventGroupClearBits(g_evt, BIT_WIFI);
         xEventGroupClearBits(g_evt, BIT_RUN);       // le worker s'arrêtera tout seul
 
-        // Option : repartir propre côté Wi-Fi
-        // g_wifi->disconnect(false);
-
-        // Réveiller le connector et se suspendre
-        xTaskNotifyGive(h_task_connector);
-        Serial.printf("[%s] suspend → attente reconnection\n", name);
-        vTaskSuspend(NULL);
+        xTaskNotifyGive(h_task_connector);                 // réveiller le connecteur
+        Serial.printf("[%s] attente reconnection\n", name);
         break; // sort de la boucle interne; on sera relancé par vTaskResume()
       }
 
-      vTaskDelay(pdMS_TO_TICKS(200));
+      vTaskDelay(pdMS_TO_TICKS(100));
     }
   }
 }
