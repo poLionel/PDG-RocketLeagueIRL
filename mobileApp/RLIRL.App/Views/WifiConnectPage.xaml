@@ -5,8 +5,11 @@
              Title="WifiConnectPage">
     <VerticalStackLayout>
         <Label 
-            Text="Welcome to .NET MAUI!"
+            Text="Welcome to Rocket League IRL"
             VerticalOptions="Center" 
             HorizontalOptions="Center" />
+
+        <Button Text="Click here to go the menu" Clicked="OnClickedButton"/>
+        <Label Text="Work in progress, coming soon"/>
     </VerticalStackLayout>
 </ContentPage>
