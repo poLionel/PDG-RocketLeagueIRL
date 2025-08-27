@@ -3,7 +3,10 @@ Bluetooth module for Rocket League IRL server.
 Provides automatic device discovery and pairing functionality.
 """
 
-from .bluetooth_service import BluetoothService, BluetoothDevice, check_bluetooth_dependencies
+from .ble_constants import check_bluetooth_dependencies
+from .bluetooth_service import BluetoothService, BluetoothDevice
+from .ble_service import BLEService
+from .ble_device import PDGCarDevice
 from .handlers import (
     BLUETOOTH_HANDLERS,
     set_bluetooth_service,
@@ -17,6 +20,8 @@ from .handlers import (
 __all__ = [
     'BluetoothService', 
     'BluetoothDevice', 
+    'BLEService',
+    'PDGCarDevice',
     'check_bluetooth_dependencies',
     'BLUETOOTH_HANDLERS',
     'set_bluetooth_service',

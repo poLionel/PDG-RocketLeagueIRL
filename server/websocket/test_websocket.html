@@ -65,6 +65,22 @@
             gap: 10px;
             align-items: center;
         }
+        .steering-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .steering-controls input[type="range"] {
+            flex: 1;
+        }
+        .steering-controls span {
+            min-width: 30px;
+            font-weight: bold;
+            text-align: center;
+        }
         #messages {
             height: 200px;
             overflow-y: scroll;
@@ -101,23 +117,84 @@
             padding-top: 10px;
             border-top: 1px solid #ddd;
         }
+        .controls-header {
+            margin-bottom: 15px;
+        }
+        .phase-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .phase-scan {
+            background-color: #ffeaa7;
+            color: #2d3436;
+        }
+        .phase-control {
+            background-color: #55a3ff;
+            color: white;
+        }
+        .phase-unknown {
+            background-color: #ddd;
+            color: #666;
+        }
     </style>
 </head>
 <body>
-    <h1>Rocket League IRL WebSocket Test</h1>
+    <h1>Rocket League IRL WebSocket Test Interface</h1>
     
     <div class="container">
-        <h2>Connection Status</h2>
+        <h2>📱 Connection Status</h2>
+        <p><strong>Workflow:</strong> Connect → Scan Phase → Control Phase → Send Commands</p>
         <div id="connectionStatus" class="status disconnected">Disconnected</div>
-        <button onclick="connectWebSocket()">Connect</button>
-        <button onclick="disconnectWebSocket()">Disconnect</button>
+        <button onclick="connectWebSocket()">🔗 Connect</button>
+        <button onclick="disconnectWebSocket()">❌ Disconnect</button>
     </div>
 
     <div class="container">
-        <h2>Car Controls</h2>
-        <button onclick="getAllCars()">Refresh Cars</button>
+        <h2>🚗 Car Controls</h2>
+        <div class="controls-header">
+            <button onclick="getAllCars()">🔄 Refresh Cars</button>
+            <button onclick="getFreeCars()">🆓 Get Free Cars</button>
+            <button onclick="getPhaseStatus()">📊 Get Phase Status</button>
+        </div>
         <div id="carControls" class="car-controls">
             <!-- Car controls will be populated here -->
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🔍 Bluetooth Management</h2>
+        <p>Manage Bluetooth discovery and connections:</p>
+        <div class="command-section">
+            <div class="controls-header">
+                <button onclick="switchToScanPhase()">🔍 Switch to Scan Phase</button>
+                <button onclick="switchToControlPhase()">🎮 Switch to Control Phase</button>
+                <button onclick="getBluetoothStatus()">📡 Get Bluetooth Status</button>
+            </div>
+            <div class="controls-header" style="margin-top: 10px;">
+                <button onclick="startBluetoothScan()">🔎 Start BLE Scan</button>
+                <button onclick="stopBluetoothScan()">⏹️ Stop BLE Scan</button>
+            </div>
+            <div id="bluetoothStatus" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+                <h4>Bluetooth Status</h4>
+                <div id="bluetoothStatusContent">Click "Get Bluetooth Status" to check device status</div>
+            </div>
+            
+            <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                <h4>🔗 Pair Device</h4>
+                <div class="command-inputs">
+                    <label for="pairDeviceAddress">Device Address:</label>
+                    <input type="text" id="pairDeviceAddress" placeholder="XX:XX:XX:XX:XX:XX">
+                    
+                    <label for="pairDeviceName">Device Name:</label>
+                    <input type="text" id="pairDeviceName" placeholder="Device Name">
+                    
+                    <button onclick="pairBluetoothDevice()">🔗 Pair Device</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -130,10 +207,10 @@
                 <input type="number" id="commandCarId" placeholder="Enter car ID">
                 
                 <label for="commandType">Command:</label>
-                <select id="commandType">
+                <select id="commandType" onchange="updateCommandFields()">
                     <option value="test">Test Command</option>
                     <option value="wifi">WiFi Credentials</option>
-                    <option value="move">Move Command</option>
+                    <option value="move">Move Command (forward/backward/stopped)</option>
                     <option value="status">Status Request</option>
                     <option value="ping">Ping</option>
                     <option value="custom">Custom</option>
@@ -141,6 +218,9 @@
                 
                 <label for="commandMessage">Message:</label>
                 <input type="text" id="commandMessage" placeholder="Enter message" value="Hello from WebSocket!">
+                
+                <label for="commandX">X (Steering):</label>
+                <input type="number" id="commandX" placeholder="Steering (-100 to 100)" value="0" min="-100" max="100">
                 
                 <button onclick="sendCustomCommand()">📡 Send Command</button>
             </div>
@@ -163,7 +243,57 @@
                 <button onclick="sendQuickCommand('ping', 'Are you there?')">🏓 Ping All Cars</button>
                 <button onclick="sendQuickCommand('status', 'Send status update')">📊 Request Status</button>
                 <button onclick="sendQuickCommand('test', 'Test from HTML interface')">🧪 Test Message</button>
+                <button onclick="sendQuickMoveCommand('forward', 0)">⬆️ All Forward</button>
+                <button onclick="sendQuickMoveCommand('stopped', 0)">⏹️ All Stop</button>
+                
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;">
+                    <h4>Movement Test Patterns:</h4>
+                    <button onclick="testCircularMovement()">🔄 Circular Movement Test</button>
+                    <button onclick="testFigureEight()">∞ Figure-8 Test</button>
+                    <button onclick="testPrecisionSteering()">🎯 Precision Steering Test</button>
+                    <button onclick="stopAllMovement()">🛑 Emergency Stop All</button>
+                </div>
+                
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;">
+                    <h4>Phase Management:</h4>
+                    <button onclick="switchToScanPhase()">🔍 Scan Phase</button>
+                    <button onclick="switchToControlPhase()">🎮 Control Phase</button>
+                    <button onclick="getPhaseStatus()">📊 Phase Status</button>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🎮 Controls Help</h2>
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
+            <h4>Mouse Controls:</h4>
+            <ul>
+                <li><strong>Forward/Backward/Stop:</strong> Use the direction buttons</li>
+                <li><strong>Steering:</strong> Use the slider or steering buttons</li>
+                <li><strong>Boost:</strong> Toggle boost on/off while moving</li>
+                <li><strong>Car Selection:</strong> Select a car to control it exclusively</li>
+            </ul>
+            
+            <h4>Keyboard Controls:</h4>
+            <ul>
+                <li><strong>W / ↑:</strong> Move forward</li>
+                <li><strong>S / ↓:</strong> Move backward</li>
+                <li><strong>A / ←:</strong> Steer left (incremental)</li>
+                <li><strong>D / →:</strong> Steer right (incremental)</li>
+                <li><strong>Space / Esc:</strong> Emergency stop</li>
+                <li><strong>Shift:</strong> Activate boost</li>
+            </ul>
+            
+            <h4>Movement Tests:</h4>
+            <ul>
+                <li><strong>Circular Movement:</strong> Tests turning in a circle</li>
+                <li><strong>Figure-8:</strong> Tests complex steering patterns</li>
+                <li><strong>Precision Steering:</strong> Tests all steering angles</li>
+                <li><strong>Emergency Stop:</strong> Immediately stops all cars</li>
+            </ul>
+            
+            <p><em>Note: Select "Keyboard Control" on a car to enable keyboard controls for that specific car.</em></p>
         </div>
     </div>
 
@@ -216,6 +346,8 @@
                 addMessage('Connected to WebSocket server', 'success');
                 updateConnectionStatus(true);
                 getAllCars(); // Load cars when connected
+                getPhaseStatus(); // Get current phase status
+                getBluetoothStatus(); // Get Bluetooth status
             };
 
             socket.onmessage = function(event) {
@@ -258,6 +390,79 @@
                 // Handle get_all_cars response
                 updateCarControls(data.cars);
             }
+            
+            if (data.bluetooth_status) {
+                // Handle Bluetooth status response
+                updateBluetoothStatus(data.bluetooth_status);
+            }
+            
+            if (data.phase_status) {
+                // Handle phase status response
+                updatePhaseStatus(data.phase_status);
+            }
+            
+            if (data.discovered_devices) {
+                // Handle discovered devices from Bluetooth scan
+                updateDiscoveredDevices(data.discovered_devices);
+            }
+            
+            if (data.discovered_cars) {
+                // Handle discovered cars from phase switching
+                updateDiscoveredCars(data.discovered_cars);
+            }
+            
+            // Handle general status messages
+            if (data.status && data.message) {
+                const messageType = data.status === 'success' ? 'success' : 
+                                  data.status === 'error' ? 'error' : 'info';
+                addMessage(`${data.action || 'Response'}: ${data.message}`, messageType);
+            }
+        }
+
+        function updateBluetoothStatus(bluetoothStatus) {
+            const statusContent = document.getElementById('bluetoothStatusContent');
+            if (statusContent) {
+                statusContent.innerHTML = `
+                    <pre>${JSON.stringify(bluetoothStatus, null, 2)}</pre>
+                `;
+            }
+        }
+
+        function updatePhaseStatus(phaseStatus) {
+            addMessage(`Phase Status: ${JSON.stringify(phaseStatus, null, 2)}`, 'info');
+            
+            // Update phase indicator if available
+            const currentPhase = phaseStatus.current_phase || phaseStatus.phase || 'unknown';
+            updatePhaseIndicator(currentPhase);
+        }
+
+        function updatePhaseIndicator(phase) {
+            // Remove existing phase indicators
+            const existingIndicators = document.querySelectorAll('.phase-indicator');
+            existingIndicators.forEach(indicator => indicator.remove());
+            
+            // Add new phase indicator
+            const header = document.querySelector('.container h2');
+            if (header && header.textContent.includes('Car Controls')) {
+                const indicator = document.createElement('span');
+                indicator.className = `phase-indicator phase-${phase}`;
+                indicator.textContent = `Phase: ${phase.toUpperCase()}`;
+                header.appendChild(indicator);
+            }
+        }
+
+        function updateDiscoveredDevices(devices) {
+            addMessage(`Discovered ${devices.length} Bluetooth devices:`, 'success');
+            devices.forEach(device => {
+                addMessage(`  - ${device.name} (${device.address}) ${device.paired ? '[PAIRED]' : ''}`, 'info');
+            });
+        }
+
+        function updateDiscoveredCars(cars) {
+            addMessage(`Discovered ${cars.length} cars in phase:`, 'success');
+            cars.forEach(car => {
+                addMessage(`  - ${car.name} (${car.address || car.ble_address})`, 'info');
+            });
         }
 
         function updateCarControls(carsData) {
@@ -272,29 +477,56 @@
             carsData.forEach(car => {
                 const carDiv = document.createElement('div');
                 carDiv.className = 'car-card';
+                const selectedStatus = car.selected ? '🔒 Selected' : '🆓 Available';
+                const selectionColor = car.selected ? '#ffeb3b' : '#e8f5e8';
+                carDiv.style.backgroundColor = selectionColor;
+                
                 carDiv.innerHTML = `
                     <h3>${car.name} (ID: ${car.car})</h3>
                     <div>
-                        <strong>Status:</strong> ${car.connected ? '🟢 Connected' : '🔴 Disconnected'}<br>
-                        <strong>Battery:</strong> ${car.battery_level}%<br>
-                        <strong>Movement:</strong> ${car.move}<br>
-                        <strong>Boost:</strong> ${car.boost} (${car.boost_value}%)
+                        <strong>Status:</strong> <span id="connectionStatus_${car.car}" style="color: ${car.connected ? 'green' : 'red'};">${car.connected ? '🟢 Connected' : '🔴 Disconnected'}</span><br>
+                        <strong>Selection:</strong> ${selectedStatus}<br>
+                        <strong>Battery:</strong> <span id="battery_${car.car}" style="color: ${car.battery_level > 30 ? 'green' : car.battery_level > 15 ? 'orange' : 'red'};">${car.battery_level}%</span><br>
+                        <strong>Movement:</strong> <span id="movement_${car.car}" style="font-weight: bold; color: ${car.move === 'stopped' ? 'red' : car.move === 'forward' ? 'green' : 'blue'};">${car.move}</span><br>
+                        <strong>Steering:</strong> <span id="steeringDisplay_${car.car}" style="font-weight: bold;">${car.x || 0}</span><br>
+                        <strong>Boost:</strong> <span id="boostDisplay_${car.car}" style="color: ${car.boost ? 'orange' : 'gray'};">${car.boost ? '⚡ ON' : '⚪ OFF'}</span> (${car.boost_value}%)
+                    </div>
+                    <div class="boost-controls" style="margin-bottom: 10px;">
+                        <label>Car Selection:</label>
+                        ${car.selected ? 
+                            `<button onclick="freeCar(${car.car})" style="background-color: #f44336;">🔓 Free Car</button>` :
+                            `<button onclick="selectCar(${car.car})" style="background-color: #4caf50;">🔒 Select Car</button>`
+                        }
+                        <button onclick="setKeyboardControlCar(${car.car})" style="background-color: #2196f3;">⌨️ Keyboard Control</button>
                     </div>
                     <div class="controls">
-                        <button onclick="moveCar(${car.car}, 'forward')">↑ Forward</button>
-                        <button onclick="moveCar(${car.car}, 'stopped')">⬜ Stop</button>
-                        <button onclick="moveCar(${car.car}, 'backward')">↓ Backward</button>
-                        <button onclick="moveCar(${car.car}, 'left')">← Left</button>
+                        <button onclick="moveCar(${car.car}, 'forward', ${car.x || 0})">↑ Forward</button>
+                        <button onclick="moveCar(${car.car}, 'stopped', 0)">⬜ Stop</button>
+                        <button onclick="moveCar(${car.car}, 'backward', ${car.x || 0})">↓ Backward</button>
+                        <button onclick="steerCar(${car.car}, -100)">← Full Left</button>
                         <button onclick="getCarStatus(${car.car})">⟲ Refresh</button>
-                        <button onclick="moveCar(${car.car}, 'right')">→ Right</button>
+                        <button onclick="steerCar(${car.car}, 100)">→ Full Right</button>
+                    </div>
+                    <div class="steering-controls" style="margin: 10px 0;">
+                        <label>Steering (-100 to 100):</label>
+                        <input type="range" id="steering_${car.car}" min="-100" max="100" value="${car.x || 0}" 
+                               onchange="updateSteering(${car.car}, this.value)" style="width: 200px;">
+                        <span id="steeringValue_${car.car}">${car.x || 0}</span>
+                    </div>
+                    <div class="controls" style="margin: 10px 0;">
+                        <label>Precision Steering:</label>
+                        <button onclick="steerCar(${car.car}, -50)">← Left</button>
+                        <button onclick="steerCar(${car.car}, 0)">↕ Center</button>
+                        <button onclick="steerCar(${car.car}, 50)">→ Right</button>
                     </div>
                     <div class="boost-controls">
                         <label>Boost:</label>
-                        <button onclick="moveCar(${car.car}, '${car.move}', true)">⚡ On</button>
-                        <button onclick="moveCar(${car.car}, '${car.move}', false)">⚪ Off</button>
+                        <button onclick="moveCar(${car.car}, '${car.move}', ${car.x || 0}, true)">⚡ On</button>
+                        <button onclick="moveCar(${car.car}, '${car.move}', ${car.x || 0}, false)">⚪ Off</button>
                     </div>
                     <div class="boost-controls" style="margin-top: 10px;">
                         <label>BLE Commands:</label>
+                        <button onclick="connectToCar(${car.car})">🔗 Connect BLE</button>
                         <button onclick="sendWiFiCredentials(${car.car})">📶 Set WiFi</button>
                     </div>
                     ${car.ble_address ? `<div style="font-size: 0.8em; color: #666; margin-top: 5px;">BLE: ${car.ble_address}</div>` : ''}
@@ -310,13 +542,154 @@
             });
         }
 
-        function moveCar(carId, move, boost = false) {
+        function getFreeCars() {
+            sendMessage({
+                "action": "get_free_cars"
+            });
+        }
+
+        function selectCar(carId) {
+            addMessage(`Selecting car ${carId}...`);
+            sendMessage({
+                "action": "select_car",
+                "car": carId
+            });
+        }
+
+        function freeCar(carId) {
+            addMessage(`Freeing car ${carId}...`);
+            sendMessage({
+                "action": "free_car",
+                "car": carId
+            });
+        }
+
+        function moveCar(carId, move, x = 0, boost = false) {
+            // Convert boost parameter to string if it's boolean
+            const boostStr = typeof boost === 'boolean' ? boost.toString() : boost;
+            
+            // Update local display immediately for responsiveness
+            updateCarStatusDisplay(carId, {
+                move: move,
+                x: x,
+                boost: boost
+            });
+            
             sendMessage({
                 "action": "move_car",
                 "car": carId,
                 "move": move,
-                "boost": boost.toString()
+                "x": x,
+                "boost": boostStr
             });
+        }
+
+        function steerCar(carId, x) {
+            const currentCar = cars[carId];
+            const currentMove = currentCar ? currentCar.move : 'stopped';
+            
+            // Send the movement command with new steering
+            moveCar(carId, currentMove, parseInt(x));
+            
+            // Update the slider if it exists
+            const slider = document.getElementById(`steering_${carId}`);
+            const valueDisplay = document.getElementById(`steeringValue_${carId}`);
+            if (slider) {
+                slider.value = x;
+            }
+            if (valueDisplay) {
+                valueDisplay.textContent = x;
+            }
+        }
+
+        function updateSteering(carId, x) {
+            const currentCar = cars[carId];
+            const currentMove = currentCar ? currentCar.move : 'stopped';
+            
+            // Update the display immediately for better responsiveness
+            document.getElementById(`steeringValue_${carId}`).textContent = x;
+            const steeringDisplay = document.getElementById(`steeringDisplay_${carId}`);
+            if (steeringDisplay) {
+                steeringDisplay.textContent = x;
+            }
+            
+            // Update the car object locally
+            if (cars[carId]) {
+                cars[carId].x = parseInt(x);
+            }
+            
+            // Send the movement command with new steering
+            moveCar(carId, currentMove, parseInt(x));
+        }
+
+        function updateCarStatusDisplay(carId, updates) {
+            // Update local car object
+            if (cars[carId]) {
+                Object.assign(cars[carId], updates);
+            }
+            
+            // Update visual elements
+            if (updates.move !== undefined) {
+                const movementDisplay = document.getElementById(`movement_${carId}`);
+                if (movementDisplay) {
+                    movementDisplay.textContent = updates.move;
+                    movementDisplay.style.color = updates.move === 'stopped' ? 'red' : 
+                                                  updates.move === 'forward' ? 'green' : 'blue';
+                }
+            }
+            
+            if (updates.x !== undefined) {
+                const steeringDisplay = document.getElementById(`steeringDisplay_${carId}`);
+                const steeringValue = document.getElementById(`steeringValue_${carId}`);
+                const slider = document.getElementById(`steering_${carId}`);
+                
+                if (steeringDisplay) steeringDisplay.textContent = updates.x;
+                if (steeringValue) steeringValue.textContent = updates.x;
+                if (slider) slider.value = updates.x;
+            }
+            
+            if (updates.boost !== undefined) {
+                const boostDisplay = document.getElementById(`boostDisplay_${carId}`);
+                if (boostDisplay) {
+                    const isBoostOn = updates.boost === true || updates.boost === 'true';
+                    boostDisplay.textContent = isBoostOn ? '⚡ ON' : '⚪ OFF';
+                    boostDisplay.style.color = isBoostOn ? 'orange' : 'gray';
+                }
+            }
+            
+            if (updates.connected !== undefined) {
+                const connectionStatus = document.getElementById(`connectionStatus_${carId}`);
+                if (connectionStatus) {
+                    connectionStatus.innerHTML = updates.connected ? '🟢 Connected' : '🔴 Disconnected';
+                    connectionStatus.style.color = updates.connected ? 'green' : 'red';
+                }
+            }
+        }
+
+        function updateCommandFields() {
+            const commandType = document.getElementById('commandType').value;
+            const messageField = document.getElementById('commandMessage');
+            const xField = document.getElementById('commandX');
+            
+            if (commandType === 'move') {
+                messageField.placeholder = 'forward, backward, or stopped';
+                messageField.value = 'forward';
+                xField.style.display = 'inline';
+                document.querySelector('label[for="commandX"]').style.display = 'inline';
+            } else {
+                messageField.placeholder = 'Enter message';
+                if (commandType === 'test') {
+                    messageField.value = 'Test from HTML interface';
+                } else if (commandType === 'ping') {
+                    messageField.value = 'Are you there?';
+                } else if (commandType === 'status') {
+                    messageField.value = 'Send status update';
+                } else {
+                    messageField.value = 'Hello from WebSocket!';
+                }
+                xField.style.display = 'none';
+                document.querySelector('label[for="commandX"]').style.display = 'none';
+            }
         }
 
         function getCarStatus(carId) {
@@ -331,6 +704,7 @@
             const carId = document.getElementById('commandCarId').value;
             const command = document.getElementById('commandType').value;
             const message = document.getElementById('commandMessage').value;
+            const x = document.getElementById('commandX').value || 0;
             
             if (!carId) {
                 addMessage('Please enter a car ID', 'error');
@@ -339,8 +713,22 @@
             
             if (command === 'wifi') {
                 sendWiFiCredentials(parseInt(carId));
+            } else if (command === 'move') {
+                // Special handling for move commands with x parameter
+                sendMessage({
+                    "action": "move_car",
+                    "car": parseInt(carId),
+                    "move": message || "forward",
+                    "x": parseInt(x),
+                    "boost": "false"
+                });
             } else {
-                sendToCar(parseInt(carId), command, message);
+                sendMessage({
+                    "action": "send_to_car",
+                    "car": parseInt(carId),
+                    "command": command,
+                    "message": message
+                });
             }
         }
 
@@ -354,6 +742,74 @@
                 "car": carId,
                 "ssid": ssid,
                 "password": password
+            });
+        }
+
+        function connectToCar(carId) {
+            addMessage(`Connecting to car ${carId} via BLE...`);
+            sendMessage({
+                "action": "connect_to_car",
+                "car": carId
+            });
+        }
+
+        // Bluetooth Management Functions
+        function switchToScanPhase() {
+            addMessage("Switching to scan phase...");
+            sendMessage({
+                "action": "switch_to_scan_phase"
+            });
+        }
+
+        function switchToControlPhase() {
+            addMessage("Switching to control phase...");
+            sendMessage({
+                "action": "switch_to_control_phase"
+            });
+        }
+
+        function getPhaseStatus() {
+            addMessage("Getting phase status...");
+            sendMessage({
+                "action": "get_phase_status"
+            });
+        }
+
+        function getBluetoothStatus() {
+            addMessage("Getting Bluetooth status...");
+            sendMessage({
+                "action": "get_bluetooth_status"
+            });
+        }
+
+        function startBluetoothScan() {
+            addMessage("Starting Bluetooth scan...");
+            sendMessage({
+                "action": "start_bluetooth_scan"
+            });
+        }
+
+        function stopBluetoothScan() {
+            addMessage("Stopping Bluetooth scan...");
+            sendMessage({
+                "action": "stop_bluetooth_scan"
+            });
+        }
+
+        function pairBluetoothDevice() {
+            const address = document.getElementById('pairDeviceAddress').value;
+            const name = document.getElementById('pairDeviceName').value || "Unknown Device";
+            
+            if (!address) {
+                addMessage('Please enter a device address', 'error');
+                return;
+            }
+            
+            addMessage(`Pairing with device ${name} (${address})...`);
+            sendMessage({
+                "action": "pair_bluetooth_device",
+                "address": address,
+                "name": name
             });
         }
 
@@ -384,10 +840,160 @@
             }
         }
 
+        function sendQuickMoveCommand(move, x) {
+            // Send movement command to all available cars
+            for (const carId in cars) {
+                addMessage(`Moving car ${carId}: ${move} with steering ${x}`);
+                moveCar(parseInt(carId), move, x);
+            }
+        }
+
+        // Movement test pattern functions
+        function testCircularMovement() {
+            addMessage('Starting circular movement test...', 'info');
+            for (const carId in cars) {
+                const car = cars[carId];
+                if (car.selected) {
+                    addMessage(`Car ${carId}: Starting circular movement`);
+                    
+                    // Start forward movement with right turn
+                    moveCar(parseInt(carId), 'forward', 75);
+                    
+                    // Schedule steering changes for circular motion
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 50), 2000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 25), 4000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 0), 6000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -25), 8000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -50), 10000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -75), 12000);
+                    setTimeout(() => moveCar(parseInt(carId), 'stopped', 0), 14000);
+                }
+            }
+        }
+
+        function testFigureEight() {
+            addMessage('Starting figure-8 movement test...', 'info');
+            for (const carId in cars) {
+                const car = cars[carId];
+                if (car.selected) {
+                    addMessage(`Car ${carId}: Starting figure-8 pattern`);
+                    
+                    // Figure-8 pattern: alternating left and right turns
+                    moveCar(parseInt(carId), 'forward', -80);  // Start with left turn
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -40), 2000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 0), 4000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 40), 6000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 80), 8000);  // Right turn
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 40), 10000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 0), 12000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -40), 14000);
+                    setTimeout(() => moveCar(parseInt(carId), 'stopped', 0), 16000);
+                }
+            }
+        }
+
+        function testPrecisionSteering() {
+            addMessage('Starting precision steering test...', 'info');
+            for (const carId in cars) {
+                const car = cars[carId];
+                if (car.selected) {
+                    addMessage(`Car ${carId}: Testing precision steering`);
+                    
+                    // Test precise steering angles
+                    const steeringAngles = [-100, -75, -50, -25, 0, 25, 50, 75, 100, 0];
+                    
+                    steeringAngles.forEach((angle, index) => {
+                        setTimeout(() => {
+                            if (index < steeringAngles.length - 1) {
+                                moveCar(parseInt(carId), 'forward', angle);
+                                addMessage(`Car ${carId}: Steering at ${angle}°`);
+                            } else {
+                                moveCar(parseInt(carId), 'stopped', angle);
+                                addMessage(`Car ${carId}: Test complete, stopped`);
+                            }
+                        }, index * 1500);
+                    });
+                }
+            }
+        }
+
+        function stopAllMovement() {
+            addMessage('EMERGENCY STOP: Stopping all car movement', 'error');
+            for (const carId in cars) {
+                moveCar(parseInt(carId), 'stopped', 0, false);
+                addMessage(`Car ${carId}: STOPPED`);
+            }
+        }
+
         // Auto-connect on page load
         window.onload = function() {
             connectWebSocket();
+            updateCommandFields(); // Initialize command fields
+            setupKeyboardControls(); // Setup keyboard controls for car movement
         };
+
+        // Keyboard controls for car movement
+        function setupKeyboardControls() {
+            let selectedCarForKeyboard = null;
+            
+            document.addEventListener('keydown', function(event) {
+                // Only process if we have a selected car and no input field is focused
+                if (!selectedCarForKeyboard || document.activeElement.tagName === 'INPUT' || 
+                    document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                switch(event.key.toLowerCase()) {
+                    case 'w':
+                    case 'arrowup':
+                        event.preventDefault();
+                        moveCar(selectedCarForKeyboard, 'forward', cars[selectedCarForKeyboard]?.x || 0);
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} moving forward`);
+                        break;
+                    case 's':
+                    case 'arrowdown':
+                        event.preventDefault();
+                        moveCar(selectedCarForKeyboard, 'backward', cars[selectedCarForKeyboard]?.x || 0);
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} moving backward`);
+                        break;
+                    case 'a':
+                    case 'arrowleft':
+                        event.preventDefault();
+                        const currentX = cars[selectedCarForKeyboard]?.x || 0;
+                        const newLeftX = Math.max(-100, currentX - 25);
+                        steerCar(selectedCarForKeyboard, newLeftX);
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} steering left to ${newLeftX}`);
+                        break;
+                    case 'd':
+                    case 'arrowright':
+                        event.preventDefault();
+                        const currentXRight = cars[selectedCarForKeyboard]?.x || 0;
+                        const newRightX = Math.min(100, currentXRight + 25);
+                        steerCar(selectedCarForKeyboard, newRightX);
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} steering right to ${newRightX}`);
+                        break;
+                    case ' ':
+                    case 'escape':
+                        event.preventDefault();
+                        moveCar(selectedCarForKeyboard, 'stopped', 0);
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} STOPPED`, 'error');
+                        break;
+                    case 'shift':
+                        event.preventDefault();
+                        const currentMove = cars[selectedCarForKeyboard]?.move || 'stopped';
+                        const currentXBoost = cars[selectedCarForKeyboard]?.x || 0;
+                        moveCar(selectedCarForKeyboard, currentMove, currentXBoost, true);
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} BOOST ON`);
+                        break;
+                }
+            });
+            
+            // Function to set which car responds to keyboard
+            window.setKeyboardControlCar = function(carId) {
+                selectedCarForKeyboard = carId;
+                addMessage(`Keyboard control set to Car ${carId}. Use WASD/Arrow keys to move, Space/Esc to stop, Shift for boost.`, 'success');
+            };
+        }
     </script>
 </body>
 </html>

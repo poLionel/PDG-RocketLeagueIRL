@@ -27,9 +27,13 @@ Use JSONs to send data.
   "action": "move_car",
   "car": 1,
   "move": "forward",
+  "x": 0,
   "boost": "false"
 }
 ```
+
+- `move`: Movement direction - "forward", "backward", or "stopped"
+- `x`: Steering value from -100 (full left) to 100 (full right), 0 is straight
 
 ### Return data from the server
 
@@ -76,6 +80,48 @@ Server responds:
 }
 ```
 
+### Select a car <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "select_car",
+  "car": 1
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "select_car",
+  "car": 1
+}
+```
+
+### Free a car <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "free_car",
+  "car": 1
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "free_car",
+  "car": 1
+}
+```
+
 ### Send data to move the car <!-- omit from toc -->
 
 App sends:
@@ -85,9 +131,13 @@ App sends:
   "action": "move_car",
   "car": 1,
   "move": "forward",
+  "x": 0,
   "boost": "false"
 }
 ```
+
+- `move`: Movement direction - "forward", "backward", or "stopped"
+- `x`: Steering value from -100 (full left) to 100 (full right), 0 is straight
 
 Server responds:
 
@@ -115,13 +165,12 @@ Server responds:
 {
   "status": "success",
   "action": "get_car_status",
-  "car_status": {
-    "car": 1,
-    "battery_level": 85,
-    "move": "forward",
-    "boost": "false",
-    "boost_value": 100
-  }
+  "car": 1,
+  "battery_level": 85,
+  "move": "forward",
+  "x": 0,
+  "boost": "false",
+  "boost_value": 100
 }
 ```
 
@@ -228,6 +277,26 @@ Server responds:
   "status": "success",
   "action": "start_game",
   "message": "Game started!"
+}
+```
+
+### Stop the game <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "stop_game"
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "stop_game",
+  "message": "Game stopped!"
 }
 ```
 
