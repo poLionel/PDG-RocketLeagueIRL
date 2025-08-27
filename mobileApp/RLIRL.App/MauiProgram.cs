@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using RLIRL.App.Helper;
 using RLIRL.App.ViewModels;
 using RLIRL.App.Views;
 using RLIRL.Business;
@@ -33,6 +34,10 @@ namespace RLIRL.App
 
 #if DEBUG
             builder.Logging.AddDebug();
+#endif
+
+#if ANDROID
+            builder.Services.AddSingleton<IOrientationService, OrientationService>();
 #endif
 
             builder.Services.RegisterBusiness(builder.Configuration);
