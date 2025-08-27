@@ -1,5 +1,17 @@
 """
 PDG Car BLE device representation and connection management.
+
+This module provides the PDGCarDevice class which handles all Bluetooth Low Energy
+communication with physical Rocket League cars. It manages connection lifecycle,
+characteristic read/write operations, and implements the protocol defined in the
+car's ESP32 firmware.
+
+Key Features:
+- Robust connection handling with retry logic optimized for Raspberry Pi
+- Type-safe characteristic read/write operations matching firmware data types
+- Motor control with bounds checking and safety limits
+- WiFi provisioning for initial car setup
+- Real-time status monitoring and battery level reporting
 """
 
 import asyncio
@@ -19,7 +31,22 @@ logger = logging.getLogger(__name__)
 
 
 class PDGCarDevice:
-    """Represents a PDG car BLE device with connection capabilities."""
+    """
+    Represents a PDG Rocket League car with full BLE communication capabilities.
+    
+    This class encapsulates all interaction with a physical car, including connection
+    management, motor control, status monitoring, and WiFi provisioning. It implements
+    the BLE protocol defined by the car's ESP32 firmware and handles the complexities
+    of Bluetooth communication on Raspberry Pi platforms.
+    
+    Attributes:
+        device (BLEDevice): The underlying Bleak BLE device
+        device_id (str): Unique identifier from the car's firmware
+        name (str): Human-readable device name
+        address (str): BLE MAC address
+        is_connected (bool): Current connection status
+        client (BleakClient): Active BLE client connection
+    """
     
     def __init__(self, device: BLEDevice, device_id: str = None, adapter: str = None):
         self.device = device
@@ -33,7 +60,13 @@ class PDGCarDevice:
         self.adapter = adapter or "hci1"  # Default Bluetooth adapter for Raspberry Pi
 
     async def _clear_system_connections(self):
-        """Clear any existing system-level connections to prevent conflicts."""
+        """
+        Clear any existing system-level Bluetooth connections to prevent conflicts.
+        
+        On Linux systems (especially Raspberry Pi), orphaned Bluetooth connections
+        can interfere with new BLE connections. This method uses system tools to
+        forcibly disconnect any existing connections to this device's address.
+        """
         try:
             import subprocess
             result = subprocess.run(
@@ -66,7 +99,22 @@ class PDGCarDevice:
             logger.debug(f"Could not clear system connections for {self.address}: {e}")
 
     async def connect(self, retries: int = 5) -> bool:
-        """Connect to the BLE device with Raspberry Pi optimized retry logic."""
+        """
+        Establish BLE connection to the car with comprehensive retry logic.
+        
+        This method implements robust connection handling specifically tuned for
+        Raspberry Pi Bluetooth limitations. It includes:
+        - System-level connection cleanup
+        - Adaptive retry delays based on error types
+        - Connection health verification
+        - Automatic device ID discovery
+        
+        Args:
+            retries (int): Maximum number of connection attempts
+            
+        Returns:
+            bool: True if connection successful, False otherwise
+        """
         # Clean up any previous connections
         if self.client:
             try:

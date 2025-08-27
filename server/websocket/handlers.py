@@ -1,15 +1,26 @@
 """
 WebSocket message handlers for the Rocket League IRL server.
+
+This module contains all the handler functions for processing incoming WebSocket
+messages from client applications. It bridges the WebSocket communication layer
+with the car management system and Bluetooth services.
+
+Handler categories:
+- Car management: select, free, status operations
+- Movement control: translate UI commands to motor parameters  
+- Bluetooth integration: device discovery and pairing
+- System status: health checks and configuration
 """
 
 import asyncio
 import logging
 
-# Try to import Bluetooth handlers, but don't fail if they're not available
+# Bluetooth functionality with graceful degradation
 try:
     from bluetooth.handlers import BLUETOOTH_HANDLERS, get_bluetooth_service
     BLUETOOTH_AVAILABLE = True
 except ImportError:
+    # Fallback when Bluetooth dependencies are unavailable
     BLUETOOTH_HANDLERS = {}
     BLUETOOTH_AVAILABLE = False
     def get_bluetooth_service():
@@ -19,36 +30,44 @@ logger = logging.getLogger(__name__)
 
 def translate_move_to_drive_params(move, x, boost):
     """
-    Translate websocket move commands to BLE drive parameters.
+    Convert high-level movement commands to low-level motor control parameters.
+    
+    Translates user-friendly movement commands from the mobile app/web interface
+    into the specific motor control values expected by the car's BLE firmware.
+    This includes coordinate system mapping and boost behavior.
     
     Args:
         move (str): Movement direction ("forward", "backward", "stopped")
         x (int): Steering value (-100 to 100, left to right)
-        boost (bool): Whether boost is enabled
+        boost (bool): Whether boost mode is enabled
         
     Returns:
-        tuple: (drive_x, drive_y, speed, decay_mode) for BLE commands
+        tuple: (drive_x, drive_y, speed, decay_mode) for BLE characteristic writes
+            - drive_x: Steering direction (-100 to 100)
+            - drive_y: Forward/backward direction (-100 to 100) 
+            - speed: Motor speed magnitude (0 to 100)
+            - decay_mode: Braking behavior (0=normal, 1=fast/boost)
     """
-    # Default values
-    drive_x = x  # steering directly from websocket x parameter (-100 to 100)
-    drive_y = 0  # movement direction
-    speed = 0    # movement speed
-    decay_mode = 0  # 0 = normal, 1 = boost/fast decay
+    # Initialize with safe default values
+    drive_x = x  # Direct steering mapping from UI
+    drive_y = 0  # Forward/backward component
+    speed = 0    # Motor speed magnitude
+    decay_mode = 0  # Normal braking behavior
     
-    # Translate movement direction
+    # Map movement commands to motor directions
     if move == "forward":
-        drive_y = 50   # positive Y for forward
-        speed = 50     # base speed
+        drive_y = 50   # Positive Y-axis for forward motion
+        speed = 50     # Moderate base speed for control
     elif move == "backward":
-        drive_y = -50  # negative Y for backward  
-        speed = 50     # base speed
+        drive_y = -50  # Negative Y-axis for reverse motion
+        speed = 50     # Same speed for consistent feel
     elif move == "stopped":
-        drive_y = 0    # no movement
-        speed = 0      # no speed
+        drive_y = 0    # No directional movement
+        speed = 0      # Complete stop
     
-    # Apply boost if enabled
+    # Boost mode increases speed and changes braking characteristics
     if boost:
-        speed = 100    # boost speed
+        speed = 100    # Maximum speed for boost
         decay_mode = 1 # boost decay mode
         
     return drive_x, drive_y, speed, decay_mode

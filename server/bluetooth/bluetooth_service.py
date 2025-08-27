@@ -1,6 +1,16 @@
 """
 Bluetooth Low Energy (BLE) service for PDG-RocketLeagueIRL car detection and communication.
-This file provides compatibility wrappers and high-level interfaces.
+
+This module provides the high-level BluetoothService interface that integrates BLE
+functionality with the car management system. It serves as a compatibility layer
+and orchestrates device discovery, connection management, and car registration.
+
+The service handles:
+- Automatic car discovery via BLE scanning
+- Device pairing and connection management  
+- Integration with the CarManager for vehicle tracking
+- Event callbacks for UI updates and logging
+- Graceful error handling for missing Bluetooth dependencies
 """
 
 import asyncio
@@ -9,9 +19,9 @@ import sys
 import os
 from typing import List, Callable, Optional
 
-# Handle imports when running as script vs module
+# Import handling for both script and module execution
 if __name__ == "__main__":
-    # Running as script - add parent directory to path and use absolute imports
+    # Script mode: adjust Python path for standalone execution
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(current_dir)
     sys.path.insert(0, parent_dir)
@@ -20,7 +30,7 @@ if __name__ == "__main__":
     from bluetooth.ble_device import PDGCarDevice
     from bluetooth.ble_service import BLEService
 else:
-    # Running as module - use relative imports
+    # Module mode: use standard relative imports
     from .ble_constants import SERVICE_UUID, check_bluetooth_dependencies
     from .ble_device import PDGCarDevice
     from .ble_service import BLEService
@@ -28,9 +38,13 @@ else:
 logger = logging.getLogger(__name__)
 
 
-# Compatibility classes for legacy code integration
 class BluetoothDevice:
-    """Simple Bluetooth device representation for compatibility."""
+    """
+    Legacy compatibility wrapper for simple Bluetooth device representation.
+    
+    Provides a basic interface for representing discovered Bluetooth devices
+    without the full BLE connection capabilities of PDGCarDevice.
+    """
     def __init__(self, address: str, name: str = "Unknown", paired: bool = False):
         self.address = address
         self.name = name
@@ -41,7 +55,19 @@ class BluetoothDevice:
 
 
 class BluetoothService:
-    """Main Bluetooth service class that wraps BLEService for compatibility."""
+    """
+    High-level Bluetooth service orchestrator for car discovery and management.
+    
+    This class provides the main interface for Bluetooth functionality in the
+    Rocket League IRL system. It wraps the lower-level BLEService and integrates
+    with the CarManager to provide seamless device discovery and car registration.
+    
+    Key responsibilities:
+    - Coordinating BLE device scanning and discovery
+    - Managing automatic discovery tasks and scheduling
+    - Providing event callbacks for UI updates
+    - Handling graceful degradation when Bluetooth is unavailable
+    """
     
     def __init__(self, car_manager=None):
         self.car_manager = car_manager

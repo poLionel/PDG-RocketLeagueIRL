@@ -7,26 +7,49 @@ import logging
 from .handlers import *
 from .async_handlers import ASYNC_HANDLERS
 
-# Global car manager reference
+# Global car manager for WebSocket handler access
 car_manager = None
 
-# Track active websocket connections
+# Active WebSocket connections registry for broadcast and management
 active_connections = {}
 
 logger = logging.getLogger(__name__)
 
 def set_car_manager(manager):
-    """Set the global car manager reference."""
+    """
+    Configure the global car manager for WebSocket handler access.
+    
+    Args:
+        manager: CarManager instance for vehicle operations
+    """
     global car_manager
     car_manager = manager
 
 def get_car_manager():
-    """Get the global car manager reference."""
+    """
+    Retrieve the global car manager instance.
+    
+    Returns:
+        CarManager: Active car manager or None if not initialized
+    """
     return car_manager
 
 async def handle_message(websocket, path=None):
-    """Handle WebSocket messages. Path parameter for compatibility with websockets library."""
-    # Generate unique ID for this websocket connection
+    """
+    Process incoming WebSocket messages and route to appropriate handlers.
+    
+    Manages the complete lifecycle of a WebSocket connection including:
+    - Connection registration and unique ID assignment
+    - Message parsing and validation
+    - Action routing to sync/async handlers
+    - Error handling and response formatting
+    - Connection cleanup on disconnect
+    
+    Args:
+        websocket: WebSocket connection object
+        path: URL path (for websockets library compatibility)
+    """
+    # Assign unique identifier for connection tracking and car assignment
     websocket_id = str(uuid.uuid4())
     active_connections[websocket_id] = websocket
     
@@ -40,12 +63,12 @@ async def handle_message(websocket, path=None):
                 
                 action = data.get("action")
                 
-                # Check if this is an async action first
+                # Route to async handlers first (for operations requiring await)
                 if action in ASYNC_HANDLERS:
                     response = await ASYNC_HANDLERS[action](data, car_manager)
-                # Check regular handlers
+                # Route to synchronous handlers for immediate operations
                 elif action in ACTION_HANDLERS:
-                    # For certain actions, pass the websocket_id
+                    # Pass websocket_id for car assignment and ownership tracking
                     if action in ["select_car", "free_car", "move_car", "send_to_car", "connect_to_car"]:
                         response = ACTION_HANDLERS[action](data, car_manager, websocket_id)
                     else:
