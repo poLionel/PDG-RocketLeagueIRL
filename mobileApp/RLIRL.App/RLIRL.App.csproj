@@ -73,4 +73,16 @@
 	  <ProjectReference Include="..\RLIRL.Business\RLIRL.Business.csproj" />
 	  <ProjectReference Include="..\RLIRL.Server\RLIRL.Server.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="Views\GamePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\MenuPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\WifiConnectPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
 </Project>

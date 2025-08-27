@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using RLIRL.App.ViewModels;
+using RLIRL.App.Views;
 using RLIRL.Business;
 using RLIRL.Server;
 using RLIRL.Server.Abstractions;
@@ -35,6 +37,16 @@ namespace RLIRL.App
 
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
+
+            // ViewModels
+            builder.Services.AddTransient<WifiConnectViewModel>();
+            builder.Services.AddTransient<MenuViewModel>();
+            builder.Services.AddTransient<GameViewModel>();
+
+            // Views
+            builder.Services.AddTransient<WifiConnectPage>();
+            builder.Services.AddTransient<MenuPage>();
+            builder.Services.AddTransient<GamePage>();
 
             var app = builder.Build();
 
