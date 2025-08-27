@@ -122,28 +122,24 @@ static void hardware_setup(void* ) {
   g_motor->start();
 }
 static void hardware_loop(void* ) {
-  // Mesures
+  // Récupérer es données
   g_battery->read();
-  float percent = g_battery->get_percent_value();
-  float v_batt  = g_battery->get_volt_value();
-  float v_nom   = g_motor->get_component().nominal_voltage;
+  float battery_level_percent = g_battery->get_percent_value();
 
-  // Calculs bornés
-  float ratio = (v_nom > 0.0f) ? (v_batt / v_nom) : 0.0f;
-  if (ratio < 0.0f) ratio = 0.0f;
-  if (ratio > 1.0f) ratio = 1.0f;
+  // Conversion / Calcul des données
+  float max_speed = (battery_level_percent < 1.0f ? 0.0f : (g_motor->get_component().nominal_voltage / g_battery->get_volt_value()));
+  float x_direction = (float)g_ble->get_x_direction() / 100.0f;
+  motor_direction y_direction = (g_ble->get_y_direction() == 100 ? motor_direction::forward : motor_direction::backward);
+  float speed = max_speed * ((float)g_ble->get_speed_direction() / 100.0f);
 
-  float x_dir = (float)g_ble->get_x_direction() / 100.0f;
-  motor_direction y_dir = (g_ble->get_y_direction() == 100 ? motor_direction::forward : motor_direction::backward);
-  float speed = ratio * ((float)g_ble->get_speed_direction() / 100.0f);
+  // Envoie des données
+  g_ble->set_battery_level(battery_level_percent);
 
-  // Feedback + action
-  g_ble->set_battery_level(percent);
+  // Maj HW
   g_motor->set_decay_mode(g_ble->get_decay_mode() == 0 ? motor_decay_mode::fast : motor_decay_mode::slow);
-  g_motor->drive(x_dir, y_dir, speed);
-
-  Serial.printf("Battery: %.2fV (%.0f%%) / y: %.2f / x: %.2f / s: %.2f / dm: %d\n",
-                v_batt, percent, ((float)g_ble->get_y_direction()/100.0f), x_dir, speed, g_ble->get_decay_mode());
+  g_motor->drive(x_direction, y_direction, speed);
+  Serial.printf("Battery : %.2f / y : %.2f / x : %.2f / s : %.2f / dm : %d\n", 
+                g_battery->get_volt_value(), ((float)g_ble->get_y_direction() / 100.0f), x_direction, speed, g_ble->get_decay_mode());
 }
 static void hardware_teardown(void* ) {
   g_motor->stop();
