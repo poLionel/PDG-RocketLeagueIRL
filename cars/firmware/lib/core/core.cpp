@@ -186,7 +186,7 @@ static void task_hardware(void*) {
       float battery_level_percent = g_battery->get_percent_value();
 
       // Conversion / Calcul des données
-      float max_speed = g_motor->get_component().nominal_voltage / g_battery->get_volt_value();
+      float max_speed = (battery_level_percent < 1.0f ? 0.0f : (g_motor->get_component().nominal_voltage / g_battery->get_volt_value()));
       float x_direction = (float)g_ble->get_x_direction() / 100.0f;
       motor_direction y_direction = (g_ble->get_y_direction() == 100 ? motor_direction::forward : motor_direction::backward);
       float speed = max_speed * ((float)g_ble->get_speed_direction() / 100.0f);

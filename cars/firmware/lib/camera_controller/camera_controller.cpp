@@ -20,27 +20,30 @@ bool camera_controller::init() {
     camera_config_t c = {};
     c.ledc_channel = LEDC_CHANNEL_0;
     c.ledc_timer   = LEDC_TIMER_0;
-    c.pin_pwdn     = cfg_.pwdn;
-    c.pin_reset    = cfg_.reset;
-    c.pin_xclk     = cfg_.xclk;
-    c.pin_sscb_sda = cfg_.sccb_sda;
-    c.pin_sscb_scl = cfg_.sccb_scl;
-    c.pin_d0       = cfg_.y2;
-    c.pin_d1       = cfg_.y3;
-    c.pin_d2       = cfg_.y4;
-    c.pin_d3       = cfg_.y5;
-    c.pin_d4       = cfg_.y6;
-    c.pin_d5       = cfg_.y7;
-    c.pin_d6       = cfg_.y8;
-    c.pin_d7       = cfg_.y9;
-    c.pin_vsync    = cfg_.vsync;
-    c.pin_href     = cfg_.href;
-    c.pin_pclk     = cfg_.pclk;
-    c.xclk_freq_hz = cfg_.xclk_freq_hz;
-    c.pixel_format = cfg_.pixel_format;
-    c.frame_size   = cfg_.frame_size;
-    c.jpeg_quality = cfg_.jpeg_quality;
-    c.fb_count     = cfg_.fb_count;
+    
+    c.pin_pwdn     = cfg_.pins.pwdn;
+    c.pin_reset    = cfg_.pins.reset;
+    c.pin_xclk     = cfg_.pins.xclk;
+    c.pin_sscb_sda = cfg_.pins.sccb_sda;
+    c.pin_sscb_scl = cfg_.pins.sccb_scl;
+    c.pin_d0       = cfg_.pins.y2;
+    c.pin_d1       = cfg_.pins.y3;
+    c.pin_d2       = cfg_.pins.y4;
+    c.pin_d3       = cfg_.pins.y5;
+    c.pin_d4       = cfg_.pins.y6;
+    c.pin_d5       = cfg_.pins.y7;
+    c.pin_d6       = cfg_.pins.y8;
+    c.pin_d7       = cfg_.pins.y9;
+    c.pin_vsync    = cfg_.pins.vsync;
+    c.pin_href     = cfg_.pins.href;
+    c.pin_pclk     = cfg_.pins.pclk;
+
+    c.xclk_freq_hz = cfg_.settings.xclk_freq_hz;
+    c.pixel_format = cfg_.settings.pixel_format;
+    c.frame_size   = cfg_.settings.frame_size;
+    c.jpeg_quality = cfg_.settings.jpeg_quality;
+    c.fb_count     = cfg_.settings.fb_count;
+
     c.grab_mode    = CAMERA_GRAB_WHEN_EMPTY; // bon défaut
 
     esp_err_t err = esp_camera_init(&c);

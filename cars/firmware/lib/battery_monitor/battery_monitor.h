@@ -20,12 +20,18 @@ struct battery_component {
     float                       maximum_voltage; 
     float                       capacity_mAh; 
 };
-struct battery_monitor_config {
-    // Hardware
-    int                         adc_pin;
+struct battery_pins {
+    uint8_t                     adc;
+};
+struct battery_settings {
     float                       r_battery_side;
     float                       r_ground_side;
     uint8_t                     samples;
+};
+struct battery_monitor_config {
+    // Hardware
+    battery_pins                pins;
+    battery_settings            settings;
     battery_component           component;
 };
 

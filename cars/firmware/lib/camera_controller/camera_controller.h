@@ -17,8 +17,7 @@
 struct camera_component { 
     const char*                 description;
 };
-struct camera_controller_config {
-    // --- Hardware pins ---
+struct camera_pins {
     int8_t                      pwdn;     // Power down (souvent -1)
     int8_t                      reset;    // Reset (souvent -1)
     int8_t                      xclk;     // Horloge XCLK
@@ -35,13 +34,17 @@ struct camera_controller_config {
     int8_t                      vsync;
     int8_t                      href;
     int8_t                      pclk;
-    // --- Paramètres image ---
+};
+struct camera_settings {
     pixformat_t                 pixel_format;   // ex: PIXFORMAT_JPEG
     framesize_t                 frame_size;     // ex: FRAMESIZE_QVGA, VGA…
     int                         jpeg_quality;   // 10..20 (plus petit = meilleure qualité)
     int                         fb_count;       // nb de frame buffers (2 si PSRAM dispo)
     int                         xclk_freq_hz;   // ex: 20000000
-    // --- Composant ---
+};
+struct camera_controller_config {
+    camera_pins                 pins;
+    camera_settings             settings;
     camera_component            component;
 };
 

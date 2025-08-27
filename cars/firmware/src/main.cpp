@@ -28,21 +28,38 @@ camera_component camera_comp{
 // OBJETS GLOBAUX
 ble_provisioner             ble_prov;
 wifi_provisioner            wifi_prov;
+////////////////////////////////////////////////
 motor_controller            motor_ctrl({
-  GPIO_MOT_A_DIR, GPIO_MOT_A_DIR_PWM, GPIO_MOT_B_DIR, GPIO_MOT_B_DIR_PWM, GPIO_MOT_SLP, 
+  {
+      GPIO_MOT_A_DIR, GPIO_MOT_A_DIR_PWM, 
+      GPIO_MOT_B_DIR, GPIO_MOT_B_DIR_PWM, 
+      GPIO_MOT_SLP
+  }, 
+  {
+      motor_decay_mode::fast
+  },
   motor_comp
 });
+////////////////////////////////////////////////
 battery_monitor             battery_mon({
-  GPIO_BAT_SENSE, 100000, 100000, 8, 
+  {
+      GPIO_BAT_SENSE
+  }, 
+  {
+      100000, 100000, 8, 
+  },
   battery_comp
 });
+////////////////////////////////////////////////
 camera_controller           camera_ctrl({
-  GPIO_CAM_PWDN, GPIO_CAM_RESET, GPIO_CAM_XCLK, GPIO_CAM_SIOD, GPIO_CAM_SIOC, 
-  GPIO_CAM_Y2, GPIO_CAM_Y3, GPIO_CAM_Y4, GPIO_CAM_Y5, GPIO_CAM_Y6, GPIO_CAM_Y7, GPIO_CAM_Y8, GPIO_CAM_Y9,   
-  GPIO_CAM_VSYNC, GPIO_CAM_HREF, GPIO_CAM_PCLK, 
-
-  PIXFORMAT_JPEG, FRAMESIZE_QVGA, 12, 2, 20000000,
-
+  {   
+      GPIO_CAM_PWDN, GPIO_CAM_RESET, GPIO_CAM_XCLK, GPIO_CAM_SIOD, GPIO_CAM_SIOC, 
+      GPIO_CAM_Y2, GPIO_CAM_Y3, GPIO_CAM_Y4, GPIO_CAM_Y5, GPIO_CAM_Y6, GPIO_CAM_Y7, GPIO_CAM_Y8, GPIO_CAM_Y9,   
+      GPIO_CAM_VSYNC, GPIO_CAM_HREF, GPIO_CAM_PCLK
+  }, 
+  {
+      PIXFORMAT_JPEG, FRAMESIZE_QVGA, 12, 2, 20000000,
+  },
   camera_comp
 });
 
