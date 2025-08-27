@@ -21,15 +21,29 @@ motor_component motor_comp{
   0.2f,
   100.0f
 };
+camera_component camera_comp{
+  "OV2640 Camera"
+};
 //----------------------------------------------------------------------------------
 // OBJETS GLOBAUX
 ble_provisioner             ble_prov;
 wifi_provisioner            wifi_prov;
 motor_controller            motor_ctrl({
-  GPIO_MOT_A_DIR, GPIO_MOT_A_DIR_PWM, GPIO_MOT_B_DIR, GPIO_MOT_B_DIR_PWM, GPIO_MOT_SLP, motor_comp
+  GPIO_MOT_A_DIR, GPIO_MOT_A_DIR_PWM, GPIO_MOT_B_DIR, GPIO_MOT_B_DIR_PWM, GPIO_MOT_SLP, 
+  motor_comp
 });
 battery_monitor             battery_mon({
-  GPIO_BAT_SENSE, 100000, 100000, 8, battery_comp
+  GPIO_BAT_SENSE, 100000, 100000, 8, 
+  battery_comp
+});
+camera_controller           camera_ctrl({
+  GPIO_CAM_PWDN, GPIO_CAM_RESET, GPIO_CAM_XCLK, GPIO_CAM_SIOD, GPIO_CAM_SIOC, 
+  GPIO_CAM_Y2, GPIO_CAM_Y3, GPIO_CAM_Y4, GPIO_CAM_Y5, GPIO_CAM_Y6, GPIO_CAM_Y7, GPIO_CAM_Y8, GPIO_CAM_Y9,   
+  GPIO_CAM_VSYNC, GPIO_CAM_HREF, GPIO_CAM_PCLK, 
+
+  PIXFORMAT_JPEG, FRAMESIZE_QVGA, 12, 2, 20000000,
+
+  camera_comp
 });
 
 
@@ -63,6 +77,10 @@ void setup() {
   battery_mon.init();
   battery_mon.read();
 
+  Serial.println("[MAIN] [CAM] camera controller init");
+  if(camera_ctrl.init()) Serial.println("[MAIN] [CAM] -> init successful");
+  else Serial.println("[MAIN] [CAM] -> init failed");
+
   Serial.println("[MAIN] [BLE] provisioner init");
   ble_prov.init(device_id);
   ble_prov.start();
@@ -78,7 +96,7 @@ void setup() {
   //--------
   //--CORE--
   Serial.println("[MAIN] [CORE] core init and start");
-  core_init(&ble_prov, &wifi_prov, &motor_ctrl, &battery_mon);
+  core_init(&ble_prov, &wifi_prov, &motor_ctrl, &battery_mon, &camera_ctrl);
   core_start();
 }
 

@@ -24,11 +24,13 @@ static ble_provisioner*         g_ble                   = nullptr;
 static wifi_provisioner*        g_wifi                  = nullptr;
 static motor_controller*        g_motor                 = nullptr;
 static battery_monitor*         g_battery               = nullptr;
+static camera_controller*       g_camera                = nullptr;
 
 static EventGroupHandle_t       g_evt                   = nullptr;
 static TaskHandle_t             h_task_connector        = nullptr;
 static TaskHandle_t             h_task_monitor          = nullptr;
 static TaskHandle_t             h_task_hardware         = nullptr;
+static TaskHandle_t             h_task_video            = nullptr;
 
 
 
@@ -38,23 +40,26 @@ static TaskHandle_t             h_task_hardware         = nullptr;
 static void                     task_connector(void*);  // attend BLE + creds, connecte Wi-Fi, arme RUN et réveille monitor
 static void                     task_monitor(void*);    // surveille BLE/Wi-Fi; sur perte -> coupe RUN, réveille connector, se suspend
 static void                     task_hardware(void*);   // réaliser toutes interactions avec le hardware
+static void                     task_video(void*);      // serveur MJPEG sur port 81
 
 
 
 //----------------------------------------------------------------------------------
 // API
 //----------------------------------------------------------------------------------
-void core_init(ble_provisioner* ble, wifi_provisioner* wifi, motor_controller* motor, battery_monitor* battery) {
+void core_init(ble_provisioner* ble, wifi_provisioner* wifi, motor_controller* motor, battery_monitor* battery, camera_controller* camera) {
   g_ble       = ble;
   g_wifi      = wifi;
   g_motor     = motor;
   g_battery   = battery;
+  g_camera    = camera;
   g_evt       = xEventGroupCreate();
 }
 void core_start() {
   // Création des tâches (pinnées sur core 1 — ajuste si besoin)
-  xTaskCreatePinnedToCore(task_connector  ,"TASK_CON"       ,4096   ,nullptr    ,4  , &h_task_connector   ,1);
-  xTaskCreatePinnedToCore(task_monitor    ,"TASK_MON"       ,4096   ,nullptr    ,3  , &h_task_monitor     ,1);
+  xTaskCreatePinnedToCore(task_connector  ,"TASK_CON"       ,4096   ,nullptr    ,5  , &h_task_connector   ,1);
+  xTaskCreatePinnedToCore(task_monitor    ,"TASK_MON"       ,4096   ,nullptr    ,4  , &h_task_monitor     ,1);
+  xTaskCreatePinnedToCore(task_video      ,"TASK_VID"       ,6144   ,nullptr    ,3  , &h_task_video       ,1);
   xTaskCreatePinnedToCore(task_hardware   ,"TASK_HW"        ,4096   ,nullptr    ,2  , &h_task_hardware    ,1);
 
   // Au départ, seul le connector doit travailler
@@ -196,6 +201,27 @@ static void task_hardware(void*) {
                     g_battery->get_volt_value(), ((float)g_ble->get_y_direction() / 100.0f), x_direction, speed, g_ble->get_decay_mode());
       
 
+      vTaskDelay(pdMS_TO_TICKS(500));
+    }
+  }
+}
+
+// 5) // Tâche vidéo: serveur MJPEG sur port 81 ---
+static void task_video(void*) {              // <-- AJOUT
+  const char* name = pcTaskGetName(NULL);
+  for(;;){
+    // Attendre l'autorisation
+    xEventGroupWaitBits(g_evt, BIT_RUN, pdFALSE, pdTRUE, portMAX_DELAY);
+    Serial.printf("[%s] START\n", name);
+
+    for(;;){
+      EventBits_t bits = xEventGroupGetBits(g_evt);
+      if ((bits & BIT_RUN) == 0) {
+        Serial.printf("[%s] STOP\n", name);
+        break;
+      }
+      
+      Serial.printf("[%s] RUNNING\n", name);
       vTaskDelay(pdMS_TO_TICKS(500));
     }
   }

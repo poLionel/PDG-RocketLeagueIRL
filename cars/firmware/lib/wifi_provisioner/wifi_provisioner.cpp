@@ -7,6 +7,7 @@
 //----------------------------------------------------------------------------------
 //- MÉTHODES MEMBRES
 void wifi_provisioner::init(String device_id){
+    device_id_ = device_id;
     WiFi.mode(WIFI_STA);
     WiFi.persistent(false); // évite d’écrire en flash par défaut
     WiFi.setHostname(device_id_.c_str()); // à faire avant WiFi.begin()
