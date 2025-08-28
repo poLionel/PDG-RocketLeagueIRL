@@ -5,21 +5,26 @@ Data models for the Rocket League IRL server.
 class Car:
     """Represents a car in the Rocket League IRL game."""
     
-    def __init__(self, car_id, name="Unknown Car"):
+    def __init__(self, car_id, name="Unknown Car", ble_name=None, ble_address=None):
         """
         Initialize a new car.
         
         Args:
             car_id (int): Unique identifier for the car
             name (str): Human-readable name for the car
+            ble_name (str): BLE device name (e.g., "RL-CAR-cc:ba:97:0d:8c:b5")
+            ble_address (str): BLE MAC address
         """
         self.car_id = car_id
         self.name = name
+        self.ble_name = ble_name  # BLE device name
+        self.ble_address = ble_address  # BLE MAC address
         self.battery_level = 100  # Battery level percentage (0-100)
         self.move = "stopped"     # Current movement: stopped, forward, backward, left, right
         self.boost = False        # Whether boost is currently active
         self.boost_value = 100    # Boost fuel level (0-100)
         self.connected = False    # Whether the car is connected via Bluetooth
+        self.last_seen = None     # Timestamp of last BLE discovery
         
     def update_status(self, **kwargs):
         """
@@ -42,18 +47,21 @@ class Car:
         return {
             "car": self.car_id,
             "name": self.name,
+            "ble_name": self.ble_name,
+            "ble_address": self.ble_address,
             "battery_level": self.battery_level,
             "move": self.move,
             "boost": str(self.boost).lower(),
             "boost_value": self.boost_value,
-            "connected": self.connected
+            "connected": self.connected,
+            "last_seen": self.last_seen.isoformat() if self.last_seen else None
         }
     
     def __str__(self):
-        return f"Car {self.car_id} ({self.name}) - Battery: {self.battery_level}%, Move: {self.move}, Boost: {self.boost}"
+        return f"Car {self.car_id} ({self.name}) - BLE: {self.ble_name} - Battery: {self.battery_level}%, Move: {self.move}, Boost: {self.boost}"
     
     def __repr__(self):
-        return f"Car(car_id={self.car_id}, name='{self.name}')"
+        return f"Car(car_id={self.car_id}, name='{self.name}', ble_name='{self.ble_name}')"
 
 
 class CarManager:
@@ -133,3 +141,111 @@ class CarManager:
             int: Number of cars
         """
         return len(self.cars)
+    
+    def get_car_by_ble_name(self, ble_name):
+        """
+        Get a car by its BLE device name.
+        
+        Args:
+            ble_name (str): BLE device name (e.g., "RL-CAR-cc:ba:97:0d:8c:b5")
+            
+        Returns:
+            Car or None: Car object if found, None otherwise
+        """
+        for car in self.cars.values():
+            if car.ble_name == ble_name:
+                return car
+        return None
+    
+    def get_car_by_ble_address(self, ble_address):
+        """
+        Get a car by its BLE MAC address.
+        
+        Args:
+            ble_address (str): BLE MAC address
+            
+        Returns:
+            Car or None: Car object if found, None otherwise
+        """
+        for car in self.cars.values():
+            if car.ble_address == ble_address:
+                return car
+        return None
+    
+    def add_or_update_car_from_ble(self, ble_name, ble_address):
+        """
+        Add a new car or update existing car based on BLE discovery.
+        
+        Args:
+            ble_name (str): BLE device name (e.g., "RL-CAR-cc:ba:97:0d:8c:b5")
+            ble_address (str): BLE MAC address
+            
+        Returns:
+            Car: The car object (new or existing)
+        """
+        from datetime import datetime
+        
+        # Check if car already exists by BLE name or address
+        existing_car = self.get_car_by_ble_name(ble_name) or self.get_car_by_ble_address(ble_address)
+        
+        if existing_car:
+            # Update existing car
+            existing_car.ble_name = ble_name
+            existing_car.ble_address = ble_address
+            existing_car.last_seen = datetime.now()
+            return existing_car
+        else:
+            # Create new car
+            # Generate car_id from the MAC address in the BLE name
+            car_id = self._generate_car_id_from_ble_name(ble_name)
+            
+            # Extract a readable name from BLE name
+            readable_name = self._extract_car_name_from_ble_name(ble_name)
+            
+            new_car = Car(
+                car_id=car_id,
+                name=readable_name,
+                ble_name=ble_name,
+                ble_address=ble_address
+            )
+            new_car.last_seen = datetime.now()
+            
+            self.add_car(new_car)
+            return new_car
+    
+    def _generate_car_id_from_ble_name(self, ble_name):
+        """
+        Generate a unique car ID from BLE name.
+        
+        Args:
+            ble_name (str): BLE device name (e.g., "RL-CAR-cc:ba:97:0d:8c:b5")
+            
+        Returns:
+            int: Generated car ID
+        """
+        if ble_name and "RL-CAR-" in ble_name:
+            # Extract MAC address and convert to a hash for car ID
+            mac_part = ble_name.replace("RL-CAR-", "").replace(":", "")
+            # Use last 4 characters of MAC as car ID to keep it simple
+            try:
+                return int(mac_part[-4:], 16)  # Convert hex to int
+            except ValueError:
+                pass
+        
+        # Fallback: use hash of the BLE name
+        return abs(hash(ble_name)) % 10000
+    
+    def _extract_car_name_from_ble_name(self, ble_name):
+        """
+        Extract a readable car name from BLE device name.
+        
+        Args:
+            ble_name (str): BLE device name (e.g., "RL-CAR-cc:ba:97:0d:8c:b5")
+            
+        Returns:
+            str: Readable car name
+        """
+        if ble_name and "RL-CAR-" in ble_name:
+            mac_part = ble_name.replace("RL-CAR-", "")
+            return f"Rocket League Car ({mac_part[-8:]})"  # Use last 8 chars of MAC
+        return f"Unknown Car ({ble_name})"

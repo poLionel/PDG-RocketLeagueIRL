@@ -3,11 +3,11 @@
 - [v0.2](#v02)
   - [App communication](#app-communication)
   - [Car communication](#car-communication)
-    - [Bluetooth](#bluetooth)
+    - [Bluetooth Low Energy (BLE)](#bluetooth-low-energy-ble)
 - [v0.3](#v03)
   - [App communication](#app-communication-1)
   - [Car communication](#car-communication-1)
-    - [Bluetooth](#bluetooth-1)
+    - [Bluetooth Low Energy (BLE)](#bluetooth-low-energy-ble-1)
     - [Websocket send video feed](#websocket-send-video-feed)
   - [Server game management](#server-game-management)
 
@@ -32,11 +32,11 @@ Use JSONs to send data.
 
 ## Car communication
 
-### Bluetooth
+### Bluetooth Low Energy (BLE)
 
-We will use Bluetooth to automatically pair the car with the server.
+We will use BLE to automatically pair the car with the server.
 
-We will use Bluetooth to send the commands from the server to the car.
+We will also use BLE to send the commands (move, boost) from the server to the car.
 
 # v0.3
 
@@ -216,11 +216,11 @@ Server responds:
 
 ## Car communication
 
-### Bluetooth
+### Bluetooth Low Energy (BLE)
 
-We will use Bluetooth to automatically pair the car with the server.
+We will use BLE to automatically pair the car with the server.
 
-We will use Bluetooth to send the commands from the server to the car.
+We will also use BLE to send the commands (move, boost) from the server to the car.
 
 ### Websocket send video feed
 
