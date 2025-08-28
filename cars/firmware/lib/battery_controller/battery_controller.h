@@ -1,5 +1,5 @@
-#ifndef BATTERY_MONITOR_H
-#define BATTERY_MONITOR_H
+#ifndef BATTERY_CONTROLLER_H
+#define BATTERY_CONTROLLER_H
 
 
 
@@ -20,12 +20,18 @@ struct battery_component {
     float                       maximum_voltage; 
     float                       capacity_mAh; 
 };
-struct battery_monitor_config {
-    // Hardware
-    int                         adc_pin;
+struct battery_pins {
+    uint8_t                     adc;
+};
+struct battery_settings {
     float                       r_battery_side;
     float                       r_ground_side;
     uint8_t                     samples;
+};
+struct battery_controller_config {
+    // Hardware
+    battery_pins                pins;
+    battery_settings            settings;
     battery_component           component;
 };
 
@@ -34,11 +40,11 @@ struct battery_monitor_config {
 //----------------------------------------------------------------------------------
 //- Class
 //----------------------------------------------------------------------------------
-class battery_monitor {
+class battery_controller {
 public:
-    battery_monitor(battery_monitor_config cfg);
+    battery_controller(battery_controller_config cfg);
 
-    void                        init();
+    bool                        init();
     
     void                        read();
 
@@ -46,11 +52,11 @@ public:
     float                       get_percent_value() const { return battery_value_percent; };
     const battery_component     get_component() const { return cfg_.component; }
 private:
-    battery_monitor_config      cfg_;
+    battery_controller_config   cfg_;
     float                       battery_value_volt        = 0.0f;
     float                       battery_value_percent     = 0.0f;
 };
 
 
 
-#endif //BATTERY_MONITOR_H
+#endif //BATTERY_CONTROLLER_H

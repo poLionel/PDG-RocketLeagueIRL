@@ -7,26 +7,27 @@
 //----------------------------------------------------------------------------------
 //- CONSTRUCTEURS / DESCTRUCTEURS
 motor_controller::motor_controller(motor_controller_config cfg) : 
-    cfg_(cfg), decay_mode_(motor_decay_mode::fast) {}
+    cfg_(cfg) {}
 
 
 
 //----------------------------------------------------------------------------------
 //- MÉTHODES MEMBRES
-void motor_controller::init() {
-    pinMode(cfg_.ain1, OUTPUT);
-    pinMode(cfg_.ain2, OUTPUT);
-    pinMode(cfg_.bin1, OUTPUT);
-    pinMode(cfg_.bin2, OUTPUT);
-    pinMode(cfg_.slp_pin, OUTPUT);
+bool motor_controller::init() {
+    pinMode(cfg_.pins.ain1, OUTPUT);
+    pinMode(cfg_.pins.ain2, OUTPUT);
+    pinMode(cfg_.pins.bin1, OUTPUT);
+    pinMode(cfg_.pins.bin2, OUTPUT);
+    pinMode(cfg_.pins.slp_pin, OUTPUT);
+    return true;
 }
 void motor_controller::start() {
     // Réveille le driver et (re)lance si besoin
-    digitalWrite(cfg_.slp_pin, HIGH);
+    digitalWrite(cfg_.pins.slp_pin, HIGH);
 }
 void motor_controller::stop() {
     // Arrête les moteurs et met en veille le DRV8833
-    digitalWrite(cfg_.slp_pin, LOW);
+    digitalWrite(cfg_.pins.slp_pin, LOW);
 }
 void motor_controller::drive(float x, motor_direction direction, float speed) {
     // x: -1.0..+1.0 (gauche/droite)
@@ -47,61 +48,61 @@ void motor_controller::drive(float x, motor_direction direction, float speed) {
     // Applique vitesses + sens
     Serial.printf(  "d : %s /dm : %s\n -> ls : %.2f - ld : %d / rs : %.2f - rd : %d\n", 
                     (direction ==  motor_direction::forward ? "forward" : "backward"),
-                    (decay_mode_ == motor_decay_mode::fast ? "fast" : "slow"), 
+                    (cfg_.settings.mode == motor_decay_mode::fast ? "fast" : "slow"), 
                     ls, (int)(255.0f * ls),
                     rs, (int)(255.0f * rs));
 
-    drive_b(decay_mode_, direction, ls);
-    drive_a(decay_mode_, direction, rs);
+    drive_b(direction, ls);
+    drive_a(direction, rs);
 }
-void motor_controller::drive_a(motor_decay_mode mode, motor_direction direction, float speed) {
+void motor_controller::drive_a(motor_direction direction, float speed) {
   if (speed < 0.f) speed = 0.f; if (speed > 1.f) speed = 1.f;
 
-  if (mode == motor_decay_mode::slow) {
+  if (cfg_.settings.mode == motor_decay_mode::slow) {
     // slow decay: tenir une entrée HIGH, PWM l'autre (duty inversé)
     int duty = (int)(255.0f * (1.0f - speed));
     if (direction == motor_direction::forward) {
-      analogWrite(cfg_.ain1, 255);           // tenu HAUT
-      analogWrite(cfg_.ain2, duty);            // PWM inversé
+      analogWrite(cfg_.pins.ain1, 255);           // tenu HAUT
+      analogWrite(cfg_.pins.ain2, duty);            // PWM inversé
     } else { // Backward
-      analogWrite(cfg_.ain2, 255);
-      analogWrite(cfg_.ain1, duty);
+      analogWrite(cfg_.pins.ain2, 255);
+      analogWrite(cfg_.pins.ain1, duty);
     }
   } else { // motor_decay_mode::fast
     // fast decay: tenir l'autre entrée LOW, PWM l'entrée “drive” (duty direct)
     int duty = (int)(255.0f * speed);
     if (direction == motor_direction::forward) {
-      analogWrite(cfg_.ain2, 0);            // tenu BAS
-      analogWrite(cfg_.ain1, duty);            // PWM direct
+      analogWrite(cfg_.pins.ain2, 0);            // tenu BAS
+      analogWrite(cfg_.pins.ain1, duty);            // PWM direct
     } else { // Backward
-      analogWrite(cfg_.ain1, 0);
-      analogWrite(cfg_.ain2, duty);
+      analogWrite(cfg_.pins.ain1, 0);
+      analogWrite(cfg_.pins.ain2, duty);
     }
   }
 }
 
-void motor_controller::drive_b(motor_decay_mode mode, motor_direction direction, float speed) {
+void motor_controller::drive_b(motor_direction direction, float speed) {
   if (speed < 0.f) speed = 0.f; if (speed > 1.f) speed = 1.f;
 
-  if (mode == motor_decay_mode::slow) {
+  if (cfg_.settings.mode == motor_decay_mode::slow) {
     // slow decay: tenir une entrée HIGH, PWM l'autre (duty inversé)
     int duty = (int)(255.0f * (1.0f - speed));
     if (direction == motor_direction::forward) {
-      analogWrite(cfg_.bin1, 255);           // tenu HAUT
-      analogWrite(cfg_.bin2, duty);            // PWM inversé
+      analogWrite(cfg_.pins.bin1, 255);           // tenu HAUT
+      analogWrite(cfg_.pins.bin2, duty);            // PWM inversé
     } else { // Backward
-      analogWrite(cfg_.bin2, 255);
-      analogWrite(cfg_.bin1, duty);
+      analogWrite(cfg_.pins.bin2, 255);
+      analogWrite(cfg_.pins.bin1, duty);
     }
   } else { // motor_decay_mode::fast
     // fast decay: tenir l'autre entrée LOW, PWM l'entrée “drive” (duty direct)
     int duty = (int)(255.0f * speed);
     if (direction == motor_direction::forward) {
-      analogWrite(cfg_.bin2, 0);            // tenu BAS
-      analogWrite(cfg_.bin1, duty);            // PWM direct
+      analogWrite(cfg_.pins.bin2, 0);            // tenu BAS
+      analogWrite(cfg_.pins.bin1, duty);            // PWM direct
     } else { // Backward
-      analogWrite(cfg_.bin1, 0);
-      analogWrite(cfg_.bin2, duty);
+      analogWrite(cfg_.pins.bin1, 0);
+      analogWrite(cfg_.pins.bin2, duty);
     }
   }
 }
