@@ -21,15 +21,46 @@ motor_component motor_comp{
   0.2f,
   100.0f
 };
+camera_component camera_comp{
+  "OV2640 Camera"
+};
 //----------------------------------------------------------------------------------
 // OBJETS GLOBAUX
 ble_provisioner             ble_prov;
 wifi_provisioner            wifi_prov;
+////////////////////////////////////////////////
 motor_controller            motor_ctrl({
-  GPIO_MOT_A_DIR, GPIO_MOT_A_DIR_PWM, GPIO_MOT_B_DIR, GPIO_MOT_B_DIR_PWM, GPIO_MOT_SLP, motor_comp
+  {
+      GPIO_MOT_A_DIR, GPIO_MOT_A_DIR_PWM, 
+      GPIO_MOT_B_DIR, GPIO_MOT_B_DIR_PWM, 
+      GPIO_MOT_SLP
+  }, 
+  {
+      motor_decay_mode::fast
+  },
+  motor_comp
 });
-battery_monitor             battery_mon({
-  GPIO_BAT_SENSE, 100000, 100000, 8, battery_comp
+////////////////////////////////////////////////
+battery_controller          battery_ctrl({
+  {
+      GPIO_BAT_SENSE
+  }, 
+  {
+      100000, 100000, 8, 
+  },
+  battery_comp
+});
+////////////////////////////////////////////////
+camera_controller           camera_ctrl({
+  {   
+      GPIO_CAM_PWDN, GPIO_CAM_RESET, GPIO_CAM_XCLK, GPIO_CAM_SIOD, GPIO_CAM_SIOC, 
+      GPIO_CAM_Y2, GPIO_CAM_Y3, GPIO_CAM_Y4, GPIO_CAM_Y5, GPIO_CAM_Y6, GPIO_CAM_Y7, GPIO_CAM_Y8, GPIO_CAM_Y9,   
+      GPIO_CAM_VSYNC, GPIO_CAM_HREF, GPIO_CAM_PCLK
+  }, 
+  {
+      PIXFORMAT_JPEG, FRAMESIZE_QVGA, 12, 2, 20000000,
+  },
+  camera_comp
 });
 
 
@@ -57,28 +88,32 @@ void setup() {
   //--------
   //--INIT--
   Serial.println("[MAIN] [MOT] motors controller init");
-  motor_ctrl.init();
-
+  if(motor_ctrl.init()) Serial.println("[MAIN] [MOT] -> init successful");
+  else Serial.println("[MAIN] [MOT] -> init failed");
   Serial.println("[MAIN] [BAT] battery monitor init");
-  battery_mon.init();
-  battery_mon.read();
+  if(battery_ctrl.init()) Serial.println("[MAIN] [BAT] -> init successful");
+  else Serial.println("[MAIN] [BAT] -> init failed");
+  Serial.println("[MAIN] [CAM] camera controller init");
+  if(camera_ctrl.init()) Serial.println("[MAIN] [CAM] -> init successful");
+  else Serial.println("[MAIN] [CAM] -> init failed");
 
   Serial.println("[MAIN] [BLE] provisioner init");
   ble_prov.init(device_id);
-  ble_prov.start();
-  ble_prov.set_battery_level(battery_mon.get_percent_value());
-
-  Serial.println("[MAIN] [WIFI] provisioner init");
+  Serial.println("[MAIN] [WFI] provisioner init");
   wifi_prov.init(device_id);
   
+  //--------
+  //-- --
+  battery_ctrl.read();
+  ble_prov.start();
+  ble_prov.set_battery_level(battery_ctrl.get_percent_value());
   Serial.printf("[MAIN] device_id = %s\n", device_id.c_str());
-  Serial.printf("[MAIN] battery = %f / %f\n", battery_mon.get_volt_value(), battery_mon.get_percent_value());
-
+  Serial.printf("[MAIN] battery = %f / %f\n", battery_ctrl.get_volt_value(), battery_ctrl.get_percent_value());
 
   //--------
   //--CORE--
-  Serial.println("[MAIN] [CORE] core init and start");
-  core_init(&ble_prov, &wifi_prov, &motor_ctrl, &battery_mon);
+  Serial.println("[MAIN] core init and start");
+  core_init(&ble_prov, &wifi_prov, &motor_ctrl, &battery_ctrl, &camera_ctrl);
   core_start();
 }
 
