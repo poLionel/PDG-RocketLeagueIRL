@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="RLIRL.App.Views.WifiConnectPage"
+             Title="WifiConnectPage">
+    <VerticalStackLayout>
+        <Label 
+            Text="Welcome to Rocket League IRL"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" />
+
+        <Button Text="Click here to go the menu" Clicked="OnClickedButton"/>
+        <Label Text="Work in progress, coming soon"/>
+    </VerticalStackLayout>
+</ContentPage>

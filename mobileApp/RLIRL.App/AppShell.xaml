@@ -8,9 +8,9 @@
     Shell.FlyoutBehavior="Flyout"
     Title="RLIRL.App">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate views:MainPage}"
-        Route="MainPage" />
+    <!--The first shell content is the startup page-->
+    <ShellContent Route="wifi" ContentTemplate="{DataTemplate views:WifiConnectPage}"/>
+    <ShellContent Route="menu" ContentTemplate="{DataTemplate views:MenuPage}"/>
+    <ShellContent Route="game" ContentTemplate="{DataTemplate views:GamePage}"/>
 
 </Shell>

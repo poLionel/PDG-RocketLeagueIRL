@@ -1,9 +1,10 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using RLIRL.App.Components;
+using RLIRL.App.Helper;
 using RLIRL.App.Resources.Fonts;
 using RLIRL.App.ViewModels;
+using RLIRL.App.Views;
 using RLIRL.Business;
 using RLIRL.Server;
 using RLIRL.Server.Abstractions.Abstractions;
@@ -38,13 +39,23 @@ namespace RLIRL.App
             builder.Logging.AddDebug();
 #endif
 
+#if ANDROID
+            builder.Services.AddSingleton<IOrientationService, OrientationService>();
+#endif
+
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
-            builder.Services.AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
-            // Register the view models
-            builder.Services.AddTransient<MainPageViewModel>();
+            // ViewModels
+            builder.Services.AddTransient<WifiConnectViewModel>();
             builder.Services.AddTransient<WifiSelectorViewModel>();
+            builder.Services.AddTransient<MenuViewModel>();
+            builder.Services.AddTransient<GameViewModel>();
+
+            // Views
+            builder.Services.AddTransient<WifiConnectPage>();
+            builder.Services.AddTransient<MenuPage>();
+            builder.Services.AddTransient<GamePage>();
 
             var app = builder.Build();
 
