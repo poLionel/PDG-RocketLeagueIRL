@@ -14,6 +14,7 @@ Handler categories:
 
 import asyncio
 import logging
+from datetime import datetime
 
 # Bluetooth functionality with graceful degradation
 try:
@@ -141,11 +142,9 @@ __all__ = [
     'handle_connect_to_car',
     'handle_unknown_action', 
     'handle_invalid_json',
-    # Game management handlers
-    'handle_start_game',
+    # Game management handlers (sync versions only)
     'handle_stop_game',
     'handle_resume_game',
-    'handle_end_game',
     'handle_get_game_status',
     'handle_goal_scored',
     'handle_score_goal',
@@ -680,69 +679,6 @@ def handle_resume_game(data, game_manager=None):
             "message": "Cannot resume game. Game may not be paused or may be finished."
         }
 
-def handle_start_game(data, game_manager=None):
-    """Handle start game requests. This resets and starts the game."""
-    if not game_manager:
-        return {
-            "status": "error",
-            "action": "start_game",
-            "message": "Game manager not available"
-        }
-    
-    match_length = data.get("match_length_seconds")
-    
-    # Validate match length if provided
-    if match_length is not None:
-        try:
-            match_length = int(match_length)
-            if match_length <= 0:
-                raise ValueError("Match length must be positive")
-        except (ValueError, TypeError):
-            return {
-                "status": "error",
-                "action": "start_game",
-                "message": "Invalid match length. Must be a positive integer."
-            }
-    
-    success = game_manager.start_game(match_length)
-    
-    if success:
-        return {
-            "status": "success",
-            "action": "start_game",
-            "message": "Game started!"
-        }
-    else:
-        return {
-            "status": "error",
-            "action": "start_game",
-            "message": "Failed to start game"
-        }
-
-def handle_end_game(data, game_manager=None):
-    """Handle end game requests."""
-    if not game_manager:
-        return {
-            "status": "error",
-            "action": "end_game",
-            "message": "Game manager not available"
-        }
-    
-    success = game_manager.end_game()
-    
-    if success:
-        return {
-            "status": "success",
-            "action": "end_game",
-            "message": "Game ended!"
-        }
-    else:
-        return {
-            "status": "error",
-            "action": "end_game",
-            "message": "Failed to end game"
-        }
-
 def handle_score_goal(data, game_manager=None):
     """Handle goal scoring requests."""
     if not game_manager:
@@ -983,11 +919,9 @@ ACTION_HANDLERS = {
     "switch_to_scan_phase": handle_switch_to_scan_phase,
     "switch_to_control_phase": handle_switch_to_control_phase,
     "get_phase_status": handle_get_phase_status,
-    # Game management actions
-    "start_game": handle_start_game,
+    # Game management actions (sync versions only)
     "stop_game": handle_stop_game,
     "resume_game": handle_resume_game,
-    "end_game": handle_end_game,
     "get_game_status": handle_get_game_status,
     "goal_scored": handle_goal_scored,
     "score_goal": handle_score_goal,
