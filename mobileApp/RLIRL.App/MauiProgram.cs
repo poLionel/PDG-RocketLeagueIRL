@@ -45,6 +45,7 @@ namespace RLIRL.App
 
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
+            builder.Services.AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
             // ViewModels
             builder.Services.AddTransient<WifiConnectViewModel>();

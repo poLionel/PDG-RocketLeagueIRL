@@ -5,6 +5,7 @@ using MauiWifiManager;
 using MauiWifiManager.Abstractions;
 using RLIRL.App.Models;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 
 namespace RLIRL.App.ViewModels
 {
@@ -16,14 +17,46 @@ namespace RLIRL.App.ViewModels
         [ObservableProperty]
         public partial string? ErrorMessage { get; private set; }
 
+        [ObservableProperty]
+        public partial bool Loading { get; private set; }
+
         [RelayCommand]
         private async Task LoadNetworksAsync()
         {
-            // Get the scanned and current networks
-            var scanNetworks = await LoadScanNetworkAsync();
+            try
+            {
+                Loading = true;
 
-            // Map the results to the UI model
-            WifiNetworks = mapper.Map<ObservableCollection<NetworkListItem>>(scanNetworks);
+                // Get the scanned and current networks
+                var scanNetworks = await LoadScanNetworkAsync();
+
+                // Map the results to the UI model
+                WifiNetworks = mapper.Map<ObservableCollection<NetworkListItem>>(scanNetworks);
+
+                // Refresh the current network
+                await RefreshCurrentNetworkAsync();
+            }
+            finally
+            {
+                Loading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task ConnectToNetworkAsync(NetworkListItem network)
+        {
+            // Try to connect without a password first
+            if (await TryConnectToNetworkInternalAsync(network.Ssid, null)) return;
+
+            // Show a modal dialog to get the password
+            while (true)
+            {
+                string result = await Shell.Current.DisplayPromptAsync("Password required", "A password is required to connect to this wifi");
+                if (result == null) return; // User cancelled
+
+                // Try to connect with the provided password (loops until success or cancel)
+                if (await TryConnectToNetworkInternalAsync(network.Ssid, result)) break;
+            }
 
             // Refresh the current network
             await RefreshCurrentNetworkAsync();
@@ -38,6 +71,7 @@ namespace RLIRL.App.ViewModels
             // Filter and sort networks
             return response.Data?
                 .Where(n => !string.IsNullOrEmpty(n.Ssid))
+                .OrderByDescending(n => n.Bssid)
                 .DistinctBy(n => n.Ssid)
                 .OrderByDescending(n => n.SignalStrength is byte strength ? strength : 0)
                 .ThenBy(n => n.Ssid)
@@ -57,27 +91,6 @@ namespace RLIRL.App.ViewModels
                 break;
             }
         }
-
-        [RelayCommand]
-        private async Task ConnectToNetworkAsync(NetworkListItem network)
-        {
-            // Try to connect without a password first
-            if (await TryConnectToNetworkInternalAsync(network.Ssid, null)) return;
-
-            // Show a modal dialog to get the password
-            while(true)
-            {
-                string result = await Shell.Current.DisplayPromptAsync("Password required", "A password is required to connect to this wifi");
-                if(result == null) return; // User cancelled
-
-                // Try to connect with the provided password (loops until success or cancel)
-                if (await TryConnectToNetworkInternalAsync(network.Ssid, result)) break;
-            }
-
-            // Refresh the current network
-            await RefreshCurrentNetworkAsync();
-        }
-
         private async Task<bool> TryConnectToNetworkInternalAsync(string ssid, string? password)
         {
             try
