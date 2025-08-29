@@ -6,11 +6,10 @@
 
 //----------------------------------------------------------------------------------
 //- MÉTHODES MEMBRES
-void wifi_provisioner::init(const char* device_id){
+void wifi_provisioner::init(String device_id){
+    device_id_ = device_id;
     WiFi.mode(WIFI_STA);
     WiFi.persistent(false); // évite d’écrire en flash par défaut
-    if (!device_id || !*device_id) device_id_ = String(wifi_prefix_of_name) + WiFi.macAddress().c_str();
-    else device_id_ = device_id;
     WiFi.setHostname(device_id_.c_str()); // à faire avant WiFi.begin()
 }
 bool wifi_provisioner::connect(const String& ssid, const String& pass, uint32_t timeout_ms){

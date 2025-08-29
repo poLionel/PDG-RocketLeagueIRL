@@ -35,31 +35,50 @@ ble_provisioner::ble_provisioner() {
         nullptr);
     device_id_.set_callback(
         nullptr);
+    battery_.set_callback(
+        nullptr);
+    x_direction_.set_callback(
+        new cb_write_direction(&x_direction_, &status_));
+    y_direction_.set_callback(
+        new cb_write_direction(&y_direction_, &status_));
+    speed_direction_.set_callback(
+        new cb_write_direction(&speed_direction_, &status_));
+    decay_mode_.set_callback(
+        new cb_write_direction(&decay_mode_, &status_));
 }
 
 
 
 //----------------------------------------------------------------------------------
 //- MÉTHODES MEMBRES
-void ble_provisioner::init(const char* device_id) {
+void ble_provisioner::init(String device_id) {
     // Nom dynamique basé sur l’adresse MAC
-    NimBLEDevice::init(ble_prefix_of_name); // init d'abord
-    String id = (device_id && *device_id) ? String(device_id) : (String(ble_prefix_of_name) + NimBLEDevice::getAddress().toString().c_str());
-    device_id_.set(id);
-    NimBLEDevice::setDeviceName(id.c_str());   // met vraiment le nom d’advertising
+    NimBLEDevice::init(device_id.c_str()); // init d'abord
+    NimBLEDevice::setDeviceName(device_id.c_str());   // met vraiment le nom d’advertising
     NimBLEDevice::setPower(ESP_PWR_LVL_P9, ESP_BLE_PWR_TYPE_DEFAULT);
+
 
     // Création du servuer et service
     server_ = NimBLEDevice::createServer();
     server_->setCallbacks(new server_cb(&is_connected_));
     service_ = server_->createService(SERVICE_UUID);
 
-    // Caractéristiques
+    // Caractéristiques (creéation)
     ssid_.create(service_, NIMBLE_PROPERTY::WRITE, true);
     pass_.create(service_, NIMBLE_PROPERTY::WRITE, true);
     apply_wifi_credentials_.create(service_, NIMBLE_PROPERTY::WRITE, true);
-    status_.create(service_, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY, true);
+
     device_id_.create(service_, NIMBLE_PROPERTY::READ, true);
+    status_.create(service_, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY, true);
+    battery_.create(service_, NIMBLE_PROPERTY::READ, true);
+    x_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
+    y_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
+    speed_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
+    decay_mode_.create(service_, NIMBLE_PROPERTY::WRITE, true);
+
+    // Caractéristiques (autres)
+    device_id_.set(device_id);
+    device_id_.publish();
 }
 void ble_provisioner::start(){
     if (!service_) return;

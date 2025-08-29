@@ -12,8 +12,6 @@
 
 //----------------------------------------------------------------------------------
 //- VARIABLES GLOBALES
-// Configurations
-static const char* wifi_prefix_of_name          = "RL-CAR-";
 
 
 

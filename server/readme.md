@@ -2,12 +2,13 @@
 
 - [v0.2](#v02)
   - [App communication](#app-communication)
+    - [Return data from the server](#return-data-from-the-server)
   - [Car communication](#car-communication)
-    - [Bluetooth](#bluetooth)
+    - [Bluetooth Low Energy (BLE)](#bluetooth-low-energy-ble)
 - [v0.3](#v03)
   - [App communication](#app-communication-1)
   - [Car communication](#car-communication-1)
-    - [Bluetooth](#bluetooth-1)
+    - [Bluetooth Low Energy (BLE)](#bluetooth-low-energy-ble-1)
     - [Websocket send video feed](#websocket-send-video-feed)
   - [Server game management](#server-game-management)
 
@@ -26,17 +27,30 @@ Use JSONs to send data.
   "action": "move_car",
   "car": 1,
   "move": "forward",
+  "x": 0,
   "boost": "false"
+}
+```
+
+- `move`: Movement direction - "forward", "backward", or "stopped"
+- `x`: Steering value from -100 (full left) to 100 (full right), 0 is straight
+
+### Return data from the server
+
+```
+{
+  "status": "success",
+  "action": "move_car"
 }
 ```
 
 ## Car communication
 
-### Bluetooth
+### Bluetooth Low Energy (BLE)
 
-We will use Bluetooth to automatically pair the car with the server.
+We will use BLE to automatically pair the car with the server.
 
-We will use Bluetooth to send the commands from the server to the car.
+We will also use BLE to send the commands (move, boost) from the server to the car.
 
 # v0.3
 
@@ -61,7 +75,50 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_free_cars",
   "free_cars": [0, 1, 2, 3]
+}
+```
+
+### Select a car <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "select_car",
+  "car": 1
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "select_car",
+  "car": 1
+}
+```
+
+### Free a car <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "free_car",
+  "car": 1
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "free_car",
+  "car": 1
 }
 ```
 
@@ -74,15 +131,20 @@ App sends:
   "action": "move_car",
   "car": 1,
   "move": "forward",
+  "x": 0,
   "boost": "false"
 }
 ```
+
+- `move`: Movement direction - "forward", "backward", or "stopped"
+- `x`: Steering value from -100 (full left) to 100 (full right), 0 is straight
 
 Server responds:
 
 ```
 {
-  "status": "success"
+  "status": "success",
+  "action": "move_car"
 }
 ```
 
@@ -102,13 +164,13 @@ Server responds:
 ```
 {
   "status": "success",
-  "car_status": {
-    "car": 1,
-    "battery_level": 85,
-    "move": "forward",
-    "boost": "false",
-    "boost_value": 100
-  }
+  "action": "get_car_status",
+  "car": 1,
+  "battery_level": 85,
+  "move": "forward",
+  "x": 0,
+  "boost": "false",
+  "boost_value": 100
 }
 ```
 
@@ -127,6 +189,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_accessible_car_feeds",
   "accessible_feeds": [0, 1, 2, 3]
 }
 ```
@@ -160,6 +223,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "goal_scored",
   "message": "Goal scored by red team!"
 }
 ```
@@ -179,6 +243,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_game_status",
   "game_status": {
     "teams": {
       "red": {
@@ -210,17 +275,38 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "start_game",
   "message": "Game started!"
+}
+```
+
+### Stop the game <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "stop_game"
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "stop_game",
+  "message": "Game stopped!"
 }
 ```
 
 ## Car communication
 
-### Bluetooth
+### Bluetooth Low Energy (BLE)
 
-We will use Bluetooth to automatically pair the car with the server.
+We will use BLE to automatically pair the car with the server.
 
-We will use Bluetooth to send the commands from the server to the car.
+We will also use BLE to send the commands (move, boost) from the server to the car.
 
 ### Websocket send video feed
 
@@ -240,7 +326,8 @@ Server responds:
 
 ```
 {
-  "status": "success"
+  "status": "success",
+  "action": "send_video_feed"
 }
 ```
 
