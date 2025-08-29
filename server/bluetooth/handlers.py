@@ -1,22 +1,54 @@
 """
 Bluetooth WebSocket handlers for the Rocket League IRL server.
-These handlers provide WebSocket endpoints for Bluetooth device management.
+
+This module provides WebSocket endpoint handlers specifically for Bluetooth
+device management operations. It acts as a bridge between WebSocket clients
+and the BluetoothService, enabling remote control of device discovery,
+pairing, and status monitoring.
+
+Key handler functions:
+- Bluetooth adapter status monitoring
+- Device discovery and scanning control
+- Device pairing and connection management
+- Service availability checking with graceful degradation
 """
 
-# Global reference to Bluetooth service (set by main.py)
+# Global Bluetooth service instance (injected by main application)
 bluetooth_service = None
 
 def set_bluetooth_service(service):
-    """Set the global Bluetooth service reference."""
+    """
+    Configure the global Bluetooth service for handler access.
+    
+    Args:
+        service: BluetoothService instance for device operations
+    """
     global bluetooth_service
     bluetooth_service = service
 
 def get_bluetooth_service():
-    """Get the global Bluetooth service reference."""
+    """
+    Retrieve the global Bluetooth service instance.
+    
+    Returns:
+        BluetoothService: Active service instance or None if unavailable
+    """
     return bluetooth_service
 
 def handle_get_bluetooth_status(data, car_manager=None):
-    """Handle get Bluetooth status requests."""
+    """
+    Retrieve current Bluetooth adapter and service status.
+    
+    Provides comprehensive status information about the Bluetooth subsystem
+    including adapter state, discovered devices, and connection status.
+    
+    Args:
+        data (dict): WebSocket request data
+        car_manager (CarManager): Car registry (unused for status)
+        
+    Returns:
+        dict: Status response with adapter information or error details
+    """
     print("Getting Bluetooth status")
     
     if bluetooth_service:
@@ -38,12 +70,25 @@ def handle_get_bluetooth_status(data, car_manager=None):
     }
 
 def handle_start_bluetooth_scan(data, car_manager=None):
-    """Handle start Bluetooth scan requests."""
+    """
+    Initiate Bluetooth Low Energy device discovery scan.
+    
+    Starts scanning for nearby BLE devices, particularly looking for
+    Rocket League cars with the expected device name prefix. Results
+    are returned immediately with discovered devices.
+    
+    Args:
+        data (dict): WebSocket request data
+        car_manager (CarManager): Car registry for device registration
+        
+    Returns:
+        dict: Scan results with discovered devices or error information
+    """
     print("Starting Bluetooth scan")
     
     if bluetooth_service:
         try:
-            # Discover devices
+            # Perform device discovery scan
             devices = bluetooth_service.discover_devices()
             device_list = [
                 {

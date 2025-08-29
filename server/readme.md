@@ -2,6 +2,7 @@
 
 - [v0.2](#v02)
   - [App communication](#app-communication)
+    - [Return data from the server](#return-data-from-the-server)
   - [Car communication](#car-communication)
     - [Bluetooth Low Energy (BLE)](#bluetooth-low-energy-ble)
 - [v0.3](#v03)
@@ -26,7 +27,20 @@ Use JSONs to send data.
   "action": "move_car",
   "car": 1,
   "move": "forward",
+  "x": 0,
   "boost": "false"
+}
+```
+
+- `move`: Movement direction - "forward", "backward", or "stopped"
+- `x`: Steering value from -100 (full left) to 100 (full right), 0 is straight
+
+### Return data from the server
+
+```
+{
+  "status": "success",
+  "action": "move_car"
 }
 ```
 
@@ -61,7 +75,50 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_free_cars",
   "free_cars": [0, 1, 2, 3]
+}
+```
+
+### Select a car <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "select_car",
+  "car": 1
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "select_car",
+  "car": 1
+}
+```
+
+### Free a car <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "free_car",
+  "car": 1
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "free_car",
+  "car": 1
 }
 ```
 
@@ -74,15 +131,20 @@ App sends:
   "action": "move_car",
   "car": 1,
   "move": "forward",
+  "x": 0,
   "boost": "false"
 }
 ```
+
+- `move`: Movement direction - "forward", "backward", or "stopped"
+- `x`: Steering value from -100 (full left) to 100 (full right), 0 is straight
 
 Server responds:
 
 ```
 {
-  "status": "success"
+  "status": "success",
+  "action": "move_car"
 }
 ```
 
@@ -102,13 +164,13 @@ Server responds:
 ```
 {
   "status": "success",
-  "car_status": {
-    "car": 1,
-    "battery_level": 85,
-    "move": "forward",
-    "boost": "false",
-    "boost_value": 100
-  }
+  "action": "get_car_status",
+  "car": 1,
+  "battery_level": 85,
+  "move": "forward",
+  "x": 0,
+  "boost": "false",
+  "boost_value": 100
 }
 ```
 
@@ -127,6 +189,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_accessible_car_feeds",
   "accessible_feeds": [0, 1, 2, 3]
 }
 ```
@@ -160,6 +223,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "goal_scored",
   "message": "Goal scored by red team!"
 }
 ```
@@ -179,6 +243,7 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "get_game_status",
   "game_status": {
     "teams": {
       "red": {
@@ -210,7 +275,28 @@ Server responds:
 ```
 {
   "status": "success",
+  "action": "start_game",
   "message": "Game started!"
+}
+```
+
+### Stop the game <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "stop_game"
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "stop_game",
+  "message": "Game stopped!"
 }
 ```
 
@@ -240,7 +326,8 @@ Server responds:
 
 ```
 {
-  "status": "success"
+  "status": "success",
+  "action": "send_video_feed"
 }
 ```
 

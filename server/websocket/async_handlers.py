@@ -1,5 +1,16 @@
 """
-Async WebSocket handlers for Bluetooth communication.
+Asynchronous WebSocket handlers for real-time Bluetooth communication.
+
+This module contains async handlers that require awaiting operations, primarily
+for Bluetooth Low Energy communication with cars. These handlers are separated
+from the synchronous handlers to enable proper async/await patterns for BLE
+operations which can take significant time to complete.
+
+Key functions:
+- Car command transmission via BLE
+- WiFi provisioning for car setup
+- Real-time motor control with feedback
+- Asynchronous device discovery and pairing
 """
 
 import asyncio
@@ -9,7 +20,20 @@ from bluetooth.handlers import get_bluetooth_service
 logger = logging.getLogger(__name__)
 
 async def handle_send_to_car_async(data, car_manager=None):
-    """Handle sending commands/data to car via Bluetooth (async version)."""
+    """
+    Send commands and data to a specific car via Bluetooth Low Energy.
+    
+    This async handler manages the complete process of transmitting commands
+    to a physical car, including device lookup, BLE connection validation,
+    and command execution with proper error handling.
+    
+    Args:
+        data (dict): WebSocket message containing car ID, command, and parameters
+        car_manager (CarManager): Car registry for device lookup
+        
+    Returns:
+        dict: Response with operation status and any error messages
+    """
     car_id = data.get("car")
     command = data.get("command", "test")
     message = data.get("message", "Hello from server!")
@@ -17,7 +41,7 @@ async def handle_send_to_car_async(data, car_manager=None):
     logger.info(f"Sending to car {car_id}: command={command}, message={message}")
     
     try:
-        # Find the car
+        # Validate car exists in the management system
         car = None
         if car_manager and car_id is not None:
             car = car_manager.get_car(car_id)
@@ -34,7 +58,7 @@ async def handle_send_to_car_async(data, car_manager=None):
                 "message": f"Car {car_id} has no BLE address"
             }
         
-        # Get the Bluetooth service
+        # Access the Bluetooth service for BLE operations
         bluetooth_service = get_bluetooth_service()
         if not bluetooth_service:
             return {
@@ -42,7 +66,7 @@ async def handle_send_to_car_async(data, car_manager=None):
                 "message": "Bluetooth service not initialized"
             }
         
-        # Get the BLE device
+        # Locate the BLE device in the discovered devices registry
         ble_devices = bluetooth_service.ble_service.discovered_devices
         ble_device = ble_devices.get(car.ble_address)
         
