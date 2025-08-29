@@ -44,6 +44,8 @@ namespace RLIRL.App.ViewModels
         [RelayCommand]
         private async Task ConnectToNetworkAsync(NetworkListItem network)
         {
+            if (network.Connected) return;
+
             // Try to connect without a password first
             if (await TryConnectToNetworkInternalAsync(network.Ssid, null)) return;
 

@@ -17,9 +17,9 @@
             Command="{Binding LoadNetworksCommand}" />
     </ContentView.Behaviors>
 
-    <Grid>
-        <Border StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
-            <Grid Padding="20">
+    <Border StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
+        <Grid>
+            <Grid Padding="10">
             
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"></RowDefinition>
@@ -43,35 +43,37 @@
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="models:NetworkListItem">
                             <ViewCell>
-                                <Grid Padding="10" ColumnSpacing="10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="auto" />
-                                        <ColumnDefinition Width="auto" />
-                                        <ColumnDefinition Width="auto" />
-                                    </Grid.ColumnDefinitions>
+                                <Border StrokeShape="RoundRectangle 10,10,10,10" Stroke="Transparent">
+                                    <Grid Padding="10" ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
 
-                                    <!-- Wifi Icon -->
-                                    <Image Grid.Column="0" IsVisible="{Binding Icon, Converter={toolkit:IsStringNotNullOrWhiteSpaceConverter}}" >
-                                        <Image.Source>
-                                            <FontImageSource FontFamily="FluentUI"
+                                        <!-- Wifi Icon -->
+                                        <Image Grid.Column="0" IsVisible="{Binding Icon, Converter={toolkit:IsStringNotNullOrWhiteSpaceConverter}}" >
+                                            <Image.Source>
+                                                <FontImageSource FontFamily="FluentUI"
                                                      Glyph="{Binding Icon}"
                                                      Size="30" />
-                                        </Image.Source>
-                                    </Image>
+                                            </Image.Source>
+                                        </Image>
 
-                                    <!-- Network Name -->
-                                    <Label Grid.Column="1" Text="{Binding Ssid}" />
+                                        <!-- Network Name -->
+                                        <Label Grid.Column="1" Text="{Binding Ssid}" />
 
-                                    <!-- Connected Text -->
-                                    <Label Grid.Column="2" IsVisible="{Binding Connected}" Text="(Connected)" />
+                                        <!-- Connected Text -->
+                                        <Label Grid.Column="2" IsVisible="{Binding Connected}" Text="(Connected)" />
 
-                                    <!-- Selected item Style -->
-                                    <Grid.Triggers>
-                                        <DataTrigger TargetType="Grid" Binding="{Binding Connected}" Value="True">
-                                            <Setter Property="BackgroundColor" Value="#40ADD8E6" />
-                                        </DataTrigger>
-                                    </Grid.Triggers>
-                                </Grid>
+                                        <!-- Selected item Style -->
+                                        <Grid.Triggers>
+                                            <DataTrigger TargetType="Grid" Binding="{Binding Connected}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="#40ADD8E6" />
+                                            </DataTrigger>
+                                        </Grid.Triggers>
+                                    </Grid>
+                                </Border>
                             </ViewCell>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -115,17 +117,17 @@
                             MaximumWidthRequest="300" />
                 </Grid>
             </Grid>
-        </Border>
 
-        <!-- Loading Overlay -->
-        <Grid IsVisible="{Binding Loading}" BackgroundColor="#40FFFFFF">
-            <ActivityIndicator 
-                IsRunning="{Binding Loading}" 
-                HorizontalOptions="Center" 
-                VerticalOptions="Center" 
-                Color="DodgerBlue"
-                HeightRequest="40"
-                WidthRequest="40" />
+            <!-- Loading Overlay -->
+            <Grid IsVisible="{Binding Loading}" BackgroundColor="#40FFFFFF">
+                <ActivityIndicator 
+                    IsRunning="{Binding Loading}" 
+                    HorizontalOptions="Center" 
+                    VerticalOptions="Center" 
+                    Color="DodgerBlue"
+                    HeightRequest="40"
+                    WidthRequest="40" />
+            </Grid>
         </Grid>
-    </Grid>
+    </Border>
 </ContentView>

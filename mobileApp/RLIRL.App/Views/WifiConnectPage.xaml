@@ -25,7 +25,7 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <views:WifiSelector Grid.Row="0" />
+        <views:WifiSelector Grid.Row="0" MaximumWidthRequest="800" />
 
         <Label Grid.Row="1"
                TextColor="Red" 
