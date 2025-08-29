@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using RLIRL.Server;
 using RLIRL.Business;
 using RLIRL.Server.Abstractions;
+using RLIRL.App.ViewModels;
 
 namespace RLIRL.App
 {
@@ -35,6 +36,9 @@ namespace RLIRL.App
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
 
+            // Register the main view view model
+            builder.Services.AddTransient<MainPageViewModel>();
+
             var app = builder.Build();
 
             // Start the server command sender and listener
@@ -43,7 +47,6 @@ namespace RLIRL.App
 
             var commandSender = app.Services.GetRequiredService<IServerCommandSender>();
             commandSender.Start();
-
             return app;
         }
     }
