@@ -15,7 +15,8 @@ namespace RLIRL.Server
                 .AddTransient<IServerCommandSerializer, ServerCommandSerializer>()
                 .AddSingleton<IWebSocketProvider, WebSocketProvider>()
                 .AddSingleton<IServerCommandListener, ServerCommandListener>()
-                .AddSingleton<IServerCommandSender, ServerCommandSender>();
+                .AddSingleton<IServerCommandSender, ServerCommandSender>()
+                .AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
             return services;
         }
