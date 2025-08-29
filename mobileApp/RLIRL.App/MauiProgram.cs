@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using CommunityToolkit.Maui;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using RLIRL.Server;
-using RLIRL.Business;
-using RLIRL.Server.Abstractions;
 using RLIRL.App.ViewModels;
+using RLIRL.Business;
+using RLIRL.Server;
+using RLIRL.Server.Abstractions;
 
 namespace RLIRL.App
 {
@@ -21,6 +22,7 @@ namespace RLIRL.App
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -36,8 +38,8 @@ namespace RLIRL.App
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
 
-            // Register the main view view model
-            builder.Services.AddTransient<MainPageViewModel>();
+            // Register the view view models
+            builder.Services.AddTransient<WifiSelectorViewModel>();
 
             var app = builder.Build();
 

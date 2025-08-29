@@ -12,23 +12,24 @@ namespace RLIRL.App.ViewModels
         public partial ObservableCollection<NetworkData> WifiNetworks { get; private set; }
 
         [ObservableProperty]
-        public partial string? errorMessage { get; private set; }
+        public partial string? ErrorMessage { get; private set; }
 
         [RelayCommand]
         private async Task LoadNetworksAsync()
         {
+            // Scan for wifi networks
             var response = await CrossWifiManager.Current.ScanWifiNetworks();
-            errorMessage = response.ErrorMessage;
+            ErrorMessage = response.ErrorCode == WifiErrorCodes.Success ? null : response.ErrorMessage;
             WifiNetworks = new(response.Data ?? []);
-
         }
 
         [RelayCommand]
         private async Task ConnectToNetworkAsync(NetworkData network)
         {
+            // Try to connect to the selected network (assuming open network for simplicity)
             if (network.Ssid == null) return;
             var response = await CrossWifiManager.Current.ConnectWifi(network.Ssid, string.Empty);
-            errorMessage = response.ErrorMessage;
+            ErrorMessage = response.ErrorCode == WifiErrorCodes.Success ? null : response.ErrorMessage;
         }
     }
 }
