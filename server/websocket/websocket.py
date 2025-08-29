@@ -10,6 +10,9 @@ from .async_handlers import ASYNC_HANDLERS
 # Global car manager for WebSocket handler access
 car_manager = None
 
+# Global game manager for WebSocket handler access
+game_manager = None
+
 # Active WebSocket connections registry for broadcast and management
 active_connections = {}
 
@@ -25,6 +28,16 @@ def set_car_manager(manager):
     global car_manager
     car_manager = manager
 
+def set_game_manager(manager):
+    """
+    Configure the global game manager for WebSocket handler access.
+    
+    Args:
+        manager: GameManager instance for game operations
+    """
+    global game_manager
+    game_manager = manager
+
 def get_car_manager():
     """
     Retrieve the global car manager instance.
@@ -33,6 +46,15 @@ def get_car_manager():
         CarManager: Active car manager or None if not initialized
     """
     return car_manager
+
+def get_game_manager():
+    """
+    Retrieve the global game manager instance.
+    
+    Returns:
+        GameManager: Active game manager or None if not initialized
+    """
+    return game_manager
 
 async def handle_message(websocket, path=None):
     """
@@ -68,8 +90,12 @@ async def handle_message(websocket, path=None):
                     response = await ASYNC_HANDLERS[action](data, car_manager)
                 # Route to synchronous handlers for immediate operations
                 elif action in ACTION_HANDLERS:
+                    # Game management actions
+                    if action in ["start_game", "stop_game", "resume_game", "end_game", "get_game_status", 
+                                "goal_scored", "score_goal", "add_car_to_team", "remove_car_from_teams", "add_team"]:
+                        response = ACTION_HANDLERS[action](data, game_manager=game_manager)
                     # Pass websocket_id for car assignment and ownership tracking
-                    if action in ["select_car", "free_car", "move_car", "send_to_car", "connect_to_car"]:
+                    elif action in ["select_car", "free_car", "move_car", "send_to_car", "connect_to_car"]:
                         response = ACTION_HANDLERS[action](data, car_manager, websocket_id)
                     else:
                         response = ACTION_HANDLERS[action](data, car_manager)
@@ -124,6 +150,14 @@ def start_server(port=8000):
 async def start_server_with_cars(manager, port=8000):
     """Start the WebSocket server with a car manager (async version)."""
     set_car_manager(manager)
+    print(f"Serveur WebSocket en écoute sur le port {port}...")
+    async with websockets.serve(handle_message, "0.0.0.0", port):
+        await asyncio.Future()  # Run forever
+
+async def start_server_with_managers(car_mgr, game_mgr, port=8000):
+    """Start the WebSocket server with both car and game managers (async version)."""
+    set_car_manager(car_mgr)
+    set_game_manager(game_mgr)
     print(f"Serveur WebSocket en écoute sur le port {port}...")
     async with websockets.serve(handle_message, "0.0.0.0", port):
         await asyncio.Future()  # Run forever

@@ -141,6 +141,17 @@ __all__ = [
     'handle_connect_to_car',
     'handle_unknown_action', 
     'handle_invalid_json',
+    # Game management handlers
+    'handle_start_game',
+    'handle_stop_game',
+    'handle_resume_game',
+    'handle_end_game',
+    'handle_get_game_status',
+    'handle_goal_scored',
+    'handle_score_goal',
+    'handle_add_car_to_team',
+    'handle_remove_car_from_teams',
+    'handle_add_team',
     'ACTION_HANDLERS'
 ]
 
@@ -245,10 +256,17 @@ def handle_get_car_status(data, car_manager=None):
     if car_manager and car_id is not None:
         car = car_manager.get_car(car_id)
         if car:
+            car_status = car.get_status()
+            # Flatten the response to match documented format
             return {
                 "status": "success",
                 "action": "get_car_status",
-                "car_status": car.get_status()
+                "car": car_status["car"],
+                "battery_level": car_status["battery_level"],
+                "move": car_status["move"],
+                "x": car_status["x"],
+                "boost": car_status["boost"],
+                "boost_value": car_status["boost_value"]
             }            
     
     # If car manager is not available, return an error response
@@ -577,16 +595,18 @@ def handle_select_car(data, car_manager=None, websocket_id=None):
     
     success, message, car = car_manager.select_car(car_id, websocket_id)
     
-    response = {
-        "status": "success" if success else "error",
-        "action": "select_car",
-        "message": message
-    }
-    
-    if success and car:
-        response["car"] = car.get_status()
-    
-    return response
+    if success:
+        return {
+            "status": "success",
+            "action": "select_car",
+            "car": car_id
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "select_car",
+            "message": message
+        }
 
 def handle_free_car(data, car_manager=None, websocket_id=None):
     """Handle car freeing requests."""
@@ -615,6 +635,340 @@ def handle_free_car(data, car_manager=None, websocket_id=None):
         "car": car_id
     }
 
+# ============================================================================
+# Game Management Handlers
+# ============================================================================
+
+def handle_get_game_status(data, game_manager=None):
+    """Handle get game status requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "get_game_status",
+            "message": "Game manager not available"
+        }
+    
+    current_game = game_manager.get_current_game()
+    
+    return {
+        "status": "success",
+        "action": "get_game_status",
+        "game_status": current_game.to_dict()
+    }
+
+def handle_resume_game(data, game_manager=None):
+    """Handle resume game requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "resume_game",
+            "message": "Game manager not available"
+        }
+    
+    success = game_manager.resume_game()
+    
+    if success:
+        return {
+            "status": "success",
+            "action": "resume_game",
+            "message": "Game resumed!"
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "resume_game",
+            "message": "Cannot resume game. Game may not be paused or may be finished."
+        }
+
+def handle_start_game(data, game_manager=None):
+    """Handle start game requests. This resets and starts the game."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "start_game",
+            "message": "Game manager not available"
+        }
+    
+    match_length = data.get("match_length_seconds")
+    
+    # Validate match length if provided
+    if match_length is not None:
+        try:
+            match_length = int(match_length)
+            if match_length <= 0:
+                raise ValueError("Match length must be positive")
+        except (ValueError, TypeError):
+            return {
+                "status": "error",
+                "action": "start_game",
+                "message": "Invalid match length. Must be a positive integer."
+            }
+    
+    success = game_manager.start_game(match_length)
+    
+    if success:
+        return {
+            "status": "success",
+            "action": "start_game",
+            "message": "Game started!"
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "start_game",
+            "message": "Failed to start game"
+        }
+
+def handle_end_game(data, game_manager=None):
+    """Handle end game requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "end_game",
+            "message": "Game manager not available"
+        }
+    
+    success = game_manager.end_game()
+    
+    if success:
+        return {
+            "status": "success",
+            "action": "end_game",
+            "message": "Game ended!"
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "end_game",
+            "message": "Failed to end game"
+        }
+
+def handle_score_goal(data, game_manager=None):
+    """Handle goal scoring requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "score_goal",
+            "message": "Game manager not available"
+        }
+    
+    team_color = data.get("team")
+    player_id = data.get("player_id")
+    car_id = data.get("car_id")
+    
+    if not team_color:
+        return {
+            "status": "error",
+            "action": "score_goal",
+            "message": "Team color is required"
+        }
+    
+    success = game_manager.score_goal(team_color, player_id, car_id)
+    
+    if success:
+        current_game = game_manager.get_current_game()
+        return {
+            "status": "success",
+            "action": "score_goal",
+            "message": f"Goal scored by {team_color} team!",
+            "game_status": current_game.to_dict() if current_game else None
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "score_goal",
+            "message": f"Failed to score goal. Invalid team '{team_color}' or no active game."
+        }
+
+def handle_add_car_to_team(data, game_manager=None):
+    """Handle adding car to team requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "add_car_to_team",
+            "message": "Game manager not available"
+        }
+    
+    car_id = data.get("car_id")
+    team_color = data.get("team")
+    
+    if car_id is None:
+        return {
+            "status": "error",
+            "action": "add_car_to_team",
+            "message": "Car ID is required"
+        }
+    
+    if not team_color:
+        return {
+            "status": "error",
+            "action": "add_car_to_team",
+            "message": "Team color is required"
+        }
+    
+    try:
+        car_id = int(car_id)
+    except (ValueError, TypeError):
+        return {
+            "status": "error",
+            "action": "add_car_to_team",
+            "message": "Invalid car ID. Must be an integer."
+        }
+    
+    success = game_manager.add_car_to_team(car_id, team_color)
+    
+    if success:
+        current_game = game_manager.get_current_game()
+        return {
+            "status": "success",
+            "action": "add_car_to_team",
+            "message": f"Car {car_id} added to {team_color} team",
+            "game_status": current_game.to_dict() if current_game else None
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "add_car_to_team",
+            "message": f"Failed to add car {car_id} to team. Car not found or invalid team '{team_color}'."
+        }
+
+def handle_remove_car_from_teams(data, game_manager=None):
+    """Handle removing car from all teams requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "remove_car_from_teams",
+            "message": "Game manager not available"
+        }
+    
+    car_id = data.get("car_id")
+    
+    if car_id is None:
+        return {
+            "status": "error",
+            "action": "remove_car_from_teams",
+            "message": "Car ID is required"
+        }
+    
+    try:
+        car_id = int(car_id)
+    except (ValueError, TypeError):
+        return {
+            "status": "error",
+            "action": "remove_car_from_teams",
+            "message": "Invalid car ID. Must be an integer."
+        }
+    
+    current_game = game_manager.get_current_game()
+    if current_game:
+        current_game.remove_car_from_teams(car_id)
+        return {
+            "status": "success",
+            "action": "remove_car_from_teams",
+            "message": f"Car {car_id} removed from all teams",
+            "game_status": current_game.to_dict()
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "remove_car_from_teams",
+            "message": "No active game"
+        }
+
+def handle_add_team(data, game_manager=None):
+    """Handle adding new team requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "add_team",
+            "message": "Game manager not available"
+        }
+    
+    color = data.get("color")
+    name = data.get("name")
+    
+    if not color:
+        return {
+            "status": "error",
+            "action": "add_team",
+            "message": "Team color is required"
+        }
+    
+    current_game = game_manager.get_current_game()
+    if current_game:
+        team = current_game.add_team(color, name)
+        return {
+            "status": "success",
+            "action": "add_team",
+            "message": f"Team '{team.name}' added successfully",
+            "game_status": current_game.to_dict()
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "add_team",
+            "message": "No active game. Create a game first."
+        }
+
+def handle_stop_game(data, game_manager=None):
+    """Handle stop game requests. This pauses the game."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "stop_game",
+            "message": "Game manager not available"
+        }
+    
+    success = game_manager.stop_game()
+    
+    if success:
+        return {
+            "status": "success",
+            "action": "stop_game",
+            "message": "Game stopped!"
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "stop_game",
+            "message": "No active game to stop"
+        }
+
+def handle_goal_scored(data, game_manager=None):
+    """Handle goal scored requests (maps to score_goal functionality)."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "goal_scored",
+            "message": "Game manager not available"
+        }
+    
+    team_color = data.get("team")
+    player_id = data.get("player_id")
+    car_id = data.get("car_id")
+    
+    if not team_color:
+        return {
+            "status": "error",
+            "action": "goal_scored",
+            "message": "Team color is required"
+        }
+    
+    success = game_manager.score_goal(team_color, player_id, car_id)
+    
+    if success:
+        return {
+            "status": "success",
+            "action": "goal_scored",
+            "message": f"Goal scored by {team_color} team!"
+        }
+    else:
+        return {
+            "status": "error",
+            "action": "goal_scored",
+            "message": f"Failed to score goal. Invalid team '{team_color}' or no active game."
+        }
+
 
 # Action dispatch dictionary
 ACTION_HANDLERS = {
@@ -629,6 +983,17 @@ ACTION_HANDLERS = {
     "switch_to_scan_phase": handle_switch_to_scan_phase,
     "switch_to_control_phase": handle_switch_to_control_phase,
     "get_phase_status": handle_get_phase_status,
+    # Game management actions
+    "start_game": handle_start_game,
+    "stop_game": handle_stop_game,
+    "resume_game": handle_resume_game,
+    "end_game": handle_end_game,
+    "get_game_status": handle_get_game_status,
+    "goal_scored": handle_goal_scored,
+    "score_goal": handle_score_goal,
+    "add_car_to_team": handle_add_car_to_team,
+    "remove_car_from_teams": handle_remove_car_from_teams,
+    "add_team": handle_add_team,
 }
 
 # Add Bluetooth handlers if available
