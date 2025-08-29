@@ -5,7 +5,6 @@ using MauiWifiManager;
 using MauiWifiManager.Abstractions;
 using RLIRL.App.Models;
 using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
 
 namespace RLIRL.App.ViewModels
 {
@@ -62,6 +61,12 @@ namespace RLIRL.App.ViewModels
             await RefreshCurrentNetworkAsync();
         }
 
+        [RelayCommand]
+        private async Task NavigateToSettingsAsync()
+        {
+            await CrossWifiManager.Current.OpenWifiSetting();
+        }
+
         private async Task<IEnumerable<NetworkData>> LoadScanNetworkAsync()
         {
             // Scan for wifi networks
@@ -71,7 +76,6 @@ namespace RLIRL.App.ViewModels
             // Filter and sort networks
             return response.Data?
                 .Where(n => !string.IsNullOrEmpty(n.Ssid))
-                .OrderByDescending(n => n.Bssid)
                 .DistinctBy(n => n.Ssid)
                 .OrderByDescending(n => n.SignalStrength is byte strength ? strength : 0)
                 .ThenBy(n => n.Ssid)

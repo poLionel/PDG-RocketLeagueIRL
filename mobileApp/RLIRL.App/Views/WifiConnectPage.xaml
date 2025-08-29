@@ -2,12 +2,42 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:views="clr-namespace:RLIRL.App.Views"
+             xmlns:viewmodels="clr-namespace:RLIRL.App.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="RLIRL.App.Views.WifiConnectPage"
+             x:Name="ContentPage"
+             x:DataType="viewmodels:WifiConnectViewModel"
              Title="WifiConnectPage">
-    <Grid>
+
+    <!-- Initial Connection Check -->
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Loaded"
+            BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentPage}, x:DataType=ContentPage}"
+            Command="{Binding CheckServerConnectionCommand}"
+            CommandParameter="{x:Boolean True}"/>
+    </ContentPage.Behaviors>
+    
+    <Grid Padding="10" RowSpacing="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <views:WifiSelector />
+
+        <views:WifiSelector Grid.Row="0" />
+
+        <Label Grid.Row="1"
+               TextColor="Red" 
+               IsVisible="{Binding ConnectionFailed}"
+               HorizontalOptions="Center"
+               Text="The connection with the server failed. Please check the connectivity with the server and try again" />
+
+        <Button Grid.Row="2"
+                Text="Continue" 
+                MaximumWidthRequest="500"
+                Command="{Binding CheckServerConnectionCommand}"
+                CommandParameter="{x:Boolean False}"/>
+
     </Grid>
 </ContentPage>
