@@ -1,4 +1,4 @@
-﻿namespace RLIRL.Server.Abstractions
+﻿namespace RLIRL.Server.Abstractions.Abstractions
 {
     public interface IServerCommandSender
     {

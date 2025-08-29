@@ -12,12 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-  	<ProjectReference Include="..\RLIRL.Business\RLIRL.Business.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\ServerCommandsProcessors\" />
-    <Folder Include="Services\ServerCommands\" />
+  	<ProjectReference Include="..\RLIRL.Business.Abstractions\RLIRL.Business.Abstractions.csproj" />
+  	<ProjectReference Include="..\RLIRL.Server.Abstractions\RLIRL.Server.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

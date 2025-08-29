@@ -15,6 +15,7 @@ namespace RLIRL.App
 
         private static string? GetIconForSignalStrenght(object? signalStrength) => signalStrength switch
         {
+
             (byte)1 => Fonts.FluentUI.wifi_4_20_regular,
             (byte)2 => Fonts.FluentUI.wifi_3_20_regular,
             (byte)3 => Fonts.FluentUI.wifi_2_20_regular,

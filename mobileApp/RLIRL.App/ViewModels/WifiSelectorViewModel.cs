@@ -38,6 +38,7 @@ namespace RLIRL.App.ViewModels
             // Filter and sort networks
             return response.Data?
                 .Where(n => !string.IsNullOrEmpty(n.Ssid))
+                .DistinctBy(n => n.Ssid)
                 .OrderByDescending(n => n.SignalStrength is byte strength ? strength : 0)
                 .ThenBy(n => n.Ssid)
                 .ToList() ?? [];

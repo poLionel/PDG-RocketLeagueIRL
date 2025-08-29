@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RLIRL.Business", "RLIRL.Bus
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RLIRL.Business.Tests", "RLIRL.Business.Tests\RLIRL.Business.Tests.csproj", "{A457E4F9-3D79-437C-AA45-AE234B9BF59C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RLIRL.Server.Abstractions", "RLIRL.Server.Abstractions\RLIRL.Server.Abstractions.csproj", "{63798FA4-95D5-4406-9EDE-0814954B6883}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RLIRL.Business.Abstractions", "RLIRL.Business.Abstractions\RLIRL.Business.Abstractions.csproj", "{D895DEBB-41A6-468A-B3C6-7360AB3DB74B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +45,14 @@ Global
 		{A457E4F9-3D79-437C-AA45-AE234B9BF59C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A457E4F9-3D79-437C-AA45-AE234B9BF59C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A457E4F9-3D79-437C-AA45-AE234B9BF59C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63798FA4-95D5-4406-9EDE-0814954B6883}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63798FA4-95D5-4406-9EDE-0814954B6883}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63798FA4-95D5-4406-9EDE-0814954B6883}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63798FA4-95D5-4406-9EDE-0814954B6883}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D895DEBB-41A6-468A-B3C6-7360AB3DB74B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D895DEBB-41A6-468A-B3C6-7360AB3DB74B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D895DEBB-41A6-468A-B3C6-7360AB3DB74B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D895DEBB-41A6-468A-B3C6-7360AB3DB74B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

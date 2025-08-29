@@ -1,12 +1,12 @@
 ﻿using CommunityToolkit.Maui;
-using Fonts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RLIRL.App.Components;
+using RLIRL.App.Resources.Fonts;
 using RLIRL.App.ViewModels;
 using RLIRL.Business;
 using RLIRL.Server;
-using RLIRL.Server.Abstractions;
+using RLIRL.Server.Abstractions.Abstractions;
 
 namespace RLIRL.App
 {
@@ -43,7 +43,7 @@ namespace RLIRL.App
             builder.Services.AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
             // Register the view models
-            builder.Services.AddSingleton<MainPageViewModel>();
+            builder.Services.AddTransient<MainPageViewModel>();
             builder.Services.AddTransient<WifiSelectorViewModel>();
 
             var app = builder.Build();

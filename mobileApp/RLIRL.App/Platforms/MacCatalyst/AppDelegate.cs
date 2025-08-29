@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace RLIRL.App
+namespace RLIRL.App.Platforms.MacCatalyst
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

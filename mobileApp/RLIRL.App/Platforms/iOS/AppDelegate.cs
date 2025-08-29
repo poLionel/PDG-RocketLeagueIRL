@@ -1,6 +1,6 @@
 ﻿using Foundation;
 
-namespace RLIRL.App
+namespace RLIRL.App.Platforms.iOS
 {
     [Register("AppDelegate")]
     public class AppDelegate : MauiUIApplicationDelegate

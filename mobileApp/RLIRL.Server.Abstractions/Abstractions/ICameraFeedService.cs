@@ -1,4 +1,4 @@
-﻿namespace RLIRL.Server.Abstractions
+﻿namespace RLIRL.Server.Abstractions.Abstractions
 {
     /// <summary>
     /// Interface for camera feed services

@@ -1,4 +1,4 @@
-﻿using RLIRL.Server.Abstractions.Server;
+﻿using RLIRL.Server.Abstractions.Abstractions;
 
 namespace RLIRL.Server.Abstractions
 {

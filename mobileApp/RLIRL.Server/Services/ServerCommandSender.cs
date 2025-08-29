@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using RLIRL.Server.Abstractions;
-using RLIRL.Server.Abstractions.Server;
+using RLIRL.Server.Abstractions.Abstractions;
 using System.Net.WebSockets;
 
-namespace RLIRL.Server.Services.Server
+namespace RLIRL.Server.Services
 {
     internal class ServerCommandSender(
         IWebSocketProvider webSocketProvider,
