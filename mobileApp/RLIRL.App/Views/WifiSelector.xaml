@@ -27,15 +27,15 @@
                IsVisible="{Binding ErrorMessage, Converter={toolkit:IsStringNullOrEmptyConverter}}" />
 
         <!-- Network List -->
-        <ListView ItemsSource="{Binding WifiNetworks}"
-                  SelectionMode="Single">
+        <ListView ItemsSource="{Binding WifiNetworks}" SelectionMode="Single" x:Name="ContentViewListView">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:NetworkListItem">
                     <ViewCell>
                         <Grid Padding="10" ColumnSpacing="10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="auto" />
                             </Grid.ColumnDefinitions>
 
                             <!-- Wifi Icon -->
@@ -46,14 +46,31 @@
                                                      Size="30" />
                                 </Image.Source>
                             </Image>
-                            
-                            <!-- Network Name -->
-                            <Label Grid.Column="1" Text="{Binding Name}" />
 
+                            <!-- Network Name -->
+                            <Label Grid.Column="1" Text="{Binding Ssid}" />
+                            
+                            <!-- Connected Text -->
+                            <Label Grid.Column="2" IsVisible="{Binding Connected}" Text="(Connected)" />
+
+                            <!-- Selected item Style -->
+                            <Grid.Triggers>
+                                <DataTrigger TargetType="Grid" Binding="{Binding Connected}" Value="True">
+                                    <Setter Property="BackgroundColor" Value="#40ADD8E6" />
+                                </DataTrigger>
+                            </Grid.Triggers>
                         </Grid>
                     </ViewCell>
                 </DataTemplate>
             </ListView.ItemTemplate>
+
+            <!-- Item Click -->
+            <ListView.Behaviors>
+                <toolkit:EventToCommandBehavior EventName="ItemSelected"
+                                                BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentView}}"
+                                                Command="{Binding ConnectToNetworkCommand}"
+                                                CommandParameter="{Binding SelectedItem, Source={x:Reference ContentViewListView}}" />
+            </ListView.Behaviors>
         </ListView>
     </StackLayout>
 </ContentView>

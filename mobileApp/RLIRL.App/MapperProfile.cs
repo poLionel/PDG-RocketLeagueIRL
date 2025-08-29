@@ -9,9 +9,8 @@ namespace RLIRL.App
         public MapperProfile()
         {
             _ = CreateMap<NetworkData, NetworkListItem>()
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Ssid ?? string.Empty))
+                .ForMember(dest => dest.Ssid, opt => opt.MapFrom(src => src.Ssid ?? string.Empty))
                 .ForMember(dest => dest.Icon, opt => opt.MapFrom(src => GetIconForSignalStrenght(src.SignalStrength)));
-
         }
 
         private static string? GetIconForSignalStrenght(object? signalStrength) => signalStrength switch

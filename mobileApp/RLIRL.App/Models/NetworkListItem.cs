@@ -1,8 +1,16 @@
-﻿namespace RLIRL.App.Models
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace RLIRL.App.Models
 {
-    public class NetworkListItem
+    public partial class NetworkListItem : ObservableObject
     {
-        public required string Name { get; set; }
-        public required string? Icon { get; set; }
+        [ObservableProperty]
+        public partial string Ssid { get; set; }
+
+        [ObservableProperty]
+        public partial string? Icon { get; set; }
+
+        [ObservableProperty]
+        public partial bool Connected { get; set; }
     }
 }
