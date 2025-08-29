@@ -1,4 +1,4 @@
-﻿namespace RLIRL.Server.Abstractions.Server
+﻿namespace RLIRL.Server.Abstractions.Abstractions
 {
     /// <summary>
     /// Interface for a queue that holds commands sent from the client to the server 

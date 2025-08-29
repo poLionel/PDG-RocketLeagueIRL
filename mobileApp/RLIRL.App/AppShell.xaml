@@ -4,12 +4,13 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:RLIRL.App"
+    xmlns:views="clr-namespace:RLIRL.App.Views"
     Shell.FlyoutBehavior="Flyout"
     Title="RLIRL.App">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <!--The first shell content is the startup page-->
+    <ShellContent Route="wifi" ContentTemplate="{DataTemplate views:WifiConnectPage}"/>
+    <ShellContent Route="menu" ContentTemplate="{DataTemplate views:MenuPage}"/>
+    <ShellContent Route="game" ContentTemplate="{DataTemplate views:GamePage}"/>
 
 </Shell>

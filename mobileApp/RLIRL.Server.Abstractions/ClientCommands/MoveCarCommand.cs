@@ -1,11 +1,11 @@
-﻿using RLIRL.Server.Abstractions.Server;
-using RLIRL.Server.Services.Server;
+﻿using RLIRL.Server.Abstractions.Abstractions;
+using RLIRL.Server.Abstractions.Attributes;
 using System.Text.Json.Serialization;
 
-namespace RLIRL.Server.Services.ClientCommands
+namespace RLIRL.Server.Abstractions.ClientCommands
 {
     [CommandName("move_car")]
-    internal class MoveCarCommand : IClientCommand
+    public class MoveCarCommand : IClientCommand
     {
         [JsonPropertyName("car")]
         public int Car { get; set; }

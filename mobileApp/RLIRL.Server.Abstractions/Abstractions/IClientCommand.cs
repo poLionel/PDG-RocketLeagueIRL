@@ -1,4 +1,4 @@
-﻿namespace RLIRL.Server.Abstractions.Server
+﻿namespace RLIRL.Server.Abstractions.Abstractions
 {
     /// <summary>
     /// Marker interface for commands sent by the server to the client

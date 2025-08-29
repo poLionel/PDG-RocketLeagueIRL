@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using RLIRL.Server.Abstractions;
+using RLIRL.Server.Abstractions.Abstractions;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;

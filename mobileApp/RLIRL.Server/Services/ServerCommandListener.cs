@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using RLIRL.Server.Abstractions;
-using RLIRL.Server.Abstractions.Server;
+using RLIRL.Server.Abstractions.Abstractions;
+using RLIRL.Server.Abstractions.Attributes;
 using System.Data;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-namespace RLIRL.Server.Services.Server
+namespace RLIRL.Server.Services
 {
     internal class ServerCommandListener(
         IWebSocketProvider webSocketProvider,

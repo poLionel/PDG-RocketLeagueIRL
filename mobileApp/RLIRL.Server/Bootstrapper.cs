@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using RLIRL.Server.Abstractions;
-using RLIRL.Server.Abstractions.Server;
+using RLIRL.Server.Abstractions.Abstractions;
 using RLIRL.Server.Services;
-using RLIRL.Server.Services.Server;
 
 namespace RLIRL.Server
 {
@@ -17,7 +15,8 @@ namespace RLIRL.Server
                 .AddTransient<IServerCommandSerializer, ServerCommandSerializer>()
                 .AddSingleton<IWebSocketProvider, WebSocketProvider>()
                 .AddSingleton<IServerCommandListener, ServerCommandListener>()
-                .AddSingleton<IServerCommandSender, ServerCommandSender>();
+                .AddSingleton<IServerCommandSender, ServerCommandSender>()
+                .AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
             return services;
         }

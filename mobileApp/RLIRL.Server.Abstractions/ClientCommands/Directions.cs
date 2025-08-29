@@ -1,4 +1,4 @@
-﻿namespace RLIRL.Server.Services.ClientCommands
+﻿namespace RLIRL.Server.Abstractions.ClientCommands
 {
     public enum Directions
     {

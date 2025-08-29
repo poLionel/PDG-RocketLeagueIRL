@@ -1,8 +1,8 @@
 ﻿using System.Net.WebSockets;
 
-namespace RLIRL.Server.Abstractions
+namespace RLIRL.Server.Abstractions.Abstractions
 {
-    internal interface IWebSocketProvider
+    public interface IWebSocketProvider
     {
         /// <summary>
         /// Retrieves a WebSocket client for the server
