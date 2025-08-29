@@ -1,15 +1,17 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using AutoMapper;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MauiWifiManager;
 using MauiWifiManager.Abstractions;
+using RLIRL.App.Models;
 using System.Collections.ObjectModel;
 
 namespace RLIRL.App.ViewModels
 {
-    internal partial class WifiSelectorViewModel : ObservableObject
+    public partial class WifiSelectorViewModel(IMapper mapper) : ObservableObject
     {
         [ObservableProperty]
-        public partial ObservableCollection<NetworkData> WifiNetworks { get; private set; }
+        public partial ObservableCollection<NetworkListItem> WifiNetworks { get; private set; }
 
         [ObservableProperty]
         public partial string? ErrorMessage { get; private set; }
@@ -20,7 +22,9 @@ namespace RLIRL.App.ViewModels
             // Scan for wifi networks
             var response = await CrossWifiManager.Current.ScanWifiNetworks();
             ErrorMessage = response.ErrorCode == WifiErrorCodes.Success ? null : response.ErrorMessage;
-            WifiNetworks = new(response.Data ?? []);
+
+            // Map the results to the UI model
+            WifiNetworks = mapper.Map<ObservableCollection<NetworkListItem>>(response.Data ?? []);
         }
 
         [RelayCommand]

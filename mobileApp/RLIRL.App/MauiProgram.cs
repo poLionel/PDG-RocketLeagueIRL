@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Maui;
+using Fonts;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using RLIRL.App.Components;
 using RLIRL.App.ViewModels;
 using RLIRL.Business;
 using RLIRL.Server;
@@ -27,6 +29,7 @@ namespace RLIRL.App
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("FluentSystemIcons-Regular.ttf", FluentUI.FontFamily);
                 });
 
             builder.Configuration.AddJsonStream(configuration);
@@ -37,8 +40,10 @@ namespace RLIRL.App
 
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
+            builder.Services.AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
-            // Register the view view models
+            // Register the view models
+            builder.Services.AddSingleton<MainPageViewModel>();
             builder.Services.AddTransient<WifiSelectorViewModel>();
 
             var app = builder.Build();

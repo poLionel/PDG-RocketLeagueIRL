@@ -4,7 +4,7 @@
              xmlns:c="clr-namespace:RLIRL.App.Components"
              xmlns:vm="clr-namespace:RLIRL.App.ViewModels"
              x:DataType="vm:MainPageViewModel"
-             x:Class="RLIRL.App.MainPage">
+             x:Class="RLIRL.App.Views.MainPage">
 
     <ScrollView>
         <VerticalStackLayout
