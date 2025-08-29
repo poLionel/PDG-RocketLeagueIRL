@@ -3,19 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="RLIRL.App.Views.GamePage"
              xmlns:vm="clr-namespace:RLIRL.App.ViewModels"
-             x:DataType="vm:GameViewModel"
-             Title="GamePage">
-    <Grid BackgroundColor="LightSkyBlue">
+             x:DataType="vm:GameViewModel">
+    <Grid BackgroundColor="LightGray">
         <!-- HUD + Commandes -->
         <Grid Padding="16"
-              RowDefinitions="Auto,*,Auto"
+              RowDefinitions="Auto,*"
               ColumnDefinitions="*,*">
 
             <!-- HUD (score/chrono/connexion) -->
-            <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="24">
-                <Label Text="0 - 0" FontAttributes="Bold" FontSize="20"/> <!--Text="{Binding ScoreText}"-->
-                <Label Text="5:00" FontSize="20"/> <!--Text="{Binding TimeLeft}"-->
-                <Label Text="Connection info" /> <!--Text="{Binding ConnectionInfo}"-->
+            <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="24" BackgroundColor="Black" Opacity="0.1" VerticalOptions="Center">
+                <Label Text="0" BackgroundColor="Blue" TextColor="White"/>
+                <Label Text="5:00" TextColor="White"/>
+                <Label Text="0" BackgroundColor="Orange" Background="Transparent" TextColor="White"/>
             </HorizontalStackLayout>
 
             <!-- Zone commandes -->

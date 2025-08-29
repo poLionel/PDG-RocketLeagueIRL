@@ -52,11 +52,6 @@ namespace RLIRL.App
             builder.Services.AddTransient<MenuViewModel>();
             builder.Services.AddTransient<GameViewModel>();
 
-            // Views
-            builder.Services.AddTransient<WifiConnectPage>();
-            builder.Services.AddTransient<MenuPage>();
-            builder.Services.AddTransient<GamePage>();
-
             var app = builder.Build();
 
             // Start the server command sender and listener
