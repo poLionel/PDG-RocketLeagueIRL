@@ -1,7 +1,7 @@
 import asyncio
 import logging
-from websocket import start_server_with_cars
-from models import Car, CarManager
+from websocket import start_server_with_managers
+from models import Car, CarManager, GameManager
 from bluetooth import BluetoothService, check_bluetooth_dependencies, set_bluetooth_service
 
 # Configure application-wide logging for debugging and monitoring
@@ -79,13 +79,18 @@ async def main():
     
     Coordinates the startup sequence of all system components:
     1. Car management system initialization
-    2. Bluetooth service startup (if available)
-    3. WebSocket server launch
-    4. Graceful shutdown handling
+    2. Game management system initialization
+    3. Bluetooth service startup (if available)
+    4. WebSocket server launch
+    5. Graceful shutdown handling
     """
     logger.info("Starting Rocket League IRL Server")
     
     car_manager = initialize_cars()
+    
+    # Initialize game manager with car manager reference
+    game_manager = GameManager(car_manager)
+    car_manager.set_game_manager(game_manager)
     
     bluetooth_result = await start_bluetooth_service(car_manager)
     
@@ -100,8 +105,8 @@ async def main():
         discovery_task = None
     
     try:
-        # Start WebSocket server - this blocks until server stops
-        await start_server_with_cars(car_manager)
+        # Start WebSocket server with both managers - this blocks until server stops
+        await start_server_with_managers(car_manager, game_manager)
         
     except KeyboardInterrupt:
         logger.info("Received interrupt signal, shutting down...")
