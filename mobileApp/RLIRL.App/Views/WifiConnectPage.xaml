@@ -18,24 +18,26 @@
             CommandParameter="{x:Boolean True}"/>
     </ContentPage.Behaviors>
     
-    <Grid Padding="10" RowSpacing="10">
+    <Grid Padding="10" 
+          RowSpacing="10"
+          MaximumWidthRequest="800">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
-        <views:WifiSelector Grid.Row="0" MaximumWidthRequest="800" />
+        <views:WifiSelector Grid.Row="0" />
 
         <Label Grid.Row="1"
                TextColor="Red" 
                IsVisible="{Binding ConnectionFailed}"
                HorizontalOptions="Center"
-               Text="The connection with the server failed. Please check the connectivity with the server and try again" />
+               HorizontalTextAlignment="Center"
+               Text="The connection with the server failed. Please ensure you are on the right network and that the server is up and running." />
 
         <Button Grid.Row="2"
                 Text="Continue" 
-                MaximumWidthRequest="500"
                 Command="{Binding CheckServerConnectionCommand}"
                 CommandParameter="{x:Boolean False}"/>
 

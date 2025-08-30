@@ -3,8 +3,8 @@
              xmlns:local="clr-namespace:RLIRL.App.Views"
              xmlns:vm="clr-namespace:RLIRL.App.ViewModels"
              xmlns:models="clr-namespace:RLIRL.App.Models"
+             xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:fonts="RLIRL.App.Resources"
              x:DataType="vm:WifiSelectorViewModel"
              x:Class="RLIRL.App.Views.WifiSelector"
              x:Name="ContentView">
@@ -20,19 +20,48 @@
     <Border StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
         <Grid>
             <Grid Padding="10">
-            
+
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"></RowDefinition>
                     <RowDefinition Height="auto"></RowDefinition>
                     <RowDefinition Height="*"></RowDefinition>
                 </Grid.RowDefinitions>
 
+                <!-- Header and Refresh Button -->
+                <Grid Grid.Row="0" 
+                      Padding="10" 
+                      ColumnSpacing="10" 
+                      Margin="0,0,0,10" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
 
-                <!-- Error Message -->
-                <Label Grid.Row="0"
-                       Text="{Binding ErrorMessage}" 
-                       TextColor="Red" 
-                       FontAttributes="Bold"
-                       IsVisible="{Binding ErrorMessage, Converter={toolkit:IsStringNullOrEmptyConverter}}" />
+                    <Label Grid.Column="0" 
+                           Text="WiFi Networks" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           VerticalOptions="Center" />
+
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 10,10,10,10" Stroke="Transparent">
+                        <ImageButton Command="{Binding LoadNetworksCommand}"
+                                     BackgroundColor="#10FFFFFF"
+                                     BorderWidth="0"
+                                     WidthRequest="40"
+                                     HeightRequest="40"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     Padding="0,3,3,0"
+                                     IsEnabled="{Binding Loading, Converter={toolkit:InvertedBoolConverter}}">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.arrow_clockwise_12_regular}"
+                                                 Size="32"
+                                                 Color="DodgerBlue" />
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </Border>
+                </Grid>
 
                 <!-- Network List -->
                 <ListView Grid.Row="1"

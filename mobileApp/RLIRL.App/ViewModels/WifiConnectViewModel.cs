@@ -18,7 +18,7 @@ namespace RLIRL.App.ViewModels
             // If not silent, reset the error message
             if (!silent)
             {
-                ConnectionFailed = true;
+                ConnectionFailed = false;
             }
 
             ServerConnected = await serverConnectionStatusService.IsServerConnectedAsync();
