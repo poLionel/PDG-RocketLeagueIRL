@@ -51,6 +51,7 @@ namespace RLIRL.App
             builder.Services.AddTransient<WifiSelectorViewModel>();
             builder.Services.AddTransient<MenuViewModel>();
             builder.Services.AddTransient<GameViewModel>();
+            builder.Services.AddTransient<GameAdminViewModel>();
 
             var app = builder.Build();
 

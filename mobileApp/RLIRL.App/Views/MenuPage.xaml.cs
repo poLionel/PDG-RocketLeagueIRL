@@ -17,6 +17,11 @@ public partial class MenuPage : ContentPage
 		Shell.Current.GoToAsync("//game");
 	}
 
+	private void OnAdmin(object sender, EventArgs e)
+	{
+		Shell.Current.GoToAsync("//game-admin");
+	}
+
 	private void OnConnect(object sender, EventArgs e)
 	{
 		// Does nothing
