@@ -1,11 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RLIRL.App.Models;
+using RLIRL.Business.Abstractions.Abstractions;
+using RLIRL.Business.Abstractions.Models;
 using System.Collections.ObjectModel;
 
 namespace RLIRL.App.ViewModels
 {
-    public partial class GameAdminViewModel : ObservableObject
+    public partial class GameAdminViewModel(IGameService gameService) : ObservableObject, IDisposable
     {
         [ObservableProperty]
         public partial string GameStatus { get; set; } = "Game Stopped";
@@ -27,9 +29,10 @@ namespace RLIRL.App.ViewModels
             await RefreshGameStatusAsync();
             await RefreshCameraFeedsAsync();
             await RefreshCarsAsync();
+
+            gameService.GameStatusChanged += OnGameStatusChanged;
         }
 
-        // Game Status Commands
         [RelayCommand]
         private async Task RefreshGameStatusAsync()
         {
@@ -37,7 +40,6 @@ namespace RLIRL.App.ViewModels
             await Task.CompletedTask;
         }
 
-        // Game Control Commands
         [RelayCommand]
         private async Task StartGameAsync()
         {
@@ -59,7 +61,6 @@ namespace RLIRL.App.ViewModels
             await Task.CompletedTask;
         }
 
-        // Goal Scoring Commands
         [RelayCommand]
         private async Task ScoreGoalAsync(string team)
         {
@@ -74,7 +75,6 @@ namespace RLIRL.App.ViewModels
             await Task.CompletedTask;
         }
 
-        // Camera Management Commands
         [RelayCommand]
         private async Task RefreshCameraFeedsAsync()
         {
@@ -89,7 +89,6 @@ namespace RLIRL.App.ViewModels
             await Task.CompletedTask;
         }
 
-        // Car Management Commands
         [RelayCommand]
         private async Task RefreshCarsAsync()
         {
@@ -102,6 +101,16 @@ namespace RLIRL.App.ViewModels
         {
             // TODO: Implement toggle car assignment logic
             await Task.CompletedTask;
+        }
+
+        private void OnGameStatusChanged(object? sender, GameStatus? e)
+        {
+
+        }
+
+        public void Dispose()
+        {
+            gameService.GameStatusChanged -= OnGameStatusChanged;
         }
     }
 }

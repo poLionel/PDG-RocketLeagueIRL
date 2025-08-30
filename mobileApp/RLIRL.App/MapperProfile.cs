@@ -2,6 +2,7 @@
 using MauiWifiManager.Abstractions;
 using RLIRL.App.Models;
 using RLIRL.App.Resources.Fonts;
+using RLIRL.Business.Abstractions.Models;
 
 namespace RLIRL.App
 {

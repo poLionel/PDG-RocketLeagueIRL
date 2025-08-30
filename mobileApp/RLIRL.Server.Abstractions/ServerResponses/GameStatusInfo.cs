@@ -7,7 +7,10 @@ namespace RLIRL.Server.Abstractions.ServerCommands
         [JsonPropertyName("teams")]
         public Teams Teams { get; set; } = new();
 
-        [JsonPropertyName("time_remaining")]
-        public int TimeRemaining { get; set; }
+        [JsonPropertyName("start_on")]
+        public DateTime StartOn { get; set; }
+
+        [JsonPropertyName("end_on")]
+        public DateTime EndOn { get; set; }
     }
 }

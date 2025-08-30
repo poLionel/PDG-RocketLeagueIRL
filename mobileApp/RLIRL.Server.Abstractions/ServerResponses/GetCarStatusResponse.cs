@@ -7,12 +7,6 @@ namespace RLIRL.Server.Abstractions.ServerCommands
     [CommandName("get_car_status")]
     public class GetCarStatusResponse : IServerResponse
     {
-        [JsonPropertyName("status")]
-        public string Status { get; set; } = "success";
-
-        [JsonPropertyName("action")]
-        public string Action { get; set; } = "get_car_status";
-
         [JsonPropertyName("car")]
         public int Car { get; set; }
 

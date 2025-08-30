@@ -10,9 +10,6 @@ namespace RLIRL.Server.Abstractions.ServerCommands
         [JsonPropertyName("status")]
         public string Status { get; set; } = "success";
 
-        [JsonPropertyName("action")]
-        public string Action { get; set; } = "free_car";
-
         [JsonPropertyName("car")]
         public int Car { get; set; }
     }
