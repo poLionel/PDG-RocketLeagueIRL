@@ -1,4 +1,4 @@
-﻿using RLIRL.Server.Abstractions.Abstractions;
+using RLIRL.Server.Abstractions.Abstractions;
 using RLIRL.Server.Abstractions.Attributes;
 using System.Text.Json.Serialization;
 
@@ -10,10 +10,13 @@ namespace RLIRL.Server.Abstractions.ClientCommands
         [JsonPropertyName("car")]
         public int Car { get; set; }
 
-        [JsonPropertyName("direction")]
-        public Directions Direction { get; set; }
+        [JsonPropertyName("move")]
+        public Direction Direction { get; set; }
+
+        [JsonPropertyName("x")]
+        public int Steering { get; set; }
 
         [JsonPropertyName("boost")]
-        public bool Boost { get; set; }
+        public string Boost { get; set; } = "false";
     }
 }

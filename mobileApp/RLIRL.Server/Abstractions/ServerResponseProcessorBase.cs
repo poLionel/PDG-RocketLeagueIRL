@@ -2,7 +2,7 @@
 
 namespace RLIRL.Server.Abstractions
 {
-    internal abstract class ServerCommandProcessorBase<T> : IServerCommandProcessor<T> where T : IServerCommand
+    internal abstract class ServerResponseProcessorBase<T> : IServerCommandProcessor<T> where T : IServerResponse
     {
         public  Task ProcessCommandAsync(object command)
         {

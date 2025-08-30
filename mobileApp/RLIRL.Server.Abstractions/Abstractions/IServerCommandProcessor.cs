@@ -10,7 +10,7 @@
         Task ProcessCommandAsync(object command);
     }
 
-    public interface IServerCommandProcessor<T> : IServerCommandProcessor where T : IServerCommand
+    public interface IServerCommandProcessor<T> : IServerCommandProcessor where T : IServerResponse
     {
         /// <summary>
         /// Processes a command from the server

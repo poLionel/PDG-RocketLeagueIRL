@@ -5,8 +5,9 @@ namespace RLIRL.Business.Services
 {
     internal class CarControlService(IClientCommandQueue commandQueue)
     {
-        public Directions direction;
-
+        public Direction direction = Direction.Forward;
+        public int carId;
+        public int steering;
         public bool boost;
 
         public void SetBoot(bool boost)
@@ -15,18 +16,31 @@ namespace RLIRL.Business.Services
             SendUpdateCommand();
         }
 
-        public void SetDirection(Directions direction)
+        public void SetDirection(Direction direction)
         {
             this.direction = direction;
             SendUpdateCommand();
+        }
+
+        public void SetSteering(int steering)
+        {
+            this.steering = steering;
+            SendUpdateCommand();
+        }
+
+        public void SetCar(int carId)
+        {
+            this.carId = carId;
         }
 
         private void SendUpdateCommand()
         {
             var command = new MoveCarCommand()
             {
+                Car = carId,
                 Direction = direction,
-                Boost = boost
+                Steering = steering,
+                Boost = boost ? "true" : "false"
             };
 
             commandQueue.EnqueueCommand(command);

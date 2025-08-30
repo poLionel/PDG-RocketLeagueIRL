@@ -6,11 +6,11 @@ using RLIRL.Server.Abstractions.ServerCommands;
 
 namespace RLIRL.Server.Services.CommandProcessors
 {
-    internal class GameStatusCommandProcessor(IGameService gameService, IMapper mapper) : ServerCommandProcessorBase<GameStatusCommand>
+    internal class GameStatusResponseProcessor(IGameService gameService, IMapper mapper) : ServerResponseProcessorBase<GetGameStatusResponse>
     {
-        public override Task ProcessCommandAsync(GameStatusCommand command)
+        public override Task ProcessCommandAsync(GetGameStatusResponse command)
         {
-            var gameStatus =  mapper.Map<GameStatus>(command);
+            var gameStatus = mapper.Map<GameStatus>(command);
 
             gameService.UpdateGameStatus(gameStatus);
 

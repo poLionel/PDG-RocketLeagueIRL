@@ -10,11 +10,11 @@ using System.Text.Json.Nodes;
 
 namespace RLIRL.Server.Services
 {
-    internal class ServerCommandListener(
+    internal class ServerResponseListener(
         IWebSocketProvider webSocketProvider,
         IOptions<ServerConfiguration> serverConfiguration,
         IServiceProvider serviceProvider,
-        ILogger<ServerCommandListener> logger) : IServerCommandListener
+        ILogger<ServerResponseListener> logger) : IServerResponseListener
     {
         private Task runningTask = Task.CompletedTask;
 
@@ -33,7 +33,7 @@ namespace RLIRL.Server.Services
                 {
                     tokenSource = new();
                     var token = tokenSource.Token;
-                    runningTask = ProcessCommandsAsync(token);
+                    runningTask = ProcessResponsesAsync(token);
                 }
             }
         }
@@ -46,7 +46,7 @@ namespace RLIRL.Server.Services
             }
         }
 
-        private async Task ProcessCommandsAsync(CancellationToken cancellationToken)
+        private async Task ProcessResponsesAsync(CancellationToken cancellationToken)
         {
             // Allocate the buffer for receiving messages
             var buffer = new byte[serverConfiguration.Value.MaxPacketSize];
@@ -55,11 +55,11 @@ namespace RLIRL.Server.Services
             while (!cancellationToken.IsCancellationRequested)
             {
                 using var webSocket = await webSocketProvider.GetWebSocketClientAsync(cancellationToken);
-                await ProcessCommandsAsync(webSocket, buffer, cancellationToken);
+                await ProcessResponsesAsync(webSocket, buffer, cancellationToken);
             }
         }
 
-        private async Task ProcessCommandsAsync(ClientWebSocket webSocket, byte[] buffer, CancellationToken cancellationToken)
+        private async Task ProcessResponsesAsync(ClientWebSocket webSocket, byte[] buffer, CancellationToken cancellationToken)
         {
             // Ensure the WebSocket is connected before processing commands
             while (webSocket.State == WebSocketState.Open)
@@ -111,13 +111,13 @@ namespace RLIRL.Server.Services
 
         private static IDictionary<string, Type> GetCommandTypes()
         {
-            // Retrieve all types that implement the IClientCommand interface
+            // Retrieve all types that implement the IServerCommand interface
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type =>
                     type.IsClass &&
                     !type.IsAbstract &&
-                    type.GetInterface(nameof(IServerCommand)) != null &&
+                    type.GetInterface(nameof(IServerResponse)) != null &&
                     type.GetCustomAttribute<CommandNameAttribute>() != null
                 )
                 .ToDictionary(type => type.GetCustomAttribute<CommandNameAttribute>()!.Name, type => type);
