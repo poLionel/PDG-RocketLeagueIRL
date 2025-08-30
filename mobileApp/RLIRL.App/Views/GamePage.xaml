@@ -61,7 +61,7 @@
                                 <DataTrigger TargetType="Button"
                                              Binding="{Binding IsBoosting}"
                                              Value="True">
-                                    <Setter Property="BackgroundColor" Value="#00E676AA"/>
+                                    <Setter Property="BackgroundColor" Value="{StaticResource BoostActiveColor}"/>
                                     <Setter Property="Scale" Value="1.05"/>
                                 </DataTrigger>
                             </Button.Triggers>

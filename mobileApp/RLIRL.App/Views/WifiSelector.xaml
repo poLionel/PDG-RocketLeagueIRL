@@ -87,7 +87,7 @@
                                         <!-- Selected item Style -->
                                         <Grid.Triggers>
                                             <DataTrigger TargetType="Grid" Binding="{Binding Connected}" Value="True">
-                                                <Setter Property="BackgroundColor" Value="#40ADD8E6" />
+                                                <Setter Property="BackgroundColor" Value="{StaticResource ConnectedNetworkBackgroundColor}" />
                                             </DataTrigger>
                                         </Grid.Triggers>
                                     </Grid>
