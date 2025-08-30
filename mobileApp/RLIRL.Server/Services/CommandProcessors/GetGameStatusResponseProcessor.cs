@@ -8,9 +8,9 @@ namespace RLIRL.Server.Services.CommandProcessors
 {
     internal class GetGameStatusResponseProcessor(IGameService gameService, IMapper mapper) : ServerResponseProcessorBase<GetGameStatusResponse>
     {
-        public override Task ProcessCommandAsync(GetGameStatusResponse command)
+        public override Task ProcessResponseAsync(GetGameStatusResponse response)
         {
-            var gameStatus = mapper.Map<GameStatus>(command);
+            var gameStatus = mapper.Map<GameStatus>(response);
 
             gameService.UpdateGameStatus(gameStatus);
 

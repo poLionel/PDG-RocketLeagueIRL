@@ -10,13 +10,13 @@ namespace RLIRL.Server.Services
         IServerCommandSerializer commandSerializer,
         ILogger<ServerCommandSender> logger) : IServerCommandSender
     {
+        private const int CONNEXION_POOLING_DELAY_MS = 1000;
+
         private Task runningTask = Task.CompletedTask;
 
         private CancellationTokenSource? tokenSource;
 
         private readonly Lock serviceLock = new();
-
-        private const int POOLING_DELAY_MS = 100;
 
         public void Start()
         {
@@ -28,6 +28,14 @@ namespace RLIRL.Server.Services
                     tokenSource = new();
                     var token = tokenSource.Token;
                     runningTask = ProcessCommandsAsync(token);
+
+                    // Log any unhandled exceptions from the task
+                    runningTask.ContinueWith(t =>
+                    {
+                        if (t.Exception == null) return;
+                        logger.LogError(t.Exception, "ServerCommandSender crashed");
+
+                    }, TaskContinuationOptions.OnlyOnFaulted);
                 }
             }
         }
@@ -37,25 +45,38 @@ namespace RLIRL.Server.Services
             lock (serviceLock)
             {
                 tokenSource?.Cancel();
+                tokenSource?.Dispose();
+                tokenSource = null;
             }
         }
 
         private async Task ProcessCommandsAsync(CancellationToken cancellationToken)
         {
-            using var webSocket = await webSocketProvider.GetWebSocketClientAsync(cancellationToken);
-
+            // Pool web socket clients to handle commands so if the web socket is closed, we can reconnect
             while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    // Fetch the next command from the queue or exit if none are available
-                    var item = clientCommandQueue.DequeueCommand();
-                    if (item == null)
-                    {
-                        // Wait for a short period before checking the queue again
-                        await Task.Delay(POOLING_DELAY_MS, cancellationToken);
-                        continue;
-                    }
+                    using var webSocket = await webSocketProvider.GetWebSocketClientAsync(cancellationToken);
+                    await ProcessCommandsAsync(webSocket, cancellationToken);
+                }
+                catch
+                {
+                    // Before retrying, wait for a short period
+                    await Task.Delay(CONNEXION_POOLING_DELAY_MS, cancellationToken);
+                }
+            }
+        }
+
+        private async Task ProcessCommandsAsync(ClientWebSocket webSocket, CancellationToken cancellationToken)
+        {
+            // Ensure the WebSocket is connected before processing commands
+            while (webSocket.State == WebSocketState.Open)
+            {
+                try
+                {
+                    // Wait for an item to be available in the queue
+                    var item = await clientCommandQueue.DequeueCommandAsync(cancellationToken);
 
                     var data = commandSerializer.SerializeCommand(item);
 

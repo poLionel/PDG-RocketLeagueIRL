@@ -5,7 +5,7 @@ namespace RLIRL.Server.Services.CommandProcessors
 {
     internal class FreeCarResponseProcessor : ServerResponseProcessorBase<FreeCarResponse>
     {
-        public override Task ProcessCommandAsync(FreeCarResponse command)
+        public override Task ProcessResponseAsync(FreeCarResponse response)
         {
             throw new NotImplementedException();
         }

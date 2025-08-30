@@ -4,15 +4,15 @@ namespace RLIRL.Server.Abstractions
 {
     internal abstract class ServerResponseProcessorBase<T> : IServerResponseProcessor<T> where T : IServerResponse
     {
-        public  Task ProcessCommandAsync(object command)
+        public  Task ProcessResponseAsync(object response)
         {
             // Check if the command is of the expected type
-            if (command is not T typedCommand)
-                throw new InvalidOperationException($"Invalid command type. Expected {typeof(T).Name}, but received {command.GetType().Name}");
+            if (response is not T typedCommand)
+                throw new InvalidOperationException($"Invalid command type. Expected {typeof(T).Name}, but received {response.GetType().Name}");
 
-            return ProcessCommandAsync(typedCommand);
+            return ProcessResponseAsync(typedCommand);
         }
 
-        public abstract Task ProcessCommandAsync(T command);
+        public abstract Task ProcessResponseAsync(T response);
     }
 }

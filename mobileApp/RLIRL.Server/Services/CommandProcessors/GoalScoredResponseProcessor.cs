@@ -5,7 +5,7 @@ namespace RLIRL.Server.Services.CommandProcessors
 {
     internal class GoalScoredResponseProcessor : ServerResponseProcessorBase<GoalScoredResponse>
     {
-        public override Task ProcessCommandAsync(GoalScoredResponse command)
+        public override Task ProcessResponseAsync(GoalScoredResponse response)
         {
             throw new NotImplementedException();
         }

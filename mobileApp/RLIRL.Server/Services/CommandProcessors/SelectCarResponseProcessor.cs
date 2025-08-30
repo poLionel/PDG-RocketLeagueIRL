@@ -5,7 +5,7 @@ namespace RLIRL.Server.Services.CommandProcessors
 {
     internal class SelectCarResponseProcessor : ServerResponseProcessorBase<SelectCarResponse>
     {
-        public override Task ProcessCommandAsync(SelectCarResponse command)
+        public override Task ProcessResponseAsync(SelectCarResponse response)
         {
             throw new NotImplementedException();
         }

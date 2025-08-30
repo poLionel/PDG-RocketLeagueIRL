@@ -3,20 +3,20 @@
     public interface IServerResponseProcessor
     {
         /// <summary>
-        /// Processes a command from the server
+        /// Processes a response from the server
         /// </summary>
-        /// <param name="command">Command to process</param>
+        /// <param name="response">Response to process</param>
         /// <returns>A task representing the asynchronous operation</returns>
-        Task ProcessCommandAsync(object command);
+        Task ProcessResponseAsync(object response);
     }
 
     public interface IServerResponseProcessor<T> : IServerResponseProcessor where T : IServerResponse
     {
         /// <summary>
-        /// Processes a command from the server
+        /// Processes a response from the server
         /// </summary>
-        /// <param name="command">Command to process</param>
+        /// <param name="response">Response to process</param>
         /// <returns>A task representing the asynchronous operation</returns>
-        Task ProcessCommandAsync(T command);
+        Task ProcessResponseAsync(T response);
     }
 }

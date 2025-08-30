@@ -1,20 +1,30 @@
 ﻿using RLIRL.Server.Abstractions.Abstractions;
-using System.Collections.Concurrent;
+using System.Threading.Channels;
 
-namespace RLIRL.Server.Services
+internal class ClientCommandQueue : IClientCommandQueue
 {
-    internal class ClientCommandQueue : IClientCommandQueue
+    private readonly Channel<IClientCommand> channel;
+
+    public ClientCommandQueue()
     {
-        private ConcurrentQueue<IClientCommand> commandQueue = new();
+        channel = Channel.CreateUnbounded<IClientCommand>(
+            new UnboundedChannelOptions
+            {
+                SingleReader = false,
+                SingleWriter = false
+            });
+    }
 
-        public void EnqueueCommand(IClientCommand command)
+    public void EnqueueCommand(IClientCommand command)
+    {
+        if (!channel.Writer.TryWrite(command))
         {
-            commandQueue.Enqueue(command);
+            throw new InvalidOperationException("Unable to enqueue command.");
         }
+    }
 
-        public IClientCommand? DequeueCommand()
-        {
-            return commandQueue.TryDequeue(out IClientCommand? command) ? command : null;
-        }
+    public async Task<IClientCommand> DequeueCommandAsync(CancellationToken cancellationToken = default)
+    {
+        return await channel.Reader.ReadAsync(cancellationToken);
     }
 }
