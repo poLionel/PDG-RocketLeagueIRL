@@ -4,43 +4,35 @@
              x:Class="RLIRL.App.Views.GamePage"
              xmlns:vm="clr-namespace:RLIRL.App.ViewModels"
              x:DataType="vm:GameViewModel">
-    <Grid BackgroundColor="LightGray">
+    <Grid Style="{StaticResource GameBackground}">
         <!-- HUD + Commandes -->
-        <Grid Padding="16"
+        <Grid Style="{StaticResource GameContainer}"
               RowDefinitions="Auto,*"
               ColumnDefinitions="*,*">
 
             <!-- HUD (score/chrono/connexion) -->
-            <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="24" BackgroundColor="Black" Opacity="0.1" VerticalOptions="Center">
-                <Label Text="0" BackgroundColor="Blue" TextColor="White"/>
-                <Label Text="5:00" TextColor="White"/>
-                <Label Text="0" BackgroundColor="Orange" Background="Transparent" TextColor="White"/>
+            <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Style="{StaticResource HudContainer}">
+                <Label Text="0" Style="{StaticResource HudScoreBlue}"/>
+                <Label Text="5:00" Style="{StaticResource HudTimer}"/>
+                <Label Text="0" Style="{StaticResource HudScoreOrange}"/>
             </HorizontalStackLayout>
 
             <!-- Zone commandes -->
             <Grid Grid.Row="1" Grid.ColumnSpan="2">
                 <!-- Joystick gauche -->
-                <AbsoluteLayout x:Name="JoyArea"
-                                HorizontalOptions="Start"
-                                VerticalOptions="End"
-                                Margin="20"
-                                HeightRequest="160" WidthRequest="160">
+                <AbsoluteLayout x:Name="JoyArea" Style="{StaticResource JoystickArea}">
 
                     <!-- base -->
                     <Frame
                         AbsoluteLayout.LayoutBounds=".5,.5,140,140"
                         AbsoluteLayout.LayoutFlags="PositionProportional"
-                        BackgroundColor="#22222288"
-                        CornerRadius="90"
-                        HasShadow="True" />
+                        Style="{StaticResource JoystickBase}" />
 
                     <!-- knob -->
                     <Frame x:Name="JoyKnob"
                            AbsoluteLayout.LayoutBounds=".5,.5,64,64"
                            AbsoluteLayout.LayoutFlags="PositionProportional"
-                           BackgroundColor="#0097A7"
-                           CornerRadius="32"
-                           HasShadow="True">
+                           Style="{StaticResource JoystickKnob}">
                         <Frame.GestureRecognizers>
                             <PanGestureRecognizer PanUpdated="OnJoystickPanUpdated"/>
                         </Frame.GestureRecognizers>
@@ -48,27 +40,17 @@
                 </AbsoluteLayout>
 
                 <!-- Commandes droite -->
-                <VerticalStackLayout
-                    HorizontalOptions="End"
-                    VerticalOptions="End"
-                    Margin="20"
-                    Spacing="16">
+                <VerticalStackLayout Style="{StaticResource GameControlsContainer}">
 
                     <!-- Speed + jauge boost -->
-                    <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="16" HorizontalOptions="End">
+                    <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="16" Style="{StaticResource SpeedControlsGrid}">
                         <!-- Jauge boost (verticale via Rotation) -->
-                        <ProgressBar WidthRequest="18" HeightRequest="120"
-                                     Rotation="270"
-                                     Progress="{Binding Boost}" 
-                                     VerticalOptions="Center" />
+                        <ProgressBar Style="{StaticResource BoostBar}"
+                                     Progress="{Binding Boost}" />
 
                         <!-- Bouton Speed avec drag vers le haut = boost -->
                         <Button x:Name="SpeedButton"
-                                Text="Speed up"
-                                WidthRequest="110" HeightRequest="110"
-                                CornerRadius="55"
-                                FontAttributes="Bold"
-                                BackgroundColor="#EEEEEEAA"
+                                Style="{StaticResource SpeedButton}"
                                 Pressed="OnSpeedPressed"
                                 Released="OnSpeedReleased">
                             <Button.GestureRecognizers>
@@ -87,11 +69,7 @@
                     </Grid>
 
                     <!-- Brake -->
-                    <Button Text="Brake"
-                            WidthRequest="110" HeightRequest="110"
-                            CornerRadius="55"
-                            FontAttributes="Bold"
-                            BackgroundColor="#EEEEEEAA"
+                    <Button Style="{StaticResource BrakeButton}"
                             Pressed="OnBrakePressed"
                             Released="OnBrakeReleased"/>
                 </VerticalStackLayout>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Main Content Grid Style -->
+    <Style x:Key="MainContentGrid" TargetType="Grid">
+        <Setter Property="Padding" Value="10" />
+        <Setter Property="RowSpacing" Value="10" />
+        <Setter Property="MaximumWidthRequest" Value="800" />
+    </Style>
+
+    <!-- Menu Container Style -->
+    <Style x:Key="MenuContainer" TargetType="VerticalStackLayout">
+        <Setter Property="Padding" Value="24" />
+        <Setter Property="Spacing" Value="16" />
+    </Style>
+
+    <!-- Card Container Style -->
+    <Style x:Key="CardContainer" TargetType="Grid">
+        <Setter Property="Padding" Value="10" />
+    </Style>
+
+    <!-- Header Grid Style -->
+    <Style x:Key="HeaderGrid" TargetType="Grid">
+        <Setter Property="Padding" Value="10" />
+        <Setter Property="ColumnSpacing" Value="10" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
+    <!-- List Item Grid Style -->
+    <Style x:Key="ListItemGrid" TargetType="Grid">
+        <Setter Property="Padding" Value="10" />
+        <Setter Property="ColumnSpacing" Value="10" />
+    </Style>
+
+    <!-- No Content Grid Style -->
+    <Style x:Key="NoContentGrid" TargetType="Grid">
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="RowSpacing" Value="20" />
+    </Style>
+
+</ResourceDictionary>

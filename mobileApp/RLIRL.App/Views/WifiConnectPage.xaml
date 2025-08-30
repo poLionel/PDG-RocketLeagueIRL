@@ -18,9 +18,7 @@
             CommandParameter="{x:Boolean True}"/>
     </ContentPage.Behaviors>
     
-    <Grid Padding="10" 
-          RowSpacing="10"
-          MaximumWidthRequest="800">
+    <Grid Style="{StaticResource MainContentGrid}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="auto" />
@@ -30,10 +28,8 @@
         <views:WifiSelector Grid.Row="0" />
 
         <Label Grid.Row="1"
-               TextColor="Red" 
+               Style="{StaticResource ErrorLabel}"
                IsVisible="{Binding ConnectionFailed}"
-               HorizontalOptions="Center"
-               HorizontalTextAlignment="Center"
                Text="The connection with the server failed. Please ensure you are on the right network and that the server is up and running." />
 
         <Button Grid.Row="2"
