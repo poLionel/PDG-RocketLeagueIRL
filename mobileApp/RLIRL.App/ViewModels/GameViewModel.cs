@@ -1,19 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RLIRL.Business.Abstractions.Abstractions;
+using RLIRL.Business.Abstractions.Models;
 using RLIRL.Server.Abstractions.ClientCommands;
 
 namespace RLIRL.App.ViewModels
 {
-    public partial class GameViewModel : ObservableObject
+    public partial class GameViewModel : ObservableObject, IDisposable, IGameService
     {
         #region Constructor
 
         public GameViewModel(ICarControlService carControlService) 
         {
             _carControlService = carControlService;
-
-            //TODO instantiate timer 
+            //_gameService = gameService;
+            Timer = string.Empty;
         }
 
         #endregion
@@ -21,21 +22,36 @@ namespace RLIRL.App.ViewModels
         #region Commands 
 
         [RelayCommand]
-        private void AcceleratePressed() => Direction = Directions.Forward;
+        private void AcceleratePressed() => _carControlService.SetDirection(Directions.Forward);
 
         [RelayCommand]
-        private void AccelerateRelease() => Direction = Directions.Stopped;
+        private void AccelerateRelease() => _carControlService.SetDirection(Directions.Stopped);
 
         [RelayCommand]
-        private void BrakePressed() => Direction = Directions.Backward; //TODO maybe change logic
+        private void BrakePressed() => _carControlService.SetDirection(Directions.Backward); //TODO maybe change logic
 
         [RelayCommand]
-        private void BrakeRelease() => Direction = Directions.Stopped;
+        private void BrakeRelease() => _carControlService.SetDirection(Directions.Stopped);
 
         [RelayCommand]
-        private void SetBoost(bool isActive) => IsBoosting = isActive;
+        private void SetBoost(bool isActive) => _carControlService.SetBoost(isActive);
 
         //TODO joystick
+
+        #endregion
+
+        #region Methods
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateGameStatus(GameStatus? status)
+        {
+            throw new NotImplementedException();
+        }
 
         #endregion
 
@@ -50,12 +66,27 @@ namespace RLIRL.App.ViewModels
         [ObservableProperty]
         private Directions _direction;
 
+        [ObservableProperty]
+        private int scoreTeamA;
+
+        [ObservableProperty]
+        private int scoreTeamB;
+
+        [ObservableProperty]
+        private string timer;
+
         #endregion
 
         #region Private Fields
 
         private readonly ICarControlService _carControlService;
 
+        private readonly IGameService _gameService;
+
         #endregion
+
+        public event EventHandler<GameStatus?>? GameStatusChanged;
+
+        public GameStatus? CurrentGameStatus => throw new NotImplementedException();
     }
 }

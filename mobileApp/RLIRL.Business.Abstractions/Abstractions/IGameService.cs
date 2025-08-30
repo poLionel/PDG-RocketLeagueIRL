@@ -24,3 +24,4 @@ namespace RLIRL.Business.Abstractions.Abstractions
         void UpdateGameStatus(GameStatus? status);
     }
 }
+
