@@ -1,76 +1,162 @@
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:local="clr-namespace:RLIRL.App.Components"
+             xmlns:local="clr-namespace:RLIRL.App.Views"
              xmlns:vm="clr-namespace:RLIRL.App.ViewModels"
              xmlns:models="clr-namespace:RLIRL.App.Models"
+             xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             xmlns:fonts="RLIRL.App.Resources"
              x:DataType="vm:WifiSelectorViewModel"
-             x:Class="RLIRL.App.Components.WifiSelector"
+             x:Class="RLIRL.App.Views.WifiSelector"
              x:Name="ContentView">
     
-    <!-- Content View Events -->
+    <!-- Load data -->
     <ContentView.Behaviors>
         <toolkit:EventToCommandBehavior
             EventName="Loaded"
             BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentView}, x:DataType=ContentView}"
             Command="{Binding LoadNetworksCommand}" />
     </ContentView.Behaviors>
-    
-    <StackLayout Padding="20">
-        <Label Text="Available WiFi Networks" FontSize="20" />
-        
-        <!-- Error Message -->
-        <Label Text="{Binding ErrorMessage}" 
-               TextColor="Red" 
-               FontAttributes="Bold"
-               IsVisible="{Binding ErrorMessage, Converter={toolkit:IsStringNullOrEmptyConverter}}" />
 
-        <!-- Network List -->
-        <ListView ItemsSource="{Binding WifiNetworks}" SelectionMode="Single" x:Name="ContentViewListView">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:NetworkListItem">
-                    <ViewCell>
-                        <Grid Padding="10" ColumnSpacing="10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="auto" />
-                                <ColumnDefinition Width="auto" />
-                            </Grid.ColumnDefinitions>
+    <Border StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
+        <Grid>
+            <Grid Padding="10">
 
-                            <!-- Wifi Icon -->
-                            <Image Grid.Column="0" IsVisible="{Binding Icon, Converter={toolkit:IsStringNotNullOrWhiteSpaceConverter}}" >
-                                <Image.Source>
-                                    <FontImageSource FontFamily="FluentUI"
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <!-- Header and Refresh Button -->
+                <Grid Grid.Row="0" 
+                      Padding="10" 
+                      ColumnSpacing="10" 
+                      Margin="0,0,0,10" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" 
+                           Text="WiFi Networks" 
+                           FontSize="18" 
+                           FontAttributes="Bold"
+                           VerticalOptions="Center" />
+
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 10,10,10,10" Stroke="Transparent">
+                        <ImageButton Command="{Binding LoadNetworksCommand}"
+                                     BackgroundColor="#10FFFFFF"
+                                     BorderWidth="0"
+                                     WidthRequest="40"
+                                     HeightRequest="40"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center"
+                                     Padding="0,3,3,0"
+                                     IsEnabled="{Binding Loading, Converter={toolkit:InvertedBoolConverter}}">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.arrow_clockwise_12_regular}"
+                                                 Size="32"
+                                                 Color="DodgerBlue" />
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </Border>
+                </Grid>
+
+                <!-- Network List -->
+                <ListView Grid.Row="1"
+                          ItemsSource="{Binding WifiNetworks}" 
+                          SelectionMode="Single" 
+                          IsVisible="{Binding WifiNetworks, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
+                          x:Name="ContentViewListView">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:NetworkListItem">
+                            <ViewCell>
+                                <Border StrokeShape="RoundRectangle 10,10,10,10" Stroke="Transparent">
+                                    <Grid Padding="10" ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Wifi Icon -->
+                                        <Image Grid.Column="0" IsVisible="{Binding Icon, Converter={toolkit:IsStringNotNullOrWhiteSpaceConverter}}" >
+                                            <Image.Source>
+                                                <FontImageSource FontFamily="FluentUI"
                                                      Glyph="{Binding Icon}"
                                                      Size="30" />
-                                </Image.Source>
-                            </Image>
+                                            </Image.Source>
+                                        </Image>
 
-                            <!-- Network Name -->
-                            <Label Grid.Column="1" Text="{Binding Ssid}" />
-                            
-                            <!-- Connected Text -->
-                            <Label Grid.Column="2" IsVisible="{Binding Connected}" Text="(Connected)" />
+                                        <!-- Network Name -->
+                                        <Label Grid.Column="1" Text="{Binding Ssid}" />
 
-                            <!-- Selected item Style -->
-                            <Grid.Triggers>
-                                <DataTrigger TargetType="Grid" Binding="{Binding Connected}" Value="True">
-                                    <Setter Property="BackgroundColor" Value="#40ADD8E6" />
-                                </DataTrigger>
-                            </Grid.Triggers>
-                        </Grid>
-                    </ViewCell>
-                </DataTemplate>
-            </ListView.ItemTemplate>
+                                        <!-- Connected Text -->
+                                        <Label Grid.Column="2" IsVisible="{Binding Connected}" Text="(Connected)" />
 
-            <!-- Item Click -->
-            <ListView.Behaviors>
-                <toolkit:EventToCommandBehavior EventName="ItemSelected"
+                                        <!-- Selected item Style -->
+                                        <Grid.Triggers>
+                                            <DataTrigger TargetType="Grid" Binding="{Binding Connected}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="#40ADD8E6" />
+                                            </DataTrigger>
+                                        </Grid.Triggers>
+                                    </Grid>
+                                </Border>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+
+                    <!-- Item Click -->
+                    <ListView.Behaviors>
+                        <toolkit:EventToCommandBehavior EventName="ItemSelected"
                                                 BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentView}}"
                                                 Command="{Binding ConnectToNetworkCommand}"
                                                 CommandParameter="{Binding SelectedItem, Source={x:Reference ContentViewListView}}" />
-            </ListView.Behaviors>
-        </ListView>
-    </StackLayout>
+                    </ListView.Behaviors>
+                </ListView>
+
+                <!-- No Networks Available Message and Settings Button -->
+                <Grid Grid.Row="2"
+                      IsVisible="{Binding WifiNetworks, Converter={toolkit:IsListNullOrEmptyConverter}}"
+                      VerticalOptions="Center"
+                      RowSpacing="20">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                
+                    <Label Grid.Row="0"
+                           Text="No WiFi networks found" 
+                           FontSize="16" 
+                           TextColor="Gray"
+                           HorizontalTextAlignment="Center" />
+
+                    <Label Grid.Row="1"
+                           Text="You can open WiFi settings to manually connect to a network" 
+                           FontSize="14" 
+                           TextColor="Gray" 
+                           HorizontalTextAlignment="Center" />
+
+                    <Button Grid.Row="2"
+                            Text="Open WiFi Settings" 
+                            Command="{Binding NavigateToSettingsCommand}"
+                            MaximumWidthRequest="300" />
+                </Grid>
+            </Grid>
+
+            <!-- Loading Overlay -->
+            <Grid IsVisible="{Binding Loading}" BackgroundColor="#40FFFFFF">
+                <ActivityIndicator 
+                    IsRunning="{Binding Loading}" 
+                    HorizontalOptions="Center" 
+                    VerticalOptions="Center" 
+                    Color="DodgerBlue"
+                    HeightRequest="40"
+                    WidthRequest="40" />
+            </Grid>
+        </Grid>
+    </Border>
 </ContentView>

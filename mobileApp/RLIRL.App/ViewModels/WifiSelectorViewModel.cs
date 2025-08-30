@@ -14,26 +14,62 @@ namespace RLIRL.App.ViewModels
         public partial ObservableCollection<NetworkListItem> WifiNetworks { get; private set; }
 
         [ObservableProperty]
-        public partial string? ErrorMessage { get; private set; }
+        public partial bool Loading { get; private set; }
 
         [RelayCommand]
         private async Task LoadNetworksAsync()
         {
-            // Get the scanned and current networks
-            var scanNetworks = await LoadScanNetworkAsync();
+            try
+            {
+                Loading = true;
 
-            // Map the results to the UI model
-            WifiNetworks = mapper.Map<ObservableCollection<NetworkListItem>>(scanNetworks);
+                // Get the scanned and current networks
+                var scanNetworks = await LoadScanNetworkAsync();
+
+                // Map the results to the UI model
+                WifiNetworks = mapper.Map<ObservableCollection<NetworkListItem>>(scanNetworks);
+
+                // Refresh the current network
+                await RefreshCurrentNetworkAsync();
+            }
+            finally
+            {
+                Loading = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task ConnectToNetworkAsync(NetworkListItem network)
+        {
+            if (network.Connected) return;
+
+            // Try to connect without a password first
+            if (await TryConnectToNetworkInternalAsync(network.Ssid, null)) return;
+
+            // Show a modal dialog to get the password
+            while (true)
+            {
+                string result = await Shell.Current.DisplayPromptAsync("Password required", "A password is required to connect to this wifi");
+                if (result == null) return; // User cancelled
+
+                // Try to connect with the provided password (loops until success or cancel)
+                if (await TryConnectToNetworkInternalAsync(network.Ssid, result)) break;
+            }
 
             // Refresh the current network
             await RefreshCurrentNetworkAsync();
+        }
+
+        [RelayCommand]
+        private async Task NavigateToSettingsAsync()
+        {
+            await CrossWifiManager.Current.OpenWifiSetting();
         }
 
         private async Task<IEnumerable<NetworkData>> LoadScanNetworkAsync()
         {
             // Scan for wifi networks
             var response = await CrossWifiManager.Current.ScanWifiNetworks();
-            ErrorMessage = response.ErrorCode == WifiErrorCodes.Success ? null : response.ErrorMessage;
 
             // Filter and sort networks
             return response.Data?
@@ -57,27 +93,6 @@ namespace RLIRL.App.ViewModels
                 break;
             }
         }
-
-        [RelayCommand]
-        private async Task ConnectToNetworkAsync(NetworkListItem network)
-        {
-            // Try to connect without a password first
-            if (await TryConnectToNetworkInternalAsync(network.Ssid, null)) return;
-
-            // Show a modal dialog to get the password
-            while(true)
-            {
-                string result = await Shell.Current.DisplayPromptAsync("Password required", "A password is required to connect to this wifi");
-                if(result == null) return; // User cancelled
-
-                // Try to connect with the provided password (loops until success or cancel)
-                if (await TryConnectToNetworkInternalAsync(network.Ssid, result)) break;
-            }
-
-            // Refresh the current network
-            await RefreshCurrentNetworkAsync();
-        }
-
         private async Task<bool> TryConnectToNetworkInternalAsync(string ssid, string? password)
         {
             try

@@ -16,6 +16,7 @@ namespace RLIRL.Server
                 .AddSingleton<IWebSocketProvider, WebSocketProvider>()
                 .AddSingleton<IServerCommandListener, ServerCommandListener>()
                 .AddSingleton<IServerCommandSender, ServerCommandSender>()
+                .AddSingleton<IServerConnectionStatusService, ServerConnectionStatusService>()
                 .AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
             return services;
