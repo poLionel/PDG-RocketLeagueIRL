@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="RLIRL.App.Views.MenuPage"
              Title="MenuPage">
-    <VerticalStackLayout Padding="24" Spacing="16">
+    <VerticalStackLayout Style="{StaticResource MenuContainer}">
         <Button Text="Play" Clicked="OnPlay" />
         <Button Text="Connect your car" Clicked="OnConnect" />
         <Button Text="Spectate a game" Clicked="OnSpectate" />

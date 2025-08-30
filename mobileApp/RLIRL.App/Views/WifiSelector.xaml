@@ -17,9 +17,9 @@
             Command="{Binding LoadNetworksCommand}" />
     </ContentView.Behaviors>
 
-    <Border StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
+    <Border Style="{StaticResource CardBorder}">
         <Grid>
-            <Grid Padding="10">
+            <Grid Style="{StaticResource CardContainer}">
 
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"></RowDefinition>
@@ -28,10 +28,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- Header and Refresh Button -->
-                <Grid Grid.Row="0" 
-                      Padding="10" 
-                      ColumnSpacing="10" 
-                      Margin="0,0,0,10" >
+                <Grid Grid.Row="0" Style="{StaticResource HeaderGrid}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="auto" />
@@ -39,19 +36,11 @@
 
                     <Label Grid.Column="0" 
                            Text="WiFi Networks" 
-                           FontSize="18" 
-                           FontAttributes="Bold"
-                           VerticalOptions="Center" />
+                           Style="{StaticResource HeaderLabel}" />
 
-                    <Border Grid.Column="1" StrokeShape="RoundRectangle 10,10,10,10" Stroke="Transparent">
+                    <Border Grid.Column="1" Style="{StaticResource RefreshButtonBorder}">
                         <ImageButton Command="{Binding LoadNetworksCommand}"
-                                     BackgroundColor="#10FFFFFF"
-                                     BorderWidth="0"
-                                     WidthRequest="40"
-                                     HeightRequest="40"
-                                     HorizontalOptions="Center"
-                                     VerticalOptions="Center"
-                                     Padding="0,3,3,0"
+                                     Style="{StaticResource RefreshIconButton}"
                                      IsEnabled="{Binding Loading, Converter={toolkit:InvertedBoolConverter}}">
                             <ImageButton.Source>
                                 <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
@@ -72,8 +61,8 @@
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="models:NetworkListItem">
                             <ViewCell>
-                                <Border StrokeShape="RoundRectangle 10,10,10,10" Stroke="Transparent">
-                                    <Grid Padding="10" ColumnSpacing="10">
+                                <Border Style="{StaticResource ListItemBorder}">
+                                    <Grid Style="{StaticResource ListItemGrid}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="auto" />
                                             <ColumnDefinition Width="auto" />
@@ -93,12 +82,12 @@
                                         <Label Grid.Column="1" Text="{Binding Ssid}" />
 
                                         <!-- Connected Text -->
-                                        <Label Grid.Column="2" IsVisible="{Binding Connected}" Text="(Connected)" />
+                                        <Label Grid.Column="2" IsVisible="{Binding Connected}" Style="{StaticResource ConnectedLabel}" />
 
                                         <!-- Selected item Style -->
                                         <Grid.Triggers>
                                             <DataTrigger TargetType="Grid" Binding="{Binding Connected}" Value="True">
-                                                <Setter Property="BackgroundColor" Value="#40ADD8E6" />
+                                                <Setter Property="BackgroundColor" Value="{StaticResource ConnectedNetworkBackgroundColor}" />
                                             </DataTrigger>
                                         </Grid.Triggers>
                                     </Grid>
@@ -118,9 +107,8 @@
 
                 <!-- No Networks Available Message and Settings Button -->
                 <Grid Grid.Row="2"
-                      IsVisible="{Binding WifiNetworks, Converter={toolkit:IsListNullOrEmptyConverter}}"
-                      VerticalOptions="Center"
-                      RowSpacing="20">
+                      Style="{StaticResource NoContentGrid}"
+                      IsVisible="{Binding WifiNetworks, Converter={toolkit:IsListNullOrEmptyConverter}}">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
@@ -130,32 +118,24 @@
                 
                     <Label Grid.Row="0"
                            Text="No WiFi networks found" 
-                           FontSize="16" 
-                           TextColor="Gray"
-                           HorizontalTextAlignment="Center" />
+                           Style="{StaticResource NoContentLabel}" />
 
                     <Label Grid.Row="1"
                            Text="You can open WiFi settings to manually connect to a network" 
-                           FontSize="14" 
-                           TextColor="Gray" 
-                           HorizontalTextAlignment="Center" />
+                           Style="{StaticResource NoContentDescriptionLabel}" />
 
                     <Button Grid.Row="2"
                             Text="Open WiFi Settings" 
                             Command="{Binding NavigateToSettingsCommand}"
-                            MaximumWidthRequest="300" />
+                            Style="{StaticResource SettingsButton}" />
                 </Grid>
             </Grid>
 
             <!-- Loading Overlay -->
-            <Grid IsVisible="{Binding Loading}" BackgroundColor="#40FFFFFF">
+            <Grid IsVisible="{Binding Loading}" Style="{StaticResource LoadingOverlay}">
                 <ActivityIndicator 
                     IsRunning="{Binding Loading}" 
-                    HorizontalOptions="Center" 
-                    VerticalOptions="Center" 
-                    Color="DodgerBlue"
-                    HeightRequest="40"
-                    WidthRequest="40" />
+                    Style="{StaticResource LoadingIndicator}" />
             </Grid>
         </Grid>
     </Border>

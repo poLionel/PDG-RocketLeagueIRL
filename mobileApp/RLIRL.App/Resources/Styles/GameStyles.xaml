@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Game Background Style -->
+    <Style x:Key="GameBackground" TargetType="Grid">
+        <Setter Property="BackgroundColor" Value="LightGray" />
+    </Style>
+
+    <!-- Game Container Style -->
+    <Style x:Key="GameContainer" TargetType="Grid">
+        <Setter Property="Padding" Value="16" />
+    </Style>
+
+    <!-- HUD Container Style -->
+    <Style x:Key="HudContainer" TargetType="HorizontalStackLayout">
+        <Setter Property="Spacing" Value="24" />
+        <Setter Property="BackgroundColor" Value="Black" />
+        <Setter Property="Opacity" Value="0.1" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <!-- HUD Score Label Style -->
+    <Style x:Key="HudScoreBlue" TargetType="Label">
+        <Setter Property="BackgroundColor" Value="Blue" />
+        <Setter Property="TextColor" Value="White" />
+    </Style>
+
+    <!-- HUD Timer Label Style -->
+    <Style x:Key="HudTimer" TargetType="Label">
+        <Setter Property="TextColor" Value="White" />
+    </Style>
+
+    <!-- HUD Score Orange Label Style -->
+    <Style x:Key="HudScoreOrange" TargetType="Label">
+        <Setter Property="BackgroundColor" Value="Orange" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="TextColor" Value="White" />
+    </Style>
+
+    <!-- Joystick Area Style -->
+    <Style x:Key="JoystickArea" TargetType="AbsoluteLayout">
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="VerticalOptions" Value="End" />
+        <Setter Property="Margin" Value="20" />
+        <Setter Property="HeightRequest" Value="160" />
+        <Setter Property="WidthRequest" Value="160" />
+    </Style>
+
+    <!-- Joystick Base Style -->
+    <Style x:Key="JoystickBase" TargetType="Frame">
+        <Setter Property="BackgroundColor" Value="#22222288" />
+        <Setter Property="CornerRadius" Value="90" />
+        <Setter Property="HasShadow" Value="True" />
+    </Style>
+
+    <!-- Joystick Knob Style -->
+    <Style x:Key="JoystickKnob" TargetType="Frame">
+        <Setter Property="BackgroundColor" Value="#0097A7" />
+        <Setter Property="CornerRadius" Value="32" />
+        <Setter Property="HasShadow" Value="True" />
+    </Style>
+
+    <!-- Game Controls Container Style -->
+    <Style x:Key="GameControlsContainer" TargetType="VerticalStackLayout">
+        <Setter Property="HorizontalOptions" Value="End" />
+        <Setter Property="VerticalOptions" Value="End" />
+        <Setter Property="Margin" Value="20" />
+        <Setter Property="Spacing" Value="16" />
+    </Style>
+
+    <!-- Boost Bar Style -->
+    <Style x:Key="BoostBar" TargetType="ProgressBar">
+        <Setter Property="WidthRequest" Value="18" />
+        <Setter Property="HeightRequest" Value="120" />
+        <Setter Property="Rotation" Value="270" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <!-- Speed Button Style -->
+    <Style x:Key="SpeedButton" TargetType="Button">
+        <Setter Property="Text" Value="Speed up" />
+        <Setter Property="WidthRequest" Value="110" />
+        <Setter Property="HeightRequest" Value="110" />
+        <Setter Property="CornerRadius" Value="55" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="BackgroundColor" Value="#EEEEEEAA" />
+    </Style>
+
+    <!-- Brake Button Style -->
+    <Style x:Key="BrakeButton" TargetType="Button">
+        <Setter Property="Text" Value="Brake" />
+        <Setter Property="WidthRequest" Value="110" />
+        <Setter Property="HeightRequest" Value="110" />
+        <Setter Property="CornerRadius" Value="55" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="BackgroundColor" Value="#EEEEEEAA" />
+    </Style>
+
+    <!-- Speed Controls Grid Style -->
+    <Style x:Key="SpeedControlsGrid" TargetType="Grid">
+        <Setter Property="HorizontalOptions" Value="End" />
+    </Style>
+
+</ResourceDictionary>
