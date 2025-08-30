@@ -1,5 +1,5 @@
-﻿using RLIRL.Business.Abstractions;
-using RLIRL.Business.Models;
+﻿using RLIRL.Business.Abstractions.Abstractions;
+using RLIRL.Business.Abstractions.Models;
 
 namespace RLIRL.Business.Services
 {
