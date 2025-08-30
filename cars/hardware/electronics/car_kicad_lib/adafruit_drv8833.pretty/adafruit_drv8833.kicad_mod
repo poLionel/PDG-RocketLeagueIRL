@@ -575,4 +575,59 @@
 		(uuid "fa471778-5024-46c0-a713-a81bdae077c8")
 	)
 	(embedded_fonts no)
+	(model "C:/gitKraken/PDG-RocketLeagueIRL/cars/hardware/3d/adafruit_drv8833.step"
+		(offset
+			(xyz -148.5 105 4)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
+		)
+	)
+	(model "C:/gitKraken/PDG-RocketLeagueIRL/cars/hardware/electronics/car_kicad_lib/pin_header_step/8-Pin Header - Male - 2.54mm.step"
+		(offset
+			(xyz -6 8.8 3)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 180 -0 90)
+		)
+	)
+	(model "C:/gitKraken/PDG-RocketLeagueIRL/cars/hardware/electronics/car_kicad_lib/pin_header_step/6-Pin Header - Male - 2.54mm.step"
+		(offset
+			(xyz 6 6.3 3)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 180 -0 90)
+		)
+	)
+	(model "${KICAD9_3DMODEL_DIR}/Connector_PinHeader_1.00mm.3dshapes/PinHeader_1x01_P1.00mm_Vertical.step"
+		(offset
+			(xyz -1.3 8.6 1.5)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 180 180 -0)
+		)
+	)
+	(model "${KICAD9_3DMODEL_DIR}/Connector_PinHeader_1.00mm.3dshapes/PinHeader_1x01_P1.00mm_Vertical.step"
+		(offset
+			(xyz 2.5 8.5 1.5)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -0 -0 -0)
+		)
+	)
 )

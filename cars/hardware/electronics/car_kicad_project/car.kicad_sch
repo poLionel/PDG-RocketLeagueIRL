@@ -5356,7 +5356,7 @@
 				)
 			)
 		)
-		(property "Footprint" "xiao_esp32s3:XIAO-ESP32S3-SMD"
+		(property "Footprint" "MOUDLE14P-SMD-2.54-21X17.8MM"
 			(at 85.09 142.24 0)
 			(effects
 				(font
