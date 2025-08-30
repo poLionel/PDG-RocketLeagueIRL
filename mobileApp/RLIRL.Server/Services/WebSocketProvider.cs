@@ -11,13 +11,13 @@ namespace RLIRL.Server.Services
     {
         public async Task<ClientWebSocket> GetWebSocketClientAsync(CancellationToken cancellationToken)
         {
-            var host = await GetHostAsync() ?? throw new InvalidOperationException("No valid host found for the server");
+            var host = await GetHostAsync() ?? throw new WebSocketException("No valid host found for the server");
             SocketsHttpHandler handler = new();
             ClientWebSocket ws = new();
 
             await ws.ConnectAsync(host, new HttpMessageInvoker(handler), cancellationToken);
             if (ws.State != WebSocketState.Open)
-                throw new InvalidOperationException("Failed to connect to the WebSocket server");
+                throw new WebSocketException("Failed to connect to the WebSocket server");
 
             return ws;
         }

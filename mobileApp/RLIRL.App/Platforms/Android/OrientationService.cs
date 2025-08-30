@@ -1,12 +1,7 @@
 ﻿using Android.Content.PM;
 using RLIRL.App.Helper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace RLIRL.App;
+namespace RLIRL.App.Platforms.Android;
 
 public class OrientationService : IOrientationService
 {

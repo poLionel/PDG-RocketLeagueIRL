@@ -1,6 +1,6 @@
 using RLIRL.App.ViewModels;
 
-namespace RLIRL.App.Components;
+namespace RLIRL.App.Views;
 
 public partial class WifiSelector : ContentView
 {

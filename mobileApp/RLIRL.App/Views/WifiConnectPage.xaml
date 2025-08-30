@@ -1,15 +1,45 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:RLIRL.App.Views"
+             xmlns:viewmodels="clr-namespace:RLIRL.App.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="RLIRL.App.Views.WifiConnectPage"
+             x:Name="ContentPage"
+             x:DataType="viewmodels:WifiConnectViewModel"
              Title="WifiConnectPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to Rocket League IRL"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
 
-        <Button Text="Click here to go the menu" Clicked="OnClickedButton"/>
-        <Label Text="Work in progress, coming soon"/>
-    </VerticalStackLayout>
+    <!-- Initial Connection Check -->
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Loaded"
+            BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentPage}, x:DataType=ContentPage}"
+            Command="{Binding CheckServerConnectionCommand}"
+            CommandParameter="{x:Boolean True}"/>
+    </ContentPage.Behaviors>
+    
+    <Grid Padding="10" 
+          RowSpacing="10"
+          MaximumWidthRequest="800">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <views:WifiSelector Grid.Row="0" />
+
+        <Label Grid.Row="1"
+               TextColor="Red" 
+               IsVisible="{Binding ConnectionFailed}"
+               HorizontalOptions="Center"
+               HorizontalTextAlignment="Center"
+               Text="The connection with the server failed. Please ensure you are on the right network and that the server is up and running." />
+
+        <Button Grid.Row="2"
+                Text="Continue" 
+                Command="{Binding CheckServerConnectionCommand}"
+                CommandParameter="{x:Boolean False}"/>
+
+    </Grid>
 </ContentPage>

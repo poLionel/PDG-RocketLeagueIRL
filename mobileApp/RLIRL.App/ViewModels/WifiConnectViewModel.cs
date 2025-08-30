@@ -1,12 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using RLIRL.Server.Abstractions.Abstractions;
 
 namespace RLIRL.App.ViewModels
 {
-    public class WifiConnectViewModel
+    public partial class WifiConnectViewModel(IServerConnectionStatusService serverConnectionStatusService) : ObservableObject
     {
+        [ObservableProperty]
+        public partial bool ServerConnected { get; private set; }
+
+        [ObservableProperty]
+        public partial bool ConnectionFailed { get; private set; }
+
+        [RelayCommand]
+        public async Task CheckServerConnectionAsync(bool silent)
+        {
+            // If not silent, reset the error message
+            if (!silent)
+            {
+                ConnectionFailed = false;
+            }
+
+            ServerConnected = await serverConnectionStatusService.IsServerConnectedAsync();
+
+            // Redirect to menu page if the server is connected
+            if (ServerConnected)
+            {
+                await Shell.Current.GoToAsync("//menu");
+                return;
+            }
+
+            // If not silent, show an error message
+            if (silent) return;
+            ConnectionFailed = true;
+        }
     }
 }
