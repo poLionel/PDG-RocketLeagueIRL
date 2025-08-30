@@ -198,6 +198,14 @@
 		(remove_unused_layers no)
 		(uuid "36b4305b-4671-48d8-8c79-350bd7c8b132")
 	)
+	(pad "14" thru_hole rect
+		(at 28.061364 5.913 180)
+		(size 1.7 1.7)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "89431df8-4e8f-4b05-b22e-a544e04c5832")
+	)
 	(pad "15" thru_hole oval
 		(at 3.741364 27.493 90)
 		(size 1.7 1.7)
@@ -205,14 +213,6 @@
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
 		(uuid "69244de4-c39f-4a76-abce-23823a21fccf")
-	)
-	(pad "15" thru_hole rect
-		(at 28.061364 5.913 180)
-		(size 1.7 1.7)
-		(drill 1)
-		(layers "*.Cu" "*.Mask")
-		(remove_unused_layers no)
-		(uuid "89431df8-4e8f-4b05-b22e-a544e04c5832")
 	)
 	(pad "16" thru_hole oval
 		(at 6.281364 27.493 90)
@@ -287,7 +287,7 @@
 		(uuid "7d6dfaf4-6f0a-47e3-94ce-5b0a0557a6ce")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/esp32s3_sense_module.step"
+	(model "C:/gitKraken/PDG-RocketLeagueIRL/cars/hardware/electronics/rl_uc_module/rl_uc_module_3d.step"
 		(offset
 			(xyz -85 86.5 3.5)
 		)
