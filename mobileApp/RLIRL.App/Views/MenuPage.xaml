@@ -7,5 +7,6 @@
         <Button Text="Play" Clicked="OnPlay" />
         <Button Text="Connect your car" Clicked="OnConnect" />
         <Button Text="Spectate a game" Clicked="OnSpectate" />
+        <Button Text="Manage a game" Clicked="OnAdmin" />
     </VerticalStackLayout>
 </ContentPage>

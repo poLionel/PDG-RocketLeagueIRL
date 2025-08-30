@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using RLIRL.Business.Abstractions.Models;
-using RLIRL.Server.Abstractions.ServerCommands;
+using RLIRL.Server.Services.CommandProcessors;
 
 namespace RLIRL.Server
 {
@@ -8,7 +8,7 @@ namespace RLIRL.Server
     {
         public MapperProfile()
         {
-            _ = CreateMap<GameStatusCommand, GameStatus>();
+            _ = CreateMap<GetGameStatusResponseProcessor, GameStatus>();
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace RLIRL.Server.Abstractions.Abstractions
 {
-    public interface IServerCommandListener
+    public interface IServerResponseListener
     {
         void Start();
         void Stop();

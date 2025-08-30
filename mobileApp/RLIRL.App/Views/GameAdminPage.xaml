@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
+             x:Class="RLIRL.App.Views.GameAdminPage"
+             x:Name="AdminPage"
+             Title="Game Admin Panel">
+
+    <ScrollView Padding="20" MaximumWidthRequest="1200">
+        <Grid RowSpacing="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />  <!-- Game Status Header -->
+                <RowDefinition Height="auto" />  <!-- Game Controls -->
+                <RowDefinition Height="auto" />  <!-- Score and Timer -->
+                <RowDefinition Height="auto" />  <!-- Goal Scoring Controls -->
+                <RowDefinition Height="*" />     <!-- Player Management -->
+                <RowDefinition Height="auto" />  <!-- Car Management -->
+            </Grid.RowDefinitions>
+
+            <!-- Game Status Header -->
+            <Border Grid.Row="0" StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
+                <Grid Padding="20" ColumnSpacing="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Column="0">
+                        <Image.Source>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.apps_20_regular}"
+                                             Size="32"
+                                             Color="DodgerBlue" />
+                        </Image.Source>
+                    </Image>
+
+                    <StackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="Game Administration" FontSize="24" FontAttributes="Bold" />
+                        <Label Text="{Binding GameStatus}" FontSize="16" TextColor="Gray" />
+                    </StackLayout>
+
+                    <Border Grid.Column="2" StrokeShape="RoundRectangle 10,10,10,10" Stroke="Transparent">
+                        <ImageButton Command="{Binding RefreshGameStatusCommand}"
+                                     BackgroundColor="#10FFFFFF"
+                                     BorderWidth="0"
+                                     WidthRequest="40"
+                                     HeightRequest="40"
+                                     HorizontalOptions="Center"
+                                     VerticalOptions="Center">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.arrow_clockwise_12_regular}"
+                                                 Size="24"
+                                                 Color="DodgerBlue" />
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Game Controls -->
+            <Border Grid.Row="1" StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
+                <Grid Padding="20" ColumnSpacing="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0"
+                            Text="Start Game"
+                            Command="{Binding StartGameCommand}"
+                            BackgroundColor="Green"
+                            TextColor="White"
+                            FontSize="16"
+                            Padding="15">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.circle_12_regular}"
+                                             Size="20"
+                                             Color="White" />
+                        </Button.ImageSource>
+                    </Button>
+
+                    <Button Grid.Column="1"
+                            Text="Pause Game"
+                            Command="{Binding PauseGameCommand}"
+                            BackgroundColor="Orange"
+                            TextColor="White"
+                            FontSize="16"
+                            Padding="15">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.square_12_regular}"
+                                             Size="20"
+                                             Color="White" />
+                        </Button.ImageSource>
+                    </Button>
+
+                    <Button Grid.Column="2"
+                            Text="Stop Game"
+                            Command="{Binding StopGameCommand}"
+                            BackgroundColor="Red"
+                            TextColor="White"
+                            FontSize="16"
+                            Padding="15">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.square_16_regular}"
+                                             Size="20"
+                                             Color="White" />
+                        </Button.ImageSource>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Score and Timer Display -->
+            <Border Grid.Row="2" StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
+                <Grid Padding="20" ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Blue Team Score -->
+                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#4169E1">
+                        <StackLayout Padding="20" HorizontalOptions="Center">
+                            <Label Text="BLUE TEAM" TextColor="White" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding Game.BlueScore}" TextColor="White" FontSize="36" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        </StackLayout>
+                    </Border>
+
+                    <!-- Timer -->
+                    <StackLayout Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" Spacing="5">
+                        <Image>
+                            <Image.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.access_time_24_regular}"
+                                                 Size="32"
+                                                 Color="DodgerBlue" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="{Binding Game.TimeLeft}" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <Label Text="TIME LEFT" FontSize="12" TextColor="Gray" HorizontalTextAlignment="Center" />
+                    </StackLayout>
+
+                    <!-- Red Team Score -->
+                    <Border Grid.Column="2" StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#DC143C">
+                        <StackLayout Padding="20" HorizontalOptions="Center">
+                            <Label Text="RED TEAM" TextColor="White" FontSize="16" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                            <Label Text="{Binding Game.RedScore}" TextColor="White" FontSize="36" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        </StackLayout>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Goal Scoring Controls -->
+            <Border Grid.Row="3" StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
+                <StackLayout Padding="20" Spacing="15">
+                    <Label Text="Goal Scoring" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                    
+                    <Grid ColumnSpacing="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0"
+                                Text="BLUE GOAL!"
+                                Command="{Binding ScoreGoalCommand}"
+                                CommandParameter="blue"
+                                BackgroundColor="#4169E1"
+                                TextColor="White"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                Padding="20">
+                            <Button.ImageSource>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.star_24_regular}"
+                                                 Size="24"
+                                                 Color="White" />
+                            </Button.ImageSource>
+                        </Button>
+
+                        <Button Grid.Column="1"
+                                Text="RED GOAL!"
+                                Command="{Binding ScoreGoalCommand}"
+                                CommandParameter="red"
+                                BackgroundColor="#DC143C"
+                                TextColor="White"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                Padding="20">
+                            <Button.ImageSource>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.star_24_regular}"
+                                                 Size="24"
+                                                 Color="White" />
+                            </Button.ImageSource>
+                        </Button>
+                    </Grid>
+
+                    <!-- Undo Last Goal -->
+                    <Button Text="Undo Last Goal"
+                            Command="{Binding UndoLastGoalCommand}"
+                            BackgroundColor="Gray"
+                            TextColor="White"
+                            FontSize="14"
+                            Padding="10"
+                            HorizontalOptions="Center">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.arrow_undo_16_regular}"
+                                             Size="16"
+                                             Color="White" />
+                        </Button.ImageSource>
+                    </Button>
+                </StackLayout>
+            </Border>
+
+            <!-- Player Camera Views -->
+            <Border Grid.Row="4" StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
+                <StackLayout Padding="20" Spacing="15">
+                    <Grid ColumnSpacing="15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" Text="Player Camera Feeds" FontSize="18" FontAttributes="Bold" VerticalOptions="Center" />
+                        
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 10,10,10,10" Stroke="Transparent">
+                            <ImageButton Command="{Binding RefreshCameraFeedsCommand}"
+                                         BackgroundColor="#10FFFFFF"
+                                         BorderWidth="0"
+                                         WidthRequest="35"
+                                         HeightRequest="35">
+                                <ImageButton.Source>
+                                    <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                     Glyph="{x:Static fonts:FluentUI.camera_switch_20_regular}"
+                                                     Size="20"
+                                                     Color="DodgerBlue" />
+                                </ImageButton.Source>
+                            </ImageButton>
+                        </Border>
+                    </Grid>
+
+                    <!-- Camera Feed Grid -->
+                    <CollectionView ItemsSource="{Binding PlayerCameraFeeds}" 
+                                    ItemsLayout="HorizontalGrid, 2"
+                                    HeightRequest="400">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border StrokeShape="RoundRectangle 10,10,10,10" 
+                                        Stroke="LightGray"
+                                        Margin="5"
+                                        BackgroundColor="Black">
+                                    <Grid>
+                                        <!-- Camera feed placeholder -->
+                                        <Rectangle Fill="Black" HeightRequest="180" WidthRequest="320" />
+                                        
+                                        <!-- Player info overlay -->
+                                        <Grid VerticalOptions="End" BackgroundColor="#80000000" Padding="10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="auto" />
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <StackLayout Grid.Column="0">
+                                                <Label Text="{Binding PlayerName}" TextColor="White" FontSize="14" FontAttributes="Bold" />
+                                                <Label Text="{Binding CarId, StringFormat='Car #{0}'}" TextColor="LightGray" FontSize="12" />
+                                                <Label Text="{Binding Team}" TextColor="{Binding TeamColor}" FontSize="12" FontAttributes="Bold" />
+                                            </StackLayout>
+                                            
+                                            <Button Grid.Column="1"
+                                                    Text="Select"
+                                                    Command="{Binding Path=BindingContext.SelectPlayerCameraCommand, Source={x:Reference AdminPage}}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="DodgerBlue"
+                                                    TextColor="White"
+                                                    FontSize="12"
+                                                    Padding="8,4" />
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- No cameras message -->
+                    <StackLayout IsVisible="{Binding PlayerCameraFeeds, Converter={toolkit:IsListNullOrEmptyConverter}}"
+                                 VerticalOptions="Center"
+                                 Spacing="10">
+                        <Image HorizontalOptions="Center">
+                            <Image.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.camera_off_24_regular}"
+                                                 Size="48"
+                                                 Color="Gray" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="No camera feeds available" 
+                               FontSize="16" 
+                               TextColor="Gray"
+                               HorizontalTextAlignment="Center" />
+                        <Label Text="Camera feeds will appear here when players are connected" 
+                               FontSize="14" 
+                               TextColor="Gray" 
+                               HorizontalTextAlignment="Center" />
+                    </StackLayout>
+                </StackLayout>
+            </Border>
+
+            <!-- Car Management -->
+            <Border Grid.Row="5" StrokeShape="RoundRectangle 10,10,10,10" BackgroundColor="#10FFFFFF">
+                <StackLayout Padding="20" Spacing="15">
+                    <Grid ColumnSpacing="15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" Text="Car Management" FontSize="18" FontAttributes="Bold" VerticalOptions="Center" />
+                        
+                        <Border Grid.Column="1" StrokeShape="RoundRectangle 10,10,10,10" Stroke="Transparent">
+                            <ImageButton Command="{Binding RefreshCarsCommand}"
+                                         BackgroundColor="#10FFFFFF"
+                                         BorderWidth="0"
+                                         WidthRequest="35"
+                                         HeightRequest="35">
+                                <ImageButton.Source>
+                                    <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                     Glyph="{x:Static fonts:FluentUI.box_24_regular}"
+                                                     Size="20"
+                                                     Color="DodgerBlue" />
+                                </ImageButton.Source>
+                            </ImageButton>
+                        </Border>
+                    </Grid>
+
+                    <!-- Car List -->
+                    <CollectionView ItemsSource="{Binding Cars}" 
+                                    HeightRequest="200">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border StrokeShape="RoundRectangle 10,10,10,10" 
+                                        Stroke="LightGray"
+                                        Margin="0,2"
+                                        BackgroundColor="White">
+                                    <Grid Padding="15" ColumnSpacing="15">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Image Grid.Column="0">
+                                            <Image.Source>
+                                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                                 Glyph="{x:Static fonts:FluentUI.box_24_regular}"
+                                                                 Size="24"
+                                                                 Color="{Binding IsConnected, Converter={toolkit:BoolToObjectConverter}, ConverterParameter='Green,Gray'}" />
+                                            </Image.Source>
+                                        </Image>
+
+                                        <StackLayout Grid.Column="1" VerticalOptions="Center">
+                                            <Label Text="{Binding CarId, StringFormat='Car #{0}'}" FontSize="14" FontAttributes="Bold" />
+                                            <Label Text="{Binding Status}" FontSize="12" TextColor="Gray" />
+                                            <Label Text="{Binding AssignedPlayer}" FontSize="12" TextColor="Blue" IsVisible="{Binding AssignedPlayer, Converter={toolkit:IsStringNotNullOrWhiteSpaceConverter}}" />
+                                        </StackLayout>
+
+                                        <Label Grid.Column="2" 
+                                               Text="{Binding Team}" 
+                                               TextColor="{Binding TeamColor}"
+                                               FontSize="12" 
+                                               FontAttributes="Bold"
+                                               VerticalOptions="Center" />
+
+                                        <Button Grid.Column="3"
+                                                Text="{Binding IsAssigned, Converter={toolkit:BoolToObjectConverter}, ConverterParameter='Free,Assign'}"
+                                                Command="{Binding Path=BindingContext.ToggleCarAssignmentCommand, Source={x:Reference AdminPage}}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="{Binding IsAssigned, Converter={toolkit:BoolToObjectConverter}, ConverterParameter='Orange,Green'}"
+                                                TextColor="White"
+                                                FontSize="12"
+                                                Padding="10,5" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- No cars message -->
+                    <StackLayout IsVisible="{Binding Cars, Converter={toolkit:IsListNullOrEmptyConverter}}"
+                                 VerticalOptions="Center"
+                                 Spacing="10">
+                        <Image HorizontalOptions="Center">
+                            <Image.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.box_24_regular}"
+                                                 Size="48"
+                                                 Color="Gray" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="No cars available" 
+                               FontSize="16" 
+                               TextColor="Gray"
+                               HorizontalTextAlignment="Center" />
+                    </StackLayout>
+                </StackLayout>
+            </Border>
+        </Grid>
+    </ScrollView>
+</ContentPage>

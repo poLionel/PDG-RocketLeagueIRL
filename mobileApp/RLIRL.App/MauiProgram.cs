@@ -51,11 +51,12 @@ namespace RLIRL.App
             builder.Services.AddTransient<WifiSelectorViewModel>();
             builder.Services.AddTransient<MenuViewModel>();
             builder.Services.AddTransient<GameViewModel>();
+            builder.Services.AddTransient<GameAdminViewModel>();
 
             var app = builder.Build();
 
             // Start the server command sender and listener
-            var commandListener = app.Services.GetRequiredService<IServerCommandListener>();
+            var commandListener = app.Services.GetRequiredService<IServerResponseListener>();
             commandListener.Start();
 
             var commandSender = app.Services.GetRequiredService<IServerCommandSender>();

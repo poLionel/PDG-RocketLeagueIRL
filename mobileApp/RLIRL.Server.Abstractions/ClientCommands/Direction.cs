@@ -1,6 +1,6 @@
 ﻿namespace RLIRL.Server.Abstractions.ClientCommands
 {
-    public enum Directions
+    public enum Direction
     {
         Forward,
         Backward
