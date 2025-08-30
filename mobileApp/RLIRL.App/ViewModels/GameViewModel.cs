@@ -6,7 +6,7 @@ using RLIRL.Server.Abstractions.ClientCommands;
 
 namespace RLIRL.App.ViewModels
 {
-    public partial class GameViewModel : ObservableObject, IDisposable, IGameService
+    public partial class GameViewModel : ObservableObject, IDisposable
     {
         #region Constructor
 

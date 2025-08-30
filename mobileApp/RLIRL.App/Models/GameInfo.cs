@@ -12,5 +12,14 @@ namespace RLIRL.App.Models
 
         [ObservableProperty]
         public partial string TimeLeft { get; set; } = "00:00";
+
+        [ObservableProperty]
+        public partial DateTime StartTime { get; set; }
+
+        [ObservableProperty]
+        public partial DateTime EndTime { get; set; }
+
+        [ObservableProperty]
+        public partial bool IsGameActive { get; set; }
     }
 }

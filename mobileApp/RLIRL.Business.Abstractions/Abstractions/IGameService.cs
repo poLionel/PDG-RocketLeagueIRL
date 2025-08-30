@@ -22,6 +22,16 @@ namespace RLIRL.Business.Abstractions.Abstractions
         /// </summary>
         /// <param name="status">Status to set</param>
         void UpdateGameStatus(GameStatus? status);
+
+        /// <summary>
+        /// Requests to start the game
+        /// </summary>
+        void StartGame();
+
+        /// <summary>
+        /// Requests to stop the game
+        /// </summary>
+        void StopGame();
     }
 }
 

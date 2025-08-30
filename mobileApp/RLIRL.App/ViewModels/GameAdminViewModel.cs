@@ -4,10 +4,11 @@ using RLIRL.App.Models;
 using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Business.Abstractions.Models;
 using System.Collections.ObjectModel;
+using AutoMapper;
 
 namespace RLIRL.App.ViewModels
 {
-    public partial class GameAdminViewModel(IGameService gameService) : ObservableObject, IDisposable
+    public partial class GameAdminViewModel(IGameService gameService, IMapper mapper) : ObservableObject, IDisposable
     {
         [ObservableProperty]
         public partial string GameStatus { get; set; } = "Game Stopped";
@@ -23,6 +24,8 @@ namespace RLIRL.App.ViewModels
 
         [ObservableProperty]
         public partial bool IsLoading { get; set; }
+
+        private Timer? _gameTimer;
 
         public async Task InitializeAsync()
         {
@@ -41,24 +44,21 @@ namespace RLIRL.App.ViewModels
         }
 
         [RelayCommand]
-        private async Task StartGameAsync()
+        private void StartGame()
         {
-            // TODO: Implement start game logic
-            await Task.CompletedTask;
+            gameService.StartGame();
         }
 
         [RelayCommand]
-        private async Task PauseGameAsync()
+        private void PauseGame()
         {
             // TODO: Implement pause game logic
-            await Task.CompletedTask;
         }
 
         [RelayCommand]
-        private async Task StopGameAsync()
+        private void StopGame()
         {
-            // TODO: Implement stop game logic
-            await Task.CompletedTask;
+            gameService.StopGame();
         }
 
         [RelayCommand]
@@ -105,12 +105,98 @@ namespace RLIRL.App.ViewModels
 
         private void OnGameStatusChanged(object? sender, GameStatus? e)
         {
+            if (e != null)
+            {
+                // Map the GameStatus to GameInfo
+                var gameInfo = mapper.Map<GameInfo>(e);
+                Game = gameInfo;
 
+                // Update game status text
+                GameStatus = DetermineGameStatusText(e);
+
+                // Start or update timer if game is active
+                UpdateGameTimer(e);
+            }
+            else
+            {
+                // Game status is null, reset to default
+                Game = new GameInfo();
+                GameStatus = "Game Stopped";
+                StopGameTimer();
+            }
+        }
+
+        private string DetermineGameStatusText(GameStatus gameStatus)
+        {
+            var now = DateTime.UtcNow;
+            
+            if (now < gameStatus.StartOn)
+                return "Game Scheduled";
+            else if (now >= gameStatus.StartOn && now < gameStatus.EndOn)
+                return "Game In Progress";
+            else
+                return "Game Finished";
+        }
+
+        private void UpdateGameTimer(GameStatus gameStatus)
+        {
+            var now = DateTime.UtcNow;
+            
+            // Only start timer if game is in progress or scheduled to start soon
+            if (now < gameStatus.EndOn)
+            {
+                StartGameTimer(gameStatus.StartOn, gameStatus.EndOn);
+            }
+            else
+            {
+                StopGameTimer();
+            }
+        }
+
+        private void StartGameTimer(DateTime startTime, DateTime endTime)
+        {
+            // Stop existing timer if any
+            StopGameTimer();
+
+            // Start new timer that updates every second
+            _gameTimer = new Timer((_) =>
+            {
+                var now = DateTime.UtcNow;
+                
+                if (now < startTime)
+                {
+                    // Game hasn't started yet - show countdown to start
+                    var timeToStart = startTime - now;
+                    Game.TimeLeft = $"-{timeToStart:mm\\:ss}";
+                    Game.IsGameActive = false;
+                }
+                else if (now >= startTime && now < endTime)
+                {
+                    // Game is active - show time remaining
+                    var timeLeft = endTime - now;
+                    Game.TimeLeft = timeLeft.ToString(@"mm\:ss");
+                    Game.IsGameActive = true;
+                }
+                else
+                {
+                    // Game has ended
+                    Game.TimeLeft = "00:00";
+                    Game.IsGameActive = false;
+                    StopGameTimer();
+                }
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+        }
+
+        private void StopGameTimer()
+        {
+            _gameTimer?.Dispose();
+            _gameTimer = null;
         }
 
         public void Dispose()
         {
             gameService.GameStatusChanged -= OnGameStatusChanged;
+            StopGameTimer();
         }
     }
 }
