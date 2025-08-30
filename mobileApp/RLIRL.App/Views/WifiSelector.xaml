@@ -109,9 +109,10 @@
                     <!-- Item Click -->
                     <ListView.Behaviors>
                         <toolkit:EventToCommandBehavior EventName="ItemSelected"
-                                                BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentView}}"
-                                                Command="{Binding ConnectToNetworkCommand}"
-                                                CommandParameter="{Binding SelectedItem, Source={x:Reference ContentViewListView}}" />
+                                                        x:DataType="vm:WifiSelectorViewModel"
+                                                        BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentView}}"
+                                                        Command="{Binding ConnectToNetworkCommand}"
+                                                        CommandParameter="{Binding SelectedItem, Source={x:Reference ContentViewListView}}" />
                     </ListView.Behaviors>
                 </ListView>
 

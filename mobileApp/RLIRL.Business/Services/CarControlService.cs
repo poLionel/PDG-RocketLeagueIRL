@@ -1,49 +1,79 @@
-﻿using RLIRL.Server.Abstractions.Abstractions;
+﻿using RLIRL.Business.Abstractions.Abstractions;
+using RLIRL.Server.Abstractions.Abstractions;
 using RLIRL.Server.Abstractions.ClientCommands;
 
 namespace RLIRL.Business.Services
 {
-    internal class CarControlService(IClientCommandQueue commandQueue)
+    /// <summary>
+    /// Implementation of the <see cref="ICarControlService"/> interface.
+    /// </summary>
+    /// <param name="commandQueue">The command queue used to send car control commands to the server.</param>
+    public class CarControlService(IClientCommandQueue commandQueue) : ICarControlService
     {
-        public Direction direction = Direction.Forward;
-        public int carId;
-        public int steering;
-        public bool boost;
+        #region Private fields
 
-        public void SetBoot(bool boost)
+        /// <summary>
+        /// Represents the ID of the car being controlled.
+        /// </summary>
+        private int _carId;
+
+        /// <summary>
+        /// Represents the direction of the car.
+        /// </summary>
+        private Direction _direction;
+
+        /// <summary>
+        /// Indicates whether the boost is active.
+        /// </summary>
+        private bool _boost;
+
+        /// <summary>
+        /// Represents the steering value.
+        /// </summary>
+        private int _steering;
+
+        #endregion
+
+        #region Methods
+
+        public void SetBoost(bool boost)
         {
-            this.boost = boost;
+            _boost = boost;
             SendUpdateCommand();
         }
 
         public void SetDirection(Direction direction)
         {
-            this.direction = direction;
+            _direction = direction;
             SendUpdateCommand();
         }
 
         public void SetSteering(int steering)
         {
-            this.steering = steering;
+            _steering = steering;
             SendUpdateCommand();
         }
 
         public void SetCar(int carId)
         {
-            this.carId = carId;
+            _carId = carId;
         }
 
+        /// <summary>
+        /// Creates a new move command with the current car state and enqueues it.
+        /// </summary>
         private void SendUpdateCommand()
         {
             var command = new MoveCarCommand()
             {
-                Car = carId,
-                Direction = direction,
-                Steering = steering,
-                Boost = boost ? "true" : "false"
+                Direction = _direction,
+                Boost = _boost,
+                Steering = _steering
             };
 
             commandQueue.EnqueueCommand(command);
         }
+
+        #endregion
     }
 }

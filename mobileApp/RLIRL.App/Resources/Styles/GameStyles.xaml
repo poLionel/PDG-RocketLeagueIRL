@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Game Control Sizes -->
+    <x:Double x:Key="JoystickAreaSize">160</x:Double>
+    <x:Double x:Key="JoystickBaseSize">140</x:Double>
+    <x:Double x:Key="JoystickKnobSize">64</x:Double>
+    <x:Double x:Key="GameControlButtonSize">110</x:Double>
+    <x:Double x:Key="BoostGaugeWidth">18</x:Double>
+    <x:Double x:Key="BoostGaugeHeight">120</x:Double>
+
+    <!-- Game Colors -->
+    <Color x:Key="GameControlBackground">#EEEEEEAA</Color>
+    <Color x:Key="JoystickBaseColor">#22222288</Color>
+    <Color x:Key="JoystickKnobColor">#0097A7</Color>
+    <Color x:Key="BoostActive">#00E676AA</Color>
+    <Color x:Key="GameHudBackground">#80000000</Color>
+
+    <!-- Game UI Styles -->
+    <Style x:Key="GameHudContainer" TargetType="HorizontalStackLayout">
+        <Setter Property="Spacing" Value="{StaticResource MediumIconSize}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource GameHudBackground}" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="Padding" Value="{StaticResource SmallPadding}" />
+    </Style>
+
+    <Style x:Key="GameScoreLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="Padding" Value="{StaticResource SmallPadding}" />
+    </Style>
+
+    <Style x:Key="GameBlueScoreLabel" TargetType="Label" BasedOn="{StaticResource GameScoreLabel}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameBlue}" />
+    </Style>
+
+    <Style x:Key="GameRedScoreLabel" TargetType="Label" BasedOn="{StaticResource GameScoreLabel}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameRed}" />
+    </Style>
+
+    <Style x:Key="GameTimerLabel" TargetType="Label" BasedOn="{StaticResource GameScoreLabel}">
+        <Setter Property="BackgroundColor" Value="Transparent" />
+    </Style>
+
+    <!-- Joystick Styles -->
+    <Style x:Key="JoystickArea" TargetType="AbsoluteLayout">
+        <Setter Property="HorizontalOptions" Value="Start" />
+        <Setter Property="VerticalOptions" Value="End" />
+        <Setter Property="Margin" Value="{StaticResource GameControlMargin}" />
+        <Setter Property="HeightRequest" Value="{StaticResource JoystickAreaSize}" />
+        <Setter Property="WidthRequest" Value="{StaticResource JoystickAreaSize}" />
+    </Style>
+
+    <Style x:Key="JoystickBase" TargetType="Frame">
+        <Setter Property="BackgroundColor" Value="{StaticResource JoystickBaseColor}" />
+        <Setter Property="CornerRadius" Value="90" />
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="BorderColor" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="JoystickKnob" TargetType="Frame">
+        <Setter Property="BackgroundColor" Value="{StaticResource JoystickKnobColor}" />
+        <Setter Property="CornerRadius" Value="32" />
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="BorderColor" Value="Transparent" />
+    </Style>
+
+    <!-- Game Control Button Styles -->
+    <Style x:Key="GameControlContainer" TargetType="StackLayout">
+        <Setter Property="HorizontalOptions" Value="End" />
+        <Setter Property="VerticalOptions" Value="End" />
+        <Setter Property="Margin" Value="{StaticResource GameControlMargin}" />
+        <Setter Property="Spacing" Value="{StaticResource ItemSpacing}" />
+    </Style>
+
+    <Style x:Key="GameControlButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="WidthRequest" Value="{StaticResource GameControlButtonSize}" />
+        <Setter Property="HeightRequest" Value="{StaticResource GameControlButtonSize}" />
+        <Setter Property="CornerRadius" Value="{StaticResource LargeCornerRadius}" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="BackgroundColor" Value="{StaticResource GameControlBackground}" />
+        <Setter Property="TextColor" Value="{StaticResource Black}" />
+    </Style>
+
+    <Style x:Key="BoostGauge" TargetType="ProgressBar">
+        <Setter Property="WidthRequest" Value="{StaticResource BoostGaugeWidth}" />
+        <Setter Property="HeightRequest" Value="{StaticResource BoostGaugeHeight}" />
+        <Setter Property="Rotation" Value="270" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="ProgressColor" Value="{StaticResource GameGreen}" />
+    </Style>
+
+</ResourceDictionary>

@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:RLIRL.App.Views"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
+             xmlns:viewmodels="clr-namespace:RLIRL.App.ViewModels"
+             xmlns:models="clr-namespace:RLIRL.App.Models"
              x:Class="RLIRL.App.Views.GameAdminPage"
+             x:DataType="viewmodels:GameAdminViewModel"
              x:Name="AdminPage"
              Title="Game Admin Panel">
 
@@ -223,7 +227,7 @@
                     <!-- Camera Feed Grid -->
                     <CollectionView ItemsSource="{Binding PlayerCameraFeeds}" Style="{StaticResource AdminCameraGrid}">
                         <CollectionView.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate x:DataType="models:CarInfo">
                                 <Border Style="{StaticResource AdminCameraContainer}">
                                     <Grid>
                                         <!-- Camera feed placeholder -->
@@ -300,7 +304,7 @@
                     <!-- Car List -->
                     <CollectionView ItemsSource="{Binding Cars}" Style="{StaticResource AdminCarList}">
                         <CollectionView.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate x:DataType="models:CarInfo">
                                 <Border Style="{StaticResource AdminItemContainer}">
                                     <Grid Style="{StaticResource AdminItemGrid}">
                                         <Grid.ColumnDefinitions>

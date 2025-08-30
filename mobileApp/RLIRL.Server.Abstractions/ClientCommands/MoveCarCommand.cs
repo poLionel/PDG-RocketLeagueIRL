@@ -4,6 +4,9 @@ using System.Text.Json.Serialization;
 
 namespace RLIRL.Server.Abstractions.ClientCommands
 {
+    /// <summary>
+    /// Represents a client command used to control a car's movement.
+    /// </summary>
     [CommandName("move_car")]
     public class MoveCarCommand : IClientCommand
     {
@@ -17,6 +20,6 @@ namespace RLIRL.Server.Abstractions.ClientCommands
         public int Steering { get; set; }
 
         [JsonPropertyName("boost")]
-        public string Boost { get; set; } = "false";
+        public bool Boost { get; set; }
     }
 }
