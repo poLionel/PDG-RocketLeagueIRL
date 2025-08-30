@@ -28,6 +28,18 @@
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 
+    <!-- Game-specific colors -->
+    <Color x:Key="GameBlue">#4169E1</Color>
+    <Color x:Key="GameRed">#DC143C</Color>
+    <Color x:Key="GameGreen">#228B22</Color>
+    <Color x:Key="GameOrange">#FF8C00</Color>
+    <Color x:Key="DodgerBlue">#1E90FF</Color>
+    <Color x:Key="LightGray">#D3D3D3</Color>
+    
+    <!-- Semi-transparent overlays -->
+    <Color x:Key="SemiTransparentWhite">#10FFFFFF</Color>
+    <Color x:Key="SemiTransparentBlack">#80000000</Color>
+
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
@@ -42,4 +54,14 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+
+    <!-- Game-specific brushes -->
+    <SolidColorBrush x:Key="GameBlueBrush" Color="{StaticResource GameBlue}"/>
+    <SolidColorBrush x:Key="GameRedBrush" Color="{StaticResource GameRed}"/>
+    <SolidColorBrush x:Key="GameGreenBrush" Color="{StaticResource GameGreen}"/>
+    <SolidColorBrush x:Key="GameOrangeBrush" Color="{StaticResource GameOrange}"/>
+    <SolidColorBrush x:Key="DodgerBlueBrush" Color="{StaticResource DodgerBlue}"/>
+    <SolidColorBrush x:Key="LightGrayBrush" Color="{StaticResource LightGray}"/>
+    <SolidColorBrush x:Key="SemiTransparentWhiteBrush" Color="{StaticResource SemiTransparentWhite}"/>
+    <SolidColorBrush x:Key="SemiTransparentBlackBrush" Color="{StaticResource SemiTransparentBlack}"/>
 </ResourceDictionary>

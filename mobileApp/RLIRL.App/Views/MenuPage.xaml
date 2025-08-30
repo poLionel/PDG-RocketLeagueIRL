@@ -3,10 +3,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="RLIRL.App.Views.MenuPage"
              Title="MenuPage">
-    <VerticalStackLayout Padding="24" Spacing="16">
-        <Button Text="Play" Clicked="OnPlay" />
-        <Button Text="Connect your car" Clicked="OnConnect" />
-        <Button Text="Spectate a game" Clicked="OnSpectate" />
-        <Button Text="Manage a game" Clicked="OnAdmin" />
-    </VerticalStackLayout>
+    <ScrollView Style="{StaticResource AdminMainScrollView}">
+        <Border Style="{StaticResource AppSectionContainer}">
+            <StackLayout Spacing="{StaticResource ItemSpacing}">
+                <Label Text="Rocket League IRL" Style="{StaticResource AppPageTitle}" HorizontalTextAlignment="Center" />
+                <Label Text="Choose your game mode" Style="{StaticResource AppSubtitle}" HorizontalTextAlignment="Center" />
+                
+                <StackLayout Spacing="{StaticResource SmallSpacing}" Margin="0,20,0,0">
+                    <Button Text="Play" Clicked="OnPlay" Style="{StaticResource AdminPrimaryButton}" />
+                    <Button Text="Connect your car" Clicked="OnConnect" Style="{StaticResource AdminPrimaryButton}" />
+                    <Button Text="Spectate a game" Clicked="OnSpectate" Style="{StaticResource AdminPrimaryButton}" />
+                    <Button Text="Manage a game" Clicked="OnAdmin" Style="{StaticResource AdminPrimaryButton}" />
+                </StackLayout>
+            </StackLayout>
+        </Border>
+    </ScrollView>
 </ContentPage>
