@@ -1,46 +1,36 @@
-﻿using RLIRL.Server.Abstractions.Abstractions;
+﻿using RLIRL.Business.Abstractions.Abstractions;
+using RLIRL.Server.Abstractions.Abstractions;
 using RLIRL.Server.Abstractions.ClientCommands;
 
 namespace RLIRL.Business.Services
 {
     /// <summary>
-    /// Provides services to control a car by updating its state and enqueuing corresponding commands
-    /// into the client command queue.
+    /// Implementation of the <see cref="ICarControlService"/> interface.
     /// </summary>
-    /// <param name="commandQueue"></param>
-    public class CarControlService(IClientCommandQueue commandQueue)
+    /// <param name="commandQueue">The command queue used to send car control commands to the server.</param>
+    public class CarControlService(IClientCommandQueue commandQueue) : ICarControlService
     {
 
         #region Methods
 
-        /// <summary>
-        /// Sets the current boost and queues an update command.
-        /// </summary>
-        /// <param name="boost">Wheter the boost is active..</param>
+        /// <inheritdoc />
         public void SetBoost(bool boost)
         {
             _boost = boost;
             SendUpdateCommand();
         }
 
-        /// <summary>
-        /// Sets the current directions (forward, backward, stopped) of the car and queues an update command.
-        /// </summary>
-        /// <param name="direction">The current driving direction.</param>
+        /// <inheritdoc />
         public void SetDirection(Directions direction)
         {
             _direction = direction;
             SendUpdateCommand();
         }
 
-        /// <summary>
-        /// Sets the current steering value of the car (-100 : full left, 100 : full right, 0 : straight)
-        /// and queues an udpate command.
-        /// </summary>
-        /// <param name="x"></param>
-        public void SetSteeringValue(int x)
+        /// <inheritdoc />
+        public void SetSteeringValue(int steeringValue)
         {
-            _steeringValue = x;
+            _steeringValue = steeringValue;
             SendUpdateCommand();
         }
 
@@ -64,17 +54,17 @@ namespace RLIRL.Business.Services
         #region Private fields
 
         /// <summary>
-        /// Direction of the car.
+        /// Represents the direction of the car.
         /// </summary>
         private Directions _direction;
 
         /// <summary>
-        /// True if boost is active.
+        /// Indicates whether the boost is active.
         /// </summary>
         private bool _boost;
 
         /// <summary>
-        /// True if the car is moving;
+        /// Represents the steering value.
         /// </summary>
         private int _steeringValue;
 
