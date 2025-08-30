@@ -90,8 +90,8 @@ namespace RLIRL.Server.Services
                         ?? throw new InvalidOperationException($"Failed to deserialize command of type '{commandType.Name}'");
 
                     // Get the command processor from the service provider
-                    var commandHandlerType = typeof(IServerCommandProcessor<>).MakeGenericType(commandType);
-                    var commandHandler = serviceProvider.GetService(commandHandlerType) as IServerCommandProcessor
+                    var commandHandlerType = typeof(IServerResponseProcessor<>).MakeGenericType(commandType);
+                    var commandHandler = serviceProvider.GetService(commandHandlerType) as IServerResponseProcessor
                         ?? throw new InvalidOperationException($"No command handler found for command type '{commandType.Name}'");
 
                     // Process the command using the command handler

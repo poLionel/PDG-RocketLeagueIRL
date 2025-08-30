@@ -8,7 +8,7 @@ namespace RLIRL.Server
     {
         public MapperProfile()
         {
-            _ = CreateMap<GameStatusResponseProcessor, GameStatus>();
+            _ = CreateMap<GetGameStatusResponseProcessor, GameStatus>();
         }
     }
 }

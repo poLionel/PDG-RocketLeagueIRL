@@ -6,7 +6,7 @@ using RLIRL.Server.Abstractions.ServerCommands;
 
 namespace RLIRL.Server.Services.CommandProcessors
 {
-    internal class GameStatusResponseProcessor(IGameService gameService, IMapper mapper) : ServerResponseProcessorBase<GetGameStatusResponse>
+    internal class GetGameStatusResponseProcessor(IGameService gameService, IMapper mapper) : ServerResponseProcessorBase<GetGameStatusResponse>
     {
         public override Task ProcessCommandAsync(GetGameStatusResponse command)
         {
