@@ -151,7 +151,7 @@
                                                  Color="{StaticResource DodgerBlue}" />
                             </Image.Source>
                         </Image>
-                        <Label Text="{Binding Game.TimeLeft}" Style="{StaticResource AdminTimerLabel}" />
+                        <Label Text="{Binding TimeLeft}" Style="{StaticResource AdminTimerLabel}" />
                         <Label Text="TIME LEFT" Style="{StaticResource AdminTimerSubtext}" />
                     </StackLayout>
 

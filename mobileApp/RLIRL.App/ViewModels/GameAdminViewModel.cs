@@ -4,12 +4,17 @@ using CommunityToolkit.Mvvm.Input;
 using RLIRL.App.Models;
 using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Business.Abstractions.Models;
+using RLIRL.Business.Services;
 using RLIRL.Server.Abstractions.ServerResponses;
 using System.Collections.ObjectModel;
 
 namespace RLIRL.App.ViewModels
 {
-    public partial class GameAdminViewModel(IGameService gameService, ICameraFeedService cameraFeedService, IMapper mapper) : ObservableObject, IDisposable
+    public partial class GameAdminViewModel(
+        IGameService gameService,
+        ICameraFeedService cameraFeedService,
+        ITimerService timerService,
+        IMapper mapper) : ObservableObject, IDisposable
     {
         [ObservableProperty]
         public partial string GameStatus { get; set; } = "Game Stopped";
@@ -22,6 +27,9 @@ namespace RLIRL.App.ViewModels
 
         [ObservableProperty]
         public partial ObservableCollection<CarInfo> Cars { get; set; } = new();
+
+        [ObservableProperty]
+        public partial string TimeLeft { get; set; } = "00:00";
 
         [ObservableProperty]
         public partial bool IsLoading { get; set; }
@@ -44,13 +52,11 @@ namespace RLIRL.App.ViewModels
         [ObservableProperty]
         public partial bool IsResumeShown { get; set; }
 
-        private Timer? _gameTimer;
-        static DateTime? _gameTimerStartTime;
-
         public void Initialize()
         {
             gameService.GameStatusChanged += OnGameStatusChanged;
             cameraFeedService.CameraFeedsChanged += CameraFeedsChanged;
+            timerService.TimeLeftChanged += TimeLeftChanged;
 
             RefreshGameStatus();
             RefreshCameraFeeds();
@@ -128,11 +134,7 @@ namespace RLIRL.App.ViewModels
             if (e != null)
             {
                 // Map the GameStatus to GameInfo
-                Game ??= new();
-                mapper.Map(e, Game);
-
-                // Update the timer
-                StartOrUpdateGameTimer();
+                Game = mapper.Map<GameInfo>(e);
 
                 // Update the button states
                 CanStartGame = e.State == GameState.Ended || e.State == GameState.NotStarted;
@@ -147,7 +149,6 @@ namespace RLIRL.App.ViewModels
                 // Game status is null, reset to default
                 Game = new GameInfo();
                 GameStatus = "Game Stopped";
-                StopGameTimer();
             }
         }
 
@@ -156,52 +157,16 @@ namespace RLIRL.App.ViewModels
             // TODO: Handle null case if needed
         }
 
-        private void StartOrUpdateGameTimer()
+        private void TimeLeftChanged(object? sender, TimeSpan timeLeft)
         {
-            // Update the timer immediately to avoid waiting for the first tick
-            UpdateGameTimer();
-
-            // Do not start the timer if there is no start time
-            var gameStartTime = Game.StartTime;
-            if (gameStartTime == null) return;
-
-            // If the timer is already running and the game start time hasn't changed, do nothing
-            if (_gameTimer != null && gameStartTime.Equals(_gameTimerStartTime)) return;
-            _gameTimerStartTime = gameStartTime;
-
-            // Calculate the precise delay to the next second boundary
-            var offset = DateTime.UtcNow.Millisecond - gameStartTime.Value.Millisecond;
-            var initialDelay = TimeSpan.FromMilliseconds(1000 - (offset % 1000));
-
-            // Start timer with precise initial delay, then tick every second
-            _gameTimer = new Timer(_ => UpdateGameTimer(), null, initialDelay, TimeSpan.FromSeconds(1));
-        }
-
-        private void UpdateGameTimer()
-        {
-            // Do not update when the game is paused
-            if (Game.State == GameState.Paused) return;
-
-            // Get the time left in the game or zero if the game is over
-            var timeLeft = Game.StartTime?.AddSeconds(Game.MatchLengthSeconds).AddSeconds(Game.PauseTime) - DateTime.UtcNow;
-            if(timeLeft <= TimeSpan.Zero || Game.State == GameState.Ended)
-                timeLeft = TimeSpan.Zero;
-            
-            Game.TimeLeft = $"{timeLeft:mm\\:ss}";
-        }
-
-        private void StopGameTimer()
-        {
-            _gameTimer?.Dispose();
-            _gameTimer = null;
-            _gameTimerStartTime = null;
+            TimeLeft = timeLeft.ToString(@"mm\:ss");
         }
 
         public void Dispose()
         {
             gameService.GameStatusChanged -= OnGameStatusChanged;
             cameraFeedService.CameraFeedsChanged -= CameraFeedsChanged;
-            StopGameTimer();
+            timerService.TimeLeftChanged -= TimeLeftChanged;
         }
     }
 }
