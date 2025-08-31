@@ -82,15 +82,22 @@ namespace RLIRL.App.ViewModels
 
         private async Task RefreshCurrentNetworkAsync()
         {
-            var response = await CrossWifiManager.Current.GetNetworkInfo();
-            if (response.ErrorCode != WifiErrorCodes.Success) return;
-
-            // Select the current network if available
-            foreach (var networks in WifiNetworks)
+            try
             {
-                if (networks.Ssid != response.Data?.Ssid) continue;
-                networks.Connected = true;
-                break;
+                var response = await CrossWifiManager.Current.GetNetworkInfo();
+                if (response.ErrorCode != WifiErrorCodes.Success) return;
+
+                // Select the current network if available
+                foreach (var networks in WifiNetworks)
+                {
+                    if (networks.Ssid != response.Data?.Ssid) continue;
+                    networks.Connected = true;
+                    break;
+                }
+            }
+            catch
+            {
+                // Ignore
             }
         }
         private async Task<bool> TryConnectToNetworkInternalAsync(string ssid, string? password)

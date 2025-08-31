@@ -1,12 +1,92 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using RLIRL.Business.Abstractions.Abstractions;
+using RLIRL.Business.Abstractions.Models;
+using RLIRL.Server.Abstractions.ClientCommands;
 
 namespace RLIRL.App.ViewModels
 {
-    public class GameViewModel
+    public partial class GameViewModel : ObservableObject, IDisposable
     {
+        #region Constructor
+
+        public GameViewModel(ICarControlService carControlService) 
+        {
+            _carControlService = carControlService;
+            //_gameService = gameService;
+            Timer = string.Empty;
+        }
+
+        #endregion
+
+        #region Commands 
+
+        [RelayCommand]
+        private void AcceleratePressed() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Forward);
+
+        [RelayCommand]
+        private void AccelerateRelease() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Stopped);
+
+        [RelayCommand]
+        private void BrakePressed() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Backward); //TODO maybe change logic
+
+        [RelayCommand]
+        private void BrakeRelease() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Stopped);
+
+        [RelayCommand]
+        private void SetBoost(bool isActive) => _carControlService.SetBoost(isActive);
+
+        //TODO joystick
+
+        #endregion
+
+        #region Methods
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void UpdateGameStatus(GameStatus? status)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion
+
+        #region Properties
+
+        [ObservableProperty]
+        private bool _isBoosting;
+
+        [ObservableProperty]
+        private int _steering;
+
+        [ObservableProperty]
+        private Direction _direction;
+
+        [ObservableProperty]
+        private int scoreTeamA;
+
+        [ObservableProperty]
+        private int scoreTeamB;
+
+        [ObservableProperty]
+        private string timer;
+
+        #endregion
+
+        #region Private Fields
+
+        private readonly ICarControlService _carControlService;
+
+        private readonly IGameService _gameService;
+
+        #endregion
+
+        public event EventHandler<GameStatus?>? GameStatusChanged;
+
+        public GameStatus? CurrentGameStatus => throw new NotImplementedException();
     }
 }

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Common Border Radius -->
+    <x:Double x:Key="DefaultCornerRadius">10</x:Double>
+    <x:Double x:Key="SmallCornerRadius">8</x:Double>
+    <x:Double x:Key="LargeCornerRadius">55</x:Double>
+    
+    <!-- Common Spacings -->
+    <x:Double x:Key="SectionSpacing">20</x:Double>
+    <x:Double x:Key="ItemSpacing">15</x:Double>
+    <x:Double x:Key="SmallSpacing">10</x:Double>
+    <x:Double x:Key="TinySpacing">5</x:Double>
+    
+    <!-- Common Paddings -->
+    <Thickness x:Key="SectionPadding">10</Thickness>
+    <Thickness x:Key="ItemPadding">15</Thickness>
+    <Thickness x:Key="SmallPadding">10</Thickness>
+    <Thickness x:Key="ButtonPadding">15</Thickness>
+    <Thickness x:Key="SmallButtonPadding">10,5</Thickness>
+    <Thickness x:Key="CompactButtonPadding">8,4</Thickness>
+    <Thickness x:Key="GameControlMargin">20</Thickness>
+
+    <!-- Common Icon Sizes -->
+    <x:Double x:Key="LargeIconSize">32</x:Double>
+    <x:Double x:Key="MediumIconSize">24</x:Double>
+    <x:Double x:Key="SmallIconSize">20</x:Double>
+    <x:Double x:Key="TinyIconSize">16</x:Double>
+    <x:Double x:Key="EmptyStateIconSize">48</x:Double>
+    <x:Double x:Key="NetworkIconSize">30</x:Double>
+
+    <!-- Common UI Container Styles -->
+    <Style x:Key="AppContainerBorder" TargetType="Border">
+        <Setter Property="StrokeShape" Value="RoundRectangle 10,10,10,10" />
+        <Setter Property="BackgroundColor" Value="{StaticResource SemiTransparentWhite}" />
+        <Setter Property="Stroke" Value="Transparent" />
+    </Style>
+
+    <!-- Transparent refresh button container to avoid double backgrounds -->
+    <Style x:Key="AppRefreshButtonContainer" TargetType="Border">
+        <Setter Property="StrokeShape" Value="RoundRectangle 10,10,10,10" />
+        <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="Stroke" Value="Transparent" />
+    </Style>
+
+    <Style x:Key="AppSectionContainer" TargetType="Border" BasedOn="{StaticResource AppContainerBorder}">
+        <Setter Property="Padding" Value="{StaticResource SectionPadding}" />
+    </Style>
+
+    <Style x:Key="AppItemContainer" TargetType="Border" BasedOn="{StaticResource AppContainerBorder}">
+        <Setter Property="Padding" Value="{StaticResource ItemPadding}" />
+        <Setter Property="Margin" Value="0,2" />
+        <Setter Property="BackgroundColor" Value="{StaticResource White}" />
+        <Setter Property="Stroke" Value="{StaticResource LightGray}" />
+    </Style>
+
+    <!-- Common Header Styles -->
+    <Style x:Key="AppSectionTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="VerticalOptions" Value="Center" />
+    </Style>
+
+    <Style x:Key="AppPageTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="AppSubtitle" TargetType="Label">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+    </Style>
+
+    <!-- Common Button Base Style with Smooth Animated Hover/Click Effects -->
+    <Style x:Key="AppButtonBase" TargetType="Button">
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="1.0" />
+                        </VisualState.Setters>
+                        <VisualState.StateTriggers>
+                            <StateTrigger IsActive="True" />
+                        </VisualState.StateTriggers>
+                    </VisualState>
+                    
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.85" />
+                        </VisualState.Setters>
+                        <VisualState.StateTriggers>
+                            <StateTrigger IsActive="False" />
+                        </VisualState.StateTriggers>
+                    </VisualState>
+                    
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.7" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.4" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!-- Common Refresh Button Style with Smooth Animated Hover/Click Effects -->
+    <Style x:Key="AppRefreshButton" TargetType="ImageButton">
+        <Setter Property="BackgroundColor" Value="{StaticResource SemiTransparentWhite}" />
+        <Setter Property="BorderWidth" Value="0" />
+        <Setter Property="WidthRequest" Value="40" />
+        <Setter Property="HeightRequest" Value="40" />
+        <Setter Property="CornerRadius" Value="{StaticResource DefaultCornerRadius}" />
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="VisualStateManager.VisualStateGroups">
+            <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="1.0" />
+                        </VisualState.Setters>
+                        <VisualState.StateTriggers>
+                            <StateTrigger IsActive="True" />
+                        </VisualState.StateTriggers>
+                    </VisualState>
+                    
+                    <VisualState x:Name="PointerOver">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.8" />
+                        </VisualState.Setters>
+                        <VisualState.StateTriggers>
+                            <StateTrigger IsActive="False" />
+                        </VisualState.StateTriggers>
+                    </VisualState>
+                    
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.6" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    
+                    <VisualState x:Name="Disabled">
+                        <VisualState.Setters>
+                            <Setter Property="Opacity" Value="0.3" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateGroupList>
+        </Setter>
+    </Style>
+
+    <!-- Loading Overlay Style -->
+    <Style x:Key="AppLoadingOverlay" TargetType="Grid">
+        <Setter Property="BackgroundColor" Value="#40FFFFFF" />
+    </Style>
+
+    <Style x:Key="AppLoadingIndicator" TargetType="ActivityIndicator">
+        <Setter Property="HorizontalOptions" Value="Center" />
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="Color" Value="{StaticResource DodgerBlue}" />
+        <Setter Property="HeightRequest" Value="40" />
+        <Setter Property="WidthRequest" Value="40" />
+    </Style>
+
+    <!-- Empty State Styles -->
+    <Style x:Key="AppEmptyStateContainer" TargetType="Grid">
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="RowSpacing" Value="{StaticResource SectionSpacing}" />
+    </Style>
+
+    <Style x:Key="AppEmptyStateTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="AppEmptyStateSubtext" TargetType="Label">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="AppEmptyStateButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource DodgerBlue}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="MaximumWidthRequest" Value="300" />
+        <Setter Property="CornerRadius" Value="{StaticResource SmallCornerRadius}" />
+    </Style>
+
+</ResourceDictionary>

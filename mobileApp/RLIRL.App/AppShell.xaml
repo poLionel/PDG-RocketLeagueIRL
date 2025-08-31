@@ -12,5 +12,6 @@
     <ShellContent Route="wifi" ContentTemplate="{DataTemplate views:WifiConnectPage}"/>
     <ShellContent Route="menu" ContentTemplate="{DataTemplate views:MenuPage}"/>
     <ShellContent Route="game" ContentTemplate="{DataTemplate views:GamePage}"/>
+    <ShellContent Route="game-admin" ContentTemplate="{DataTemplate views:GameAdminPage}"/>
 
 </Shell>

@@ -7,19 +7,55 @@ using System.Net.WebSockets;
 
 namespace RLIRL.Server.Services
 {
-    internal class WebSocketProvider(IOptions<ServerConfiguration> serverConfiguration) : IWebSocketProvider
+    internal class WebSocketProvider(IOptions<ServerConfiguration> serverConfiguration) : IWebSocketProvider, IDisposable
     {
+        private ClientWebSocket? currentWebSocketClient;
+        private readonly SemaphoreSlim webSocketClientSemaphore = new(1, 1);
+        private bool disposed = false;
+
         public async Task<ClientWebSocket> GetWebSocketClientAsync(CancellationToken cancellationToken)
         {
-            var host = await GetHostAsync() ?? throw new WebSocketException("No valid host found for the server");
-            SocketsHttpHandler handler = new();
-            ClientWebSocket ws = new();
+            await webSocketClientSemaphore.WaitAsync(cancellationToken);
 
-            await ws.ConnectAsync(host, new HttpMessageInvoker(handler), cancellationToken);
-            if (ws.State != WebSocketState.Open)
-                throw new WebSocketException("Failed to connect to the WebSocket server");
+            try
+            {
+                // Check if we have an open connection and return it if so
+                if (currentWebSocketClient?.State == WebSocketState.Open)
+                    return currentWebSocketClient;
 
-            return ws;
+                // Clean up any existing closed/failed connection
+                if (currentWebSocketClient != null)
+                {
+                    currentWebSocketClient.Dispose();
+                    currentWebSocketClient = null;
+                }
+
+                // Create a new connection
+                var host = await GetHostAsync() ?? throw new WebSocketException("No valid host found for the server");
+                using var handler = new SocketsHttpHandler();
+                var ws = new ClientWebSocket();
+
+                try
+                {
+                    await ws.ConnectAsync(host, new HttpMessageInvoker(handler), cancellationToken);
+                    if (ws.State != WebSocketState.Open)
+                        throw new WebSocketException("Failed to connect to the WebSocket server");
+
+                    // Store the successful connection
+                    currentWebSocketClient = ws;
+                    return ws;
+                }
+                catch
+                {
+                    // Clean up failed connection attempt
+                    ws.Dispose();
+                    throw;
+                }
+            }
+            finally
+            {
+                webSocketClientSemaphore.Release();
+            }
         }
 
         private async Task<Uri?> GetHostAsync()
@@ -42,7 +78,6 @@ namespace RLIRL.Server.Services
             {
                 if (await IsServerAvailableAsync(gateway.Address, serverConfiguration.Value.Port))
                 {
-                    var protocole = serverConfiguration.Value.Secure ? "wss" : "ws";
                     var protocol = serverConfiguration.Value.Secure ? "wss" : "ws";
                     return new Uri($"{protocol}://{gateway.Address}:{serverConfiguration.Value.Port}");
                 }
@@ -64,6 +99,16 @@ namespace RLIRL.Server.Services
             catch (SocketException)
             {
                 return false;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (!disposed)
+            {
+                currentWebSocketClient?.Dispose();
+                webSocketClientSemaphore?.Dispose();
+                disposed = true;
             }
         }
     }

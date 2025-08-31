@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="RLIRL.App.Views.GamePage"
              xmlns:vm="clr-namespace:RLIRL.App.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="vm:GameViewModel">
     <Grid BackgroundColor="LightGray">
         <!-- HUD + Commandes -->
@@ -12,9 +13,9 @@
 
             <!-- HUD (score/chrono/connexion) -->
             <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="24" BackgroundColor="Black" Opacity="0.1" VerticalOptions="Center">
-                <Label Text="0" BackgroundColor="Blue" TextColor="White"/>
-                <Label Text="5:00" TextColor="White"/>
-                <Label Text="0" BackgroundColor="Orange" Background="Transparent" TextColor="White"/>
+                <Label Text="{Binding ScoreTeamA}" BackgroundColor="Blue" TextColor="White"/>
+                <Label Text="{Binding Timer}" TextColor="White"/>
+                <Label Text="{Binding ScoreTeamB}" BackgroundColor="Orange" Background="Transparent" TextColor="White"/>
             </HorizontalStackLayout>
 
             <!-- Zone commandes -->
@@ -68,9 +69,12 @@
                                 WidthRequest="110" HeightRequest="110"
                                 CornerRadius="55"
                                 FontAttributes="Bold"
-                                BackgroundColor="#EEEEEEAA"
-                                Pressed="OnSpeedPressed"
-                                Released="OnSpeedReleased">
+                                BackgroundColor="#EEEEEEAA">
+                            <Button.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding AcceleratePressedCommand}"/>
+                                <toolkit:EventToCommandBehavior EventName="Release" Command="{Binding AccelerateReleaseCommand}"/>
+                                <toolkit:EventToCommandBehavior EventName="PanUpdated" Command="{Binding SetBoostCommand}"/>
+                            </Button.Behaviors>
                             <Button.GestureRecognizers>
                                 <PanGestureRecognizer PanUpdated="OnSpeedPanUpdated"/>
                             </Button.GestureRecognizers>
@@ -93,7 +97,12 @@
                             FontAttributes="Bold"
                             BackgroundColor="#EEEEEEAA"
                             Pressed="OnBrakePressed"
-                            Released="OnBrakeReleased"/>
+                            Released="OnBrakeReleased">
+                        <Button.Behaviors>
+                            <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding BrakePressedCommand}"/>
+                            <toolkit:EventToCommandBehavior EventName="Release" Command="{Binding BrakeReleaseCommand}"/>
+                        </Button.Behaviors>
+                    </Button>
                 </VerticalStackLayout>
             </Grid>
         </Grid>
