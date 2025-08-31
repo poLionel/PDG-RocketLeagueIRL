@@ -5,6 +5,7 @@ using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Business.Abstractions.Models;
 using System.Collections.ObjectModel;
 using AutoMapper;
+using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.App.ViewModels
 {
@@ -26,21 +27,21 @@ namespace RLIRL.App.ViewModels
         public partial bool IsLoading { get; set; }
 
         private Timer? _gameTimer;
+        static DateTime? _gameTimerStartTime;
 
-        public async Task InitializeAsync()
+        public void Initialize()
         {
-            await RefreshGameStatusAsync();
-            await RefreshCameraFeedsAsync();
-            await RefreshCarsAsync();
+            RefreshGameStatus();
+            RefreshCameraFeeds();
+            RefreshCars();
 
             gameService.GameStatusChanged += OnGameStatusChanged;
         }
 
         [RelayCommand]
-        private async Task RefreshGameStatusAsync()
+        private void RefreshGameStatus()
         {
-            // TODO: Implement refresh game status logic
-            await Task.CompletedTask;
+            gameService.Refresh();
         }
 
         [RelayCommand]
@@ -50,57 +51,51 @@ namespace RLIRL.App.ViewModels
         }
 
         [RelayCommand]
-        private void PauseGame()
-        {
-            // TODO: Implement pause game logic
-        }
-
-        [RelayCommand]
         private void StopGame()
         {
             gameService.StopGame();
         }
 
         [RelayCommand]
-        private async Task ScoreGoalAsync(string team)
+        private void EndGame()
+        {
+            gameService.EndGame();
+        }
+
+        [RelayCommand]
+        private void ScoreGoal(string team)
         {
             // TODO: Implement goal scoring logic for the specified team
-            await Task.CompletedTask;
         }
 
         [RelayCommand]
-        private async Task UndoLastGoalAsync()
+        private void UndoLastGoal()
         {
             // TODO: Implement undo last goal logic
-            await Task.CompletedTask;
         }
 
         [RelayCommand]
-        private async Task RefreshCameraFeedsAsync()
+        private void RefreshCameraFeeds()
         {
             // TODO: Implement refresh camera feeds logic
-            await Task.CompletedTask;
         }
 
         [RelayCommand]
-        private async Task SelectPlayerCameraAsync(PlayerCameraFeedInfo cameraFeed)
+        private void SelectPlayerCamera(PlayerCameraFeedInfo cameraFeed)
         {
             // TODO: Implement select player camera logic
-            await Task.CompletedTask;
         }
 
         [RelayCommand]
-        private async Task RefreshCarsAsync()
+        private void RefreshCars()
         {
             // TODO: Implement refresh cars logic
-            await Task.CompletedTask;
         }
 
         [RelayCommand]
-        private async Task ToggleCarAssignmentAsync(CarInfo car)
+        private void ToggleCarAssignment(CarInfo car)
         {
             // TODO: Implement toggle car assignment logic
-            await Task.CompletedTask;
         }
 
         private void OnGameStatusChanged(object? sender, GameStatus? e)
@@ -108,14 +103,10 @@ namespace RLIRL.App.ViewModels
             if (e != null)
             {
                 // Map the GameStatus to GameInfo
-                var gameInfo = mapper.Map<GameInfo>(e);
-                Game = gameInfo;
+                Game = mapper.Map<GameInfo>(e);
 
-                // Update game status text
-                GameStatus = DetermineGameStatusText(e);
-
-                // Start or update timer if game is active
-                UpdateGameTimer(e);
+                // Update the timer
+                StartOrUpdateGameTimer();
             }
             else
             {
@@ -126,71 +117,42 @@ namespace RLIRL.App.ViewModels
             }
         }
 
-        private string DetermineGameStatusText(GameStatus gameStatus)
+        private void StartOrUpdateGameTimer()
         {
-            var now = DateTime.UtcNow;
-            
-            if (now < gameStatus.StartOn)
-                return "Game Scheduled";
-            else if (now >= gameStatus.StartOn && now < gameStatus.EndOn)
-                return "Game In Progress";
-            else
-                return "Game Finished";
+            // Do not start the timer if there is no start time
+            var gameStartTime = Game.StartTime;
+            if (gameStartTime == null) return;
+
+            // If the timer is already running and the game start time hasn't changed, do nothing
+            if (_gameTimer != null && gameStartTime.Equals(_gameTimerStartTime)) return;
+            _gameTimerStartTime = gameStartTime;
+
+            // Calculate the precise delay to the next second boundary
+            var offset = DateTime.UtcNow.Millisecond - gameStartTime.Value.Millisecond;
+            var initialDelay = TimeSpan.FromMilliseconds(1000 - (offset % 1000));
+
+            // Update the timer immediately to avoid waiting for the first tick
+            UpdateGameTimer();
+
+            // Start timer with precise initial delay, then tick every second
+            _gameTimer = new Timer(_ => UpdateGameTimer(), null, initialDelay, TimeSpan.FromSeconds(1));
         }
 
-        private void UpdateGameTimer(GameStatus gameStatus)
+        private void UpdateGameTimer()
         {
-            var now = DateTime.UtcNow;
+            // Get the time left in the game or zero if the game is over
+            var timeLeft = Game.StartTime?.AddSeconds(Game.MatchLengthSeconds) - DateTime.UtcNow;
+            if(timeLeft <= TimeSpan.Zero)
+                timeLeft = TimeSpan.Zero;
             
-            // Only start timer if game is in progress or scheduled to start soon
-            if (now < gameStatus.EndOn)
-            {
-                StartGameTimer(gameStatus.StartOn, gameStatus.EndOn);
-            }
-            else
-            {
-                StopGameTimer();
-            }
-        }
-
-        private void StartGameTimer(DateTime startTime, DateTime endTime)
-        {
-            // Stop existing timer if any
-            StopGameTimer();
-
-            // Start new timer that updates every second
-            _gameTimer = new Timer((_) =>
-            {
-                var now = DateTime.UtcNow;
-                
-                if (now < startTime)
-                {
-                    // Game hasn't started yet - show countdown to start
-                    var timeToStart = startTime - now;
-                    Game.TimeLeft = $"-{timeToStart:mm\\:ss}";
-                    Game.IsGameActive = false;
-                }
-                else if (now >= startTime && now < endTime)
-                {
-                    // Game is active - show time remaining
-                    var timeLeft = endTime - now;
-                    Game.TimeLeft = timeLeft.ToString(@"mm\:ss");
-                    Game.IsGameActive = true;
-                }
-                else
-                {
-                    // Game has ended
-                    Game.TimeLeft = "00:00";
-                    Game.IsGameActive = false;
-                    StopGameTimer();
-                }
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            Game.TimeLeft = $"{timeLeft:mm\\:ss}";
         }
 
         private void StopGameTimer()
         {
             _gameTimer?.Dispose();
             _gameTimer = null;
+            _gameTimerStartTime = null;
         }
 
         public void Dispose()

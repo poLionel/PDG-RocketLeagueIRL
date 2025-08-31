@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.App.Models
 {
@@ -14,12 +15,15 @@ namespace RLIRL.App.Models
         public partial string TimeLeft { get; set; } = "00:00";
 
         [ObservableProperty]
-        public partial DateTime StartTime { get; set; }
+        public partial int MatchLengthSeconds { get; set; }
 
         [ObservableProperty]
-        public partial DateTime EndTime { get; set; }
+        public partial DateTime? StartTime { get; set; }
 
         [ObservableProperty]
-        public partial bool IsGameActive { get; set; }
+        public partial GameState State { get; set; }
+
+        [ObservableProperty]
+        public partial string StateMessage { get; set; }
     }
 }

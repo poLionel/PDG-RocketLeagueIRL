@@ -14,13 +14,13 @@ public partial class GameAdminPage : ContentPage
         BindingContext = viewModel;
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
         
         if (BindingContext is GameAdminViewModel viewModel)
         {
-            await viewModel.InitializeAsync();
+            viewModel.Initialize();
         }
     }
 }

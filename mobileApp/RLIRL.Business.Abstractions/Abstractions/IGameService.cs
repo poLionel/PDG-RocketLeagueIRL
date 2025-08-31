@@ -24,6 +24,11 @@ namespace RLIRL.Business.Abstractions.Abstractions
         void UpdateGameStatus(GameStatus? status);
 
         /// <summary>
+        /// Request refres game data
+        /// </summary>
+        void Refresh();
+
+        /// <summary>
         /// Requests to start the game
         /// </summary>
         void StartGame();
@@ -32,6 +37,16 @@ namespace RLIRL.Business.Abstractions.Abstractions
         /// Requests to stop the game
         /// </summary>
         void StopGame();
+
+        /// <summary>
+        /// Request to resume the game
+        /// </summary>
+        void ResumeGame();
+
+        /// <summary>
+        /// Request to end the game
+        /// </summary>
+        void EndGame();
     }
 }
 

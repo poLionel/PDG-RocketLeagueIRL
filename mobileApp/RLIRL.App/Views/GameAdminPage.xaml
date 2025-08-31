@@ -82,7 +82,7 @@
 
                     <Button Grid.Column="1"
                             Text="Pause Game"
-                            Command="{Binding PauseGameCommand}"
+                            Command="{Binding StopGameCommand}"
                             Style="{StaticResource AdminPauseButton}">
                         <Button.ImageSource>
                             <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
@@ -94,7 +94,7 @@
 
                     <Button Grid.Column="2"
                             Text="Stop Game"
-                            Command="{Binding StopGameCommand}"
+                            Command="{Binding EndGameCommand}"
                             Style="{StaticResource AdminStopButton}">
                         <Button.ImageSource>
                             <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
@@ -111,7 +111,7 @@
                 <Grid ColumnSpacing="20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="75" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
@@ -125,11 +125,10 @@
 
                     <!-- Timer -->
                     <StackLayout Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" Spacing="{StaticResource TinySpacing}">
-                        <Image>
+                        <Image MaximumWidthRequest="40">
                             <Image.Source>
                                 <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
-                                                 Glyph="{x:Static fonts:FluentUI.clock_12_regular}"
-                                                 Size="{StaticResource LargeIconSize}"
+                                                 Glyph="{x:Static fonts:FluentUI.clock_24_regular}"
                                                  Color="{StaticResource DodgerBlue}" />
                             </Image.Source>
                         </Image>

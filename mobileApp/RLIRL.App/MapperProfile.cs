@@ -3,6 +3,7 @@ using MauiWifiManager.Abstractions;
 using RLIRL.App.Models;
 using RLIRL.App.Resources.Fonts;
 using RLIRL.Business.Abstractions.Models;
+using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.App
 {
@@ -17,10 +18,11 @@ namespace RLIRL.App
             _ = CreateMap<GameStatus, GameInfo>()
                 .ForMember(dest => dest.BlueScore, opt => opt.MapFrom(src => src.BlueTeamScore))
                 .ForMember(dest => dest.RedScore, opt => opt.MapFrom(src => src.RedTeamScore))
-                .ForMember(dest => dest.TimeLeft, opt => opt.MapFrom(src => CalculateTimeLeft(src.EndOn)))
-                .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartOn))
-                .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndOn))
-                .ForMember(dest => dest.IsGameActive, opt => opt.MapFrom(src => IsGameCurrentlyActive(src.StartOn, src.EndOn)));
+                .ForMember(dest => dest.MatchLengthSeconds, opt => opt.MapFrom(src => src.MatchLengthSeconds))
+                .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartDate))
+                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.State))
+                .ForMember(dest => dest.StateMessage, opt => opt.MapFrom(src => GetStateMessage(src.State)));
+
         }
 
         private static string? GetIconForSignalStrenght(object? signalStrength) => signalStrength switch
@@ -33,20 +35,11 @@ namespace RLIRL.App
             _ => null
         };
 
-        private static string CalculateTimeLeft(DateTime endTime)
+        private static string GetStateMessage(GameState state) => state switch
         {
-            var timeLeft = endTime - DateTime.UtcNow;
-            
-            if (timeLeft <= TimeSpan.Zero)
-                return "00:00";
-                
-            return timeLeft.ToString(@"mm\:ss");
-        }
-
-        private static bool IsGameCurrentlyActive(DateTime startTime, DateTime endTime)
-        {
-            var now = DateTime.UtcNow;
-            return now >= startTime && now < endTime;
-        }
+            GameState.Active => "Game in progress",
+            GameState.Paused => "Game paused",
+            GameState.Ended => "Game finished"
+        };
     }
 }
