@@ -70,14 +70,14 @@
                                 CornerRadius="55"
                                 FontAttributes="Bold"
                                 BackgroundColor="#EEEEEEAA">
-                            <Button.Behaviors>
-                                <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding AcceleratePressedCommand}"/>
-                                <toolkit:EventToCommandBehavior EventName="Release" Command="{Binding AccelerateReleaseCommand}"/>
-                                <toolkit:EventToCommandBehavior EventName="PanUpdated" Command="{Binding SetBoostCommand}"/>
-                            </Button.Behaviors>
+
                             <Button.GestureRecognizers>
                                 <PanGestureRecognizer PanUpdated="OnSpeedPanUpdated"/>
                             </Button.GestureRecognizers>
+                            <Button.Behaviors>
+                                <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding AcceleratePressedCommand}"/>
+                                <toolkit:EventToCommandBehavior EventName="Released" Command="{Binding AccelerateReleaseCommand}"/>
+                            </Button.Behaviors>
                             <Button.Triggers>
                                 <!-- effet visuel quand boost actif -->
                                 <DataTrigger TargetType="Button"
@@ -85,6 +85,11 @@
                                              Value="True">
                                     <Setter Property="BackgroundColor" Value="#00E676AA"/>
                                     <Setter Property="Scale" Value="1.05"/>
+                                    <Setter Property="Shadow">
+                                        <Setter.Value>
+                                            <Shadow Brush="Black" Offset="0,6" Radius="12" Opacity="0.35"/>
+                                        </Setter.Value>
+                                    </Setter>
                                 </DataTrigger>
                             </Button.Triggers>
                         </Button>
@@ -95,12 +100,10 @@
                             WidthRequest="110" HeightRequest="110"
                             CornerRadius="55"
                             FontAttributes="Bold"
-                            BackgroundColor="#EEEEEEAA"
-                            Pressed="OnBrakePressed"
-                            Released="OnBrakeReleased">
+                            BackgroundColor="#EEEEEEAA">
                         <Button.Behaviors>
                             <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding BrakePressedCommand}"/>
-                            <toolkit:EventToCommandBehavior EventName="Release" Command="{Binding BrakeReleaseCommand}"/>
+                            <toolkit:EventToCommandBehavior EventName="Released" Command="{Binding BrakeReleaseCommand}"/>
                         </Button.Behaviors>
                     </Button>
                 </VerticalStackLayout>

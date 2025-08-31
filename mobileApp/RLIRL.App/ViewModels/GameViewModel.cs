@@ -4,7 +4,6 @@ using RLIRL.App.Models;
 using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Business.Abstractions.Models;
 using RLIRL.Server.Abstractions.ClientCommands;
-using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.App.ViewModels
 {
@@ -12,7 +11,7 @@ namespace RLIRL.App.ViewModels
     {
         #region Constructor
 
-        public GameViewModel(ICarControlService carControlService, IGameService gameService) 
+        public GameViewModel(ICarControlService carControlService, IGameService gameService)
         {
             _carControlService = carControlService;
             _gameService = gameService;
@@ -25,16 +24,16 @@ namespace RLIRL.App.ViewModels
         #region Commands 
 
         [RelayCommand]
-        private void AcceleratePressed() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Forward);
+        private void AcceleratePressed() => _carControlService.SetDirection(Direction.Forward);
 
         [RelayCommand]
-        private void AccelerateRelease() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Stopped);
+        private void AccelerateRelease() => _carControlService.SetDirection(Direction.Stopped);
 
         [RelayCommand]
-        private void BrakePressed() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Backward); //TODO maybe change logic
+        private void BrakePressed() => _carControlService.SetDirection(Direction.Backward);
 
         [RelayCommand]
-        private void BrakeRelease() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Stopped);
+        private void BrakeRelease() => _carControlService.SetDirection(Direction.Stopped);
 
         [RelayCommand]
         private void SetBoost(bool isActive) => _carControlService.SetBoost(isActive);

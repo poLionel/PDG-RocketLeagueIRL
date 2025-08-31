@@ -74,21 +74,6 @@ public partial class GamePage : ContentPage
         }
     }
 
-    /* ===================== SPEED ===================== */
-    void OnSpeedPressed(object sender, EventArgs e)
-    {
-        //if (BindingContext is GameViewModel vm) vm.StartAccelerate();
-    }
-
-    void OnSpeedReleased(object sender, EventArgs e)
-    {
-        //if (BindingContext is GameViewModel vm)
-        //{
-        //    vm.StopAccelerate();
-        //    vm.SetBoost(false);
-        //}
-    }
-
     void OnSpeedPanUpdated(object? sender, PanUpdatedEventArgs e)
     {
         if (BindingContext is not GameViewModel vm) return;
@@ -103,17 +88,6 @@ public partial class GamePage : ContentPage
         {
             //vm.SetBoost(false);
         }
-    }
-
-    /* ===================== BRAKE ===================== */
-    void OnBrakePressed(object sender, EventArgs e)
-    {
-        //if (BindingContext is GameViewModel vm) vm.StartBrake();
-    }
-
-    void OnBrakeReleased(object sender, EventArgs e)
-    {
-        //if (BindingContext is GameViewModel vm) vm.StopBrake();
     }
 
     protected override void OnAppearing()
