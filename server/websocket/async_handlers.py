@@ -11,13 +11,28 @@ Key functions:
 - WiFi provisioning for car setup
 - Real-time motor control with feedback
 - Asynchronous device discovery and pairing
+- Game management with broadcasting
 """
 
 import asyncio
 import logging
+from datetime import datetime
 from bluetooth.handlers import get_bluetooth_service
 
 logger = logging.getLogger(__name__)
+
+# Global reference to broadcast function (set by websocket module)
+broadcast_function = None
+
+def set_broadcast_function(func):
+    """Set the broadcast function for async handlers to use."""
+    global broadcast_function
+    broadcast_function = func
+
+async def broadcast_response(response_data):
+    """Broadcast the response data to all connected clients."""
+    if broadcast_function:
+        await broadcast_function(response_data)
 
 async def handle_send_to_car_async(data, car_manager=None):
     """
@@ -343,11 +358,194 @@ async def handle_switch_to_control_phase_async(data, car_manager=None):
             "message": f"Error switching to control phase: {str(e)}"
         }
 
-# Export the async handler
+# ============================================================================
+# ASYNC GAME MANAGEMENT HANDLERS
+# ============================================================================
+
+async def handle_start_game_async(data, game_manager=None):
+    """Handle start game requests. This resets and starts the game."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "start_game",
+            "message": "Game manager not available"
+        }
+    
+    match_length = data.get("match_length_seconds")
+    
+    # Validate match length if provided
+    if match_length is not None:
+        try:
+            match_length = int(match_length)
+            if match_length <= 0:
+                raise ValueError("Match length must be positive")
+        except (ValueError, TypeError):
+            return {
+                "status": "error",
+                "action": "start_game",
+                "message": "Invalid match length. Must be a positive integer."
+            }
+    
+    success = game_manager.start_game(match_length)
+    
+    if success:
+        response = {
+            "status": "success",
+            "action": "start_game",
+            "message": "Game started!"
+        }
+        
+        # Broadcast the same response to all clients
+        await broadcast_response(response)
+        
+        return response
+    else:
+        return {
+            "status": "error",
+            "action": "start_game",
+            "message": "Failed to start game"
+        }
+
+async def handle_stop_game_async(data, game_manager=None):
+    """Handle stop game requests. This pauses the game."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "stop_game",
+            "message": "Game manager not available"
+        }
+    
+    success = game_manager.stop_game()
+    
+    if success:
+        response = {
+            "status": "success",
+            "action": "stop_game",
+            "message": "Game stopped!"
+        }
+        
+        # Broadcast the same response to all clients
+        await broadcast_response(response)
+        
+        return response
+    else:
+        return {
+            "status": "error",
+            "action": "stop_game",
+            "message": "No active game to stop"
+        }
+
+async def handle_resume_game_async(data, game_manager=None):
+    """Handle resume game requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "resume_game",
+            "message": "Game manager not available"
+        }
+    
+    success = game_manager.resume_game()
+    
+    if success:
+        response = {
+            "status": "success",
+            "action": "resume_game",
+            "message": "Game resumed!"
+        }
+        
+        # Broadcast the same response to all clients
+        await broadcast_response(response)
+        
+        return response
+    else:
+        return {
+            "status": "error",
+            "action": "resume_game",
+            "message": "Cannot resume game. Game may not be paused or may be finished."
+        }
+
+async def handle_end_game_async(data, game_manager=None):
+    """Handle end game requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "end_game",
+            "message": "Game manager not available"
+        }
+    
+    # Get game status before ending for broadcast
+    current_game = game_manager.get_current_game()
+    pre_end_status = current_game.to_dict()
+    
+    success = game_manager.end_game()
+    
+    if success:
+        response = {
+            "status": "success",
+            "action": "end_game",
+            "message": "Game ended!"
+        }
+        
+        # Broadcast the same response to all clients
+        await broadcast_response(response)
+        
+        return response
+    else:
+        return {
+            "status": "error",
+            "action": "end_game",
+            "message": "Failed to end game"
+        }
+
+async def handle_goal_scored_async(data, game_manager=None):
+    """Handle goal scored requests (maps to score_goal functionality)."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "goal_scored",
+            "message": "Game manager not available"
+        }
+    
+    team_color = data.get("team")
+    player_id = data.get("player_id")
+    car_id = data.get("car_id")
+    
+    if not team_color:
+        return {
+            "status": "error",
+            "action": "goal_scored",
+            "message": "Team color is required"
+        }
+    
+    success = game_manager.score_goal(team_color, player_id, car_id)
+    
+    if success:
+        response = {
+            "status": "success",
+            "action": "goal_scored",
+            "message": f"Goal scored by {team_color} team!"
+        }
+        
+        # Broadcast the same response to all clients
+        await broadcast_response(response)
+        
+        return response
+    else:
+        return {
+            "status": "error",
+            "action": "goal_scored",
+            "message": f"Failed to score goal. Invalid team '{team_color}' or no active game."
+        }# Export the async handler
 ASYNC_HANDLERS = {
     "send_to_car": handle_send_to_car_async,
     "set_wifi_credentials": handle_set_wifi_credentials_async,
     "connect_to_car": handle_connect_to_car_async,
     "switch_to_scan_phase": handle_switch_to_scan_phase_async,
     "switch_to_control_phase": handle_switch_to_control_phase_async,
+    # Game management async handlers
+    "start_game": handle_start_game_async,
+    "stop_game": handle_stop_game_async,
+    "resume_game": handle_resume_game_async,
+    "end_game": handle_end_game_async,
+    "goal_scored": handle_goal_scored_async,
 }

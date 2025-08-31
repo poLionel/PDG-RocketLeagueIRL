@@ -255,7 +255,14 @@ Server responds:
         "cars": [2, 3]
       }
     },
-    "time_remaining": 300
+    "time_remaining": 300,
+    "elapsed_time": 120,
+    "state": "active",
+    "match_length_seconds": 300,
+    "start_date": "2025-08-29T14:30:00.123456",
+    "total_paused_time": 0,
+    "is_active": true,
+    "is_finished": false
   }
 }
 ```
@@ -297,6 +304,110 @@ Server responds:
   "status": "success",
   "action": "stop_game",
   "message": "Game stopped!"
+}
+```
+
+### Resume the game <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "resume_game"
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "resume_game",
+  "message": "Game resumed!"
+}
+```
+
+### End the game <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "end_game"
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "end_game",
+  "message": "Game ended!"
+}
+```
+
+### Add team <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "add_team",
+  "color": "green"
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "add_team",
+  "message": "Team 'Green Team' added successfully"
+}
+```
+
+### Add car to team <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "add_car_to_team",
+  "car_id": 2,
+  "team": "red"
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "add_car_to_team",
+  "message": "Car 2 added to red team"
+}
+```
+
+### Remove car from teams <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "remove_car_from_teams",
+  "car_id": 2
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "remove_car_from_teams",
+  "message": "Car 2 removed from all teams"
 }
 ```
 
