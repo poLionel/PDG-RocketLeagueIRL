@@ -6,8 +6,6 @@ namespace RLIRL.App.ViewModels
 {
     public partial class CarSelectorViewModel : ObservableObject, IDisposable
     {
-        private readonly ICarService _carService;
-
         [ObservableProperty]
         public partial int BlueTeamCarsAvailable { get; set; }
 
@@ -25,6 +23,8 @@ namespace RLIRL.App.ViewModels
 
         [ObservableProperty]
         public partial bool HasAnyCarsAvailable { get; set; }
+
+        private readonly ICarService _carService;
 
         public CarSelectorViewModel(ICarService carService)
         {

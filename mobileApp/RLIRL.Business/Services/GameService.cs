@@ -5,11 +5,21 @@ using RLIRL.Server.Abstractions.ClientCommands;
 
 namespace RLIRL.Business.Services
 {
-    internal class GameService(IClientCommandQueue clientCommandQueue) : IGameService
+    internal class GameService : IGameService
     {
+        private readonly IClientCommandQueue clientCommandQueue;
+
         public GameStatus? CurrentGameStatus { get; private set; }
 
         public event EventHandler<GameStatus?>? GameStatusChanged;
+
+        public GameService(IClientCommandQueue clientCommandQueue)
+        {
+            this.clientCommandQueue = clientCommandQueue;
+
+            // Send an initial refresh to get the current game status
+            Refresh();
+        }
 
         public void UpdateGameStatus(GameStatus? status)
         {
@@ -32,9 +42,6 @@ namespace RLIRL.Business.Services
             // Send a request to start the game
             var startGameCommand = new StartGameCommand();
             clientCommandQueue.EnqueueCommand(startGameCommand);
-
-            // Ask refresh data
-            Refresh();
         }
 
         public void StopGame()
@@ -42,9 +49,6 @@ namespace RLIRL.Business.Services
             // Send a request to stop the game
             var stopGameCommand = new StopGameCommand();
             clientCommandQueue.EnqueueCommand(stopGameCommand);
-
-            // Ask refresh data
-            Refresh();
         }
 
         public void ResumeGame()
@@ -52,9 +56,6 @@ namespace RLIRL.Business.Services
             // Send a request to resume the game
             var resumeGameCommand = new ResumeGameCommand();
             clientCommandQueue.EnqueueCommand(resumeGameCommand);
-
-            // Ask refresh data
-            Refresh();
         }
 
         public void EndGame()

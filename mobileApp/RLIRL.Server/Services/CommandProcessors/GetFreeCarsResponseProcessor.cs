@@ -1,13 +1,15 @@
+using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Server.Abstractions;
 using RLIRL.Server.Abstractions.ServerCommands;
 
 namespace RLIRL.Server.Services.CommandProcessors
 {
-    internal class GetFreeCarsResponseProcessor : ServerResponseProcessorBase<GetFreeCarsResponse>
+    internal class GetFreeCarsResponseProcessor(ICarService carService) : ServerResponseProcessorBase<GetFreeCarsResponse>
     {
         public override Task ProcessResponseAsync(GetFreeCarsResponse response)
         {
-            throw new NotImplementedException();
+            carService.UpdateFreeCars(response.FreeCars);
+            return Task.CompletedTask;
         }
     }
 }
