@@ -38,10 +38,6 @@ namespace RLIRL.App
             builder.Logging.AddDebug();
 #endif
 
-#if ANDROID
-            builder.Services.AddSingleton<IOrientationService, RLIRL.App.Platforms.Android.OrientationService>();
-#endif
-
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
             builder.Services.AddAutoMapper(cfg => { }, typeof(MapperProfile));

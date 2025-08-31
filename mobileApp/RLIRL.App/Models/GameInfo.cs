@@ -12,9 +12,6 @@ namespace RLIRL.App.Models
         public partial int RedScore { get; set; }
 
         [ObservableProperty]
-        public partial string TimeLeft { get; set; } = "00:00";
-
-        [ObservableProperty]
         public partial int MatchLengthSeconds { get; set; }
 
         [ObservableProperty]
