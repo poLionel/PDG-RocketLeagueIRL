@@ -6,6 +6,8 @@ namespace RLIRL.App.ViewModels
 {
     public partial class CarSelectorViewModel : ObservableObject, IDisposable
     {
+        private const int LOADING_TIMEOUT_MS = 2000;
+
         [ObservableProperty]
         public partial int BlueTeamCarsAvailable { get; set; }
 
@@ -25,6 +27,7 @@ namespace RLIRL.App.ViewModels
         public partial bool HasAnyCarsAvailable { get; set; }
 
         private readonly ICarService _carService;
+        private CancellationTokenSource? _loadingCancellationTokenSource;
 
         public CarSelectorViewModel(ICarService carService)
         {
@@ -42,12 +45,16 @@ namespace RLIRL.App.ViewModels
         private void JoinBlueTeam()
         {
             if (!IsBlueTeamAvailable || IsLoading) return;
-            
-            IsLoading = true;
+
+            SetLoading();
 
             // TODO : Filter cars by team when backend supports it
             var availableCars = _carService.FreeCars.ToList();
-            if (availableCars.Count == 0) return;
+            if (availableCars.Count == 0) 
+            {
+                SetNotLoading();
+                return;
+            }
 
             _carService.SelectCar(availableCars[0]);
         }
@@ -56,14 +63,57 @@ namespace RLIRL.App.ViewModels
         private void JoinRedTeam()
         {
             if (!IsRedTeamAvailable || IsLoading) return;
-            
-            IsLoading = true;
+
+            SetLoading();
 
             // TODO : Filter cars by team when backend supports it
             var availableCars = _carService.FreeCars.ToList();
-            if (availableCars.Count <= 0) return;
+            if (availableCars.Count <= 0) 
+            {
+                SetNotLoading();
+                return;
+            }
 
             _carService.SelectCar(availableCars[0]);
+        }
+
+        private void SetLoading()
+        {
+            if (IsLoading) return;
+
+            IsLoading = true;
+
+            // Cancel any existing loading timeout
+            _loadingCancellationTokenSource?.Cancel();
+            _loadingCancellationTokenSource?.Dispose();
+
+            // Set loading state with a timeout to avoid indefinite loading
+            _loadingCancellationTokenSource = new CancellationTokenSource();
+            
+            // Start timeout task
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(LOADING_TIMEOUT_MS, _loadingCancellationTokenSource.Token);
+                    MainThread.BeginInvokeOnMainThread(() => SetNotLoading());
+                }
+                catch (OperationCanceledException)
+                {
+                    // Expected when cancelled, do nothing
+                }
+            });
+        }
+
+        private void SetNotLoading()
+        {
+            if (!IsLoading) return;
+
+            _loadingCancellationTokenSource?.Cancel();
+            _loadingCancellationTokenSource?.Dispose();
+            _loadingCancellationTokenSource = null;
+            
+            IsLoading = false;
         }
 
         private void OnFreeCarsChanged(object? sender, IEnumerable<int> freeCars)
@@ -73,7 +123,7 @@ namespace RLIRL.App.ViewModels
 
         private void OnCurrentCarChanged(object? sender, int? currentCar)
         {
-            IsLoading = false;
+            SetNotLoading();
             
             if (currentCar.HasValue)
             {
@@ -103,6 +153,9 @@ namespace RLIRL.App.ViewModels
         {
             _carService.FreeCarsChanged -= OnFreeCarsChanged;
             _carService.CurrentCarChanged -= OnCurrentCarChanged;
+            
+            _loadingCancellationTokenSource?.Cancel();
+            _loadingCancellationTokenSource?.Dispose();
         }
     }
 }
