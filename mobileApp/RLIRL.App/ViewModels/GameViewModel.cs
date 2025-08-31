@@ -1,8 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RLIRL.App.Models;
 using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Business.Abstractions.Models;
+using RLIRL.Business.Services;
 using RLIRL.Server.Abstractions.ClientCommands;
+using System.Diagnostics;
 
 namespace RLIRL.App.ViewModels
 {
@@ -10,11 +13,15 @@ namespace RLIRL.App.ViewModels
     {
         #region Constructor
 
-        public GameViewModel(ICarControlService carControlService) 
+        public GameViewModel(ICarControlService carControlService, IGameService gameService, ITimerService timerService)
         {
             _carControlService = carControlService;
-            //_gameService = gameService;
-            Timer = string.Empty;
+            _gameService = gameService;
+            _timerService = timerService;
+
+            _gameService.GameStatusChanged += OnGameStatusChanged;
+            _timerService.TimeLeftChanged += OnTimerChanged;
+            
         }
 
         #endregion
@@ -22,16 +29,24 @@ namespace RLIRL.App.ViewModels
         #region Commands 
 
         [RelayCommand]
-        private void AcceleratePressed() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Forward);
+        private void AcceleratePressed()
+        {
+            _carControlService.SetDirection(Direction.Forward);
+            IsClicked = true;
+        }
 
         [RelayCommand]
-        private void AccelerateRelease() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Stopped);
+        private void AccelerateRelease()
+        {
+            _carControlService.SetDirection(Direction.Stopped);
+            IsClicked = false;
+        }
 
         [RelayCommand]
-        private void BrakePressed() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Backward); //TODO maybe change logic
+        private void BrakePressed() => _carControlService.SetDirection(Direction.Backward);
 
         [RelayCommand]
-        private void BrakeRelease() => _carControlService.SetDirection(Server.Abstractions.ClientCommands.Direction.Stopped);
+        private void BrakeRelease() => _carControlService.SetDirection(Direction.Stopped);
 
         [RelayCommand]
         private void SetBoost(bool isActive) => _carControlService.SetBoost(isActive);
@@ -45,12 +60,22 @@ namespace RLIRL.App.ViewModels
         /// <inheritdoc />
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _gameService.GameStatusChanged -= OnGameStatusChanged;
+            _timerService.TimeLeftChanged -= OnTimerChanged;
         }
 
-        public void UpdateGameStatus(GameStatus? status)
+
+        private void OnGameStatusChanged(object? sender, GameStatus? e)
         {
-            throw new NotImplementedException();
+            if (e != null)
+                Game ??= new();
+            else
+                Game = new GameInfo();
+        }
+
+        private void OnTimerChanged(object? sender, TimeSpan e)
+        {
+            Timer = e.ToString(@"m\:ss");
         }
 
         #endregion
@@ -58,22 +83,22 @@ namespace RLIRL.App.ViewModels
         #region Properties
 
         [ObservableProperty]
-        private bool _isBoosting;
+        public partial bool IsBoosting { get; set; } //TODO need to use it for SetBoost
 
         [ObservableProperty]
-        private int _steering;
+        public partial int Steering { get; set; }
 
         [ObservableProperty]
-        private Direction _direction;
+        public partial Direction Direction { get; set; }
 
         [ObservableProperty]
-        private int scoreTeamA;
+        public partial GameInfo Game { get; set; } = new();
 
         [ObservableProperty]
-        private int scoreTeamB;
+        public partial string Timer { get; set; } = "5:00";
 
         [ObservableProperty]
-        private string timer;
+        public partial bool IsClicked { get; set; } = false;
 
         #endregion
 
@@ -83,10 +108,8 @@ namespace RLIRL.App.ViewModels
 
         private readonly IGameService _gameService;
 
+        private readonly ITimerService _timerService;
+
         #endregion
-
-        public event EventHandler<GameStatus?>? GameStatusChanged;
-
-        public GameStatus? CurrentGameStatus => throw new NotImplementedException();
     }
 }
