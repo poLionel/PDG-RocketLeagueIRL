@@ -2,7 +2,7 @@
 
 namespace RLIRL.Server.Services
 {
-    internal class CameraFeedService : ICameraFeedService
+    internal class ServerCameraFeedService : IServerCameraFeedService
     {
         public Task<Stream?> GetCameraFeedAsync(string id)
         {

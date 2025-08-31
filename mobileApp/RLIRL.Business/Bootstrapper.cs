@@ -11,6 +11,7 @@ namespace RLIRL.Business
         {
             services.AddSingleton<IGameService, GameService>();
             services.AddSingleton<ICarControlService, CarControlService>();
+            services.AddSingleton<ICameraFeedService, CameraFeedService>();
 
             return services;
         }

@@ -9,7 +9,7 @@ using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.App.ViewModels
 {
-    public partial class GameAdminViewModel(IGameService gameService, IMapper mapper) : ObservableObject, IDisposable
+    public partial class GameAdminViewModel(IGameService gameService, ICameraFeedService cameraFeedService, IMapper mapper) : ObservableObject, IDisposable
     {
         [ObservableProperty]
         public partial string GameStatus { get; set; } = "Game Stopped";
@@ -48,6 +48,7 @@ namespace RLIRL.App.ViewModels
             RefreshCars();
 
             gameService.GameStatusChanged += OnGameStatusChanged;
+            cameraFeedService.CameraFeedsChanged += CameraFeedsChanged;
         }
 
         [RelayCommand]
@@ -77,7 +78,7 @@ namespace RLIRL.App.ViewModels
         [RelayCommand]
         private void ScoreGoal(string team)
         {
-            // TODO: Implement goal scoring logic for the specified team
+            gameService.ScoreGoal(team);
         }
 
         [RelayCommand]
@@ -89,7 +90,7 @@ namespace RLIRL.App.ViewModels
         [RelayCommand]
         private void RefreshCameraFeeds()
         {
-            // TODO: Implement refresh camera feeds logic
+            cameraFeedService.Refresh();
         }
 
         [RelayCommand]
@@ -121,7 +122,7 @@ namespace RLIRL.App.ViewModels
                 StartOrUpdateGameTimer();
 
                 // Update the button states
-                CanStartGame = e.State == GameState.Ended || e.State == GameState.Paused;
+                CanStartGame = e.State == GameState.Ended || e.State == GameState.NotStarted;
                 CanStopGame = e.State == GameState.Active;
                 CanEndGame = e.State == GameState.Active || e.State == GameState.Paused;
                 CanScoreGoal = e.State == GameState.Active || e.State == GameState.Paused;
@@ -135,8 +136,16 @@ namespace RLIRL.App.ViewModels
             }
         }
 
+        private void CameraFeedsChanged(object? sender, IEnumerable<CameraFeed>? e)
+        {
+            // TODO: Handle null case if needed
+        }
+
         private void StartOrUpdateGameTimer()
         {
+            // Update the timer immediately to avoid waiting for the first tick
+            UpdateGameTimer();
+
             // Do not start the timer if there is no start time
             var gameStartTime = Game.StartTime;
             if (gameStartTime == null) return;
@@ -149,18 +158,18 @@ namespace RLIRL.App.ViewModels
             var offset = DateTime.UtcNow.Millisecond - gameStartTime.Value.Millisecond;
             var initialDelay = TimeSpan.FromMilliseconds(1000 - (offset % 1000));
 
-            // Update the timer immediately to avoid waiting for the first tick
-            UpdateGameTimer();
-
             // Start timer with precise initial delay, then tick every second
             _gameTimer = new Timer(_ => UpdateGameTimer(), null, initialDelay, TimeSpan.FromSeconds(1));
         }
 
         private void UpdateGameTimer()
         {
+            // Do not update when the game is paused
+            if (Game.State == GameState.Paused) return;
+
             // Get the time left in the game or zero if the game is over
             var timeLeft = Game.StartTime?.AddSeconds(Game.MatchLengthSeconds) - DateTime.UtcNow;
-            if(timeLeft <= TimeSpan.Zero)
+            if(timeLeft <= TimeSpan.Zero || Game.State == GameState.Ended)
                 timeLeft = TimeSpan.Zero;
             
             Game.TimeLeft = $"{timeLeft:mm\\:ss}";
@@ -176,6 +185,7 @@ namespace RLIRL.App.ViewModels
         public void Dispose()
         {
             gameService.GameStatusChanged -= OnGameStatusChanged;
+            cameraFeedService.CameraFeedsChanged -= CameraFeedsChanged;
             StopGameTimer();
         }
     }

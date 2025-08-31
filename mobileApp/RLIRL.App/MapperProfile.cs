@@ -39,7 +39,9 @@ namespace RLIRL.App
         {
             GameState.Active => "Game in progress",
             GameState.Paused => "Game paused",
-            GameState.Ended => "Game finished"
+            GameState.Ended => "Game finished",
+            GameState.NotStarted => "Game not started",
+            _ => string.Empty
         };
     }
 }

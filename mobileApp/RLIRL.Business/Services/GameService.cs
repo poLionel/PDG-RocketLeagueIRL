@@ -2,8 +2,6 @@
 using RLIRL.Business.Abstractions.Models;
 using RLIRL.Server.Abstractions.Abstractions;
 using RLIRL.Server.Abstractions.ClientCommands;
-using RLIRL.Server.Abstractions.ServerCommands;
-using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.Business.Services
 {
@@ -27,22 +25,6 @@ namespace RLIRL.Business.Services
             // Send a request to refresh the game status
             var refreshCommand = new GetGameStatusCommand();
             clientCommandQueue.EnqueueCommand(refreshCommand);
-
-            // Send a test event to simulate receiving a response
-            CurrentGameStatus = new GameStatus
-            {
-                RedTeamScore = 3,
-                RedTeamCars = [1, 2, 3],
-                BlueTeamScore = 2,
-                BlueTeamCars = [4, 5, 6],
-                TimeRemaining = 120,
-                ElapsedTime = 180,
-                State = GameState.Active,
-                MatchLengthSeconds = 300,
-                StartDate = DateTime.UtcNow.AddSeconds(-180),
-                TotalPausedTime = 0,
-            };
-            GameStatusChanged?.Invoke(this, CurrentGameStatus);
         }
 
         public void StartGame()
@@ -71,6 +53,16 @@ namespace RLIRL.Business.Services
             // Send a request to end the game
             var endGameCommand = new EndGameCommand();
             clientCommandQueue.EnqueueCommand(endGameCommand);
+        }
+
+        public void ScoreGoal(string team)
+        {
+            // Send a request to score a goal
+            var scoreGoalCommand = new GoalScoredCommand()
+            {
+                Team = team
+            };
+            clientCommandQueue.EnqueueCommand(scoreGoalCommand);
         }
     }
 }

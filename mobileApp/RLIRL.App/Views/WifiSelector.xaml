@@ -77,9 +77,9 @@
                                         <Image Grid.Column="0" 
                                                IsVisible="{Binding Icon, Converter={toolkit:IsStringNotNullOrWhiteSpaceConverter}}" >
                                             <Image.Source>
-                                                <FontImageSource FontFamily="FluentUI"
-                                                     Glyph="{Binding Icon}"
-                                                     Size="{StaticResource NetworkIconSize}" />
+                                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                                 Glyph="{Binding Icon}"
+                                                                 Size="{StaticResource NetworkIconSize}" />
                                             </Image.Source>
                                         </Image>
 

@@ -42,7 +42,7 @@
 
                     <StackLayout Grid.Column="1" VerticalOptions="Center">
                         <Label Text="Game Administration" Style="{StaticResource AdminPageTitle}" />
-                        <Label Text="{Binding GameStatus}" Style="{StaticResource AdminSubtitle}" />
+                        <Label Text="{Binding Game.StateMessage}" Style="{StaticResource AdminSubtitle}" />
                     </StackLayout>
 
                     <Border Grid.Column="2" Style="{StaticResource AppRefreshButtonContainer}">

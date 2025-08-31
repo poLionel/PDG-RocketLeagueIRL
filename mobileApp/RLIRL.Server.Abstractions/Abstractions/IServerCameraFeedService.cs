@@ -3,7 +3,7 @@
     /// <summary>
     /// Interface for camera feed services
     /// </summary>
-    public interface ICameraFeedService
+    public interface IServerCameraFeedService
     {
         /// <summary>
         /// Retrieves the camera feed stream for a given camera ID

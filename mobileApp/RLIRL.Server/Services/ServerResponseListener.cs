@@ -7,6 +7,7 @@ using System.Net.WebSockets;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace RLIRL.Server.Services
 {
@@ -25,6 +26,12 @@ namespace RLIRL.Server.Services
         private readonly Lock serviceLock = new();
 
         private readonly IDictionary<string, Type> responseTypes = GetresponseTypes();
+
+        private static readonly JsonSerializerOptions jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower) }
+        };
 
         public void Start()
         {
@@ -106,7 +113,7 @@ namespace RLIRL.Server.Services
                         throw new InvalidOperationException($"No response type found for action '{responseAction}'");
 
                     // Deserialize the response message into the appropriate response object
-                    var response = JsonSerializer.Deserialize(message, responseType)
+                    var response = JsonSerializer.Deserialize(message, responseType, jsonOptions)
                         ?? throw new InvalidOperationException($"Failed to deserialize response of type '{responseType.Name}'");
 
                     // Get the response processor from the service provider

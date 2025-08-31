@@ -47,6 +47,12 @@ namespace RLIRL.Business.Abstractions.Abstractions
         /// Request to end the game
         /// </summary>
         void EndGame();
+
+        /// <summary>
+        /// Request to score a goal
+        /// </summary>
+        /// <param name="team">Team that scored the goal</param>
+        void ScoreGoal(string team);
     }
 }
 
