@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rocket League IRL WebSocket Test</title>
+    <title>Rocket League IRL WebSocket API Tester</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -143,7 +143,7 @@
     </style>
 </head>
 <body>
-    <h1>Rocket League IRL WebSocket Test Interface</h1>
+    <h1>🚗⚽ Rocket League IRL WebSocket API Tester</h1>
     
     <div class="container">
         <h2>📱 Connection Status</h2>
@@ -199,7 +199,113 @@
     </div>
 
     <div class="container">
-        <h2>🔧 BLE Car Commands</h2>
+        <h2>🎮 Game Management</h2>
+        <p>Manage game state, teams, scoring, and match flow:</p>
+        <div class="command-section">
+            <h4>🏁 Game Controls</h4>
+            <div class="command-inputs">
+                <label for="matchLength">Match Length (seconds):</label>
+                <input type="number" id="matchLength" placeholder="300" value="300" min="60" max="3600">
+                
+                <button onclick="startGame()">▶️ Start/Reset Game</button>
+                <button onclick="stopGame()">⏸️ Pause Game</button>
+                <button onclick="resumeGame()">▶️ Resume Game</button>
+                <button onclick="endGame()">🏁 End Game</button>
+                <button onclick="getGameStatus()">📊 Get Game Status</button>
+            </div>
+            
+            <div style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <h5>🎮 Game Flow Explanation:</h5>
+                <ul style="margin: 5px 0 5px 20px; font-size: 0.9em;">
+                    <li><strong>Start/Reset Game:</strong> Creates a new game and starts it immediately</li>
+                    <li><strong>Pause Game:</strong> Stops the timer but keeps game state</li>
+                    <li><strong>Resume Game:</strong> Continues from where paused</li>
+                    <li><strong>End Game:</strong> Permanently ends the current game</li>
+                    <li><strong>Auto-End:</strong> Game ends automatically when time runs out</li>
+                </ul>
+            </div>
+            
+            <div id="gameStatusDisplay" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+                <h4>Game Status</h4>
+                <div id="gameStatusContent">A game is always available. Click "Get Game Status" to check current state</div>
+            </div>
+        </div>
+
+        <div class="command-section" style="margin-top: 20px;">
+            <h4>⚽ Scoring</h4>
+            <div class="command-inputs">
+                <label for="goalTeam">Team:</label>
+                <select id="goalTeam">
+                    <option value="red">Red Team</option>
+                    <option value="blue">Blue Team</option>
+                    <option value="green">Green Team</option>
+                    <option value="yellow">Yellow Team</option>
+                </select>
+                
+                <label for="goalPlayer">Player ID (optional):</label>
+                <input type="text" id="goalPlayer" placeholder="player123">
+                
+                <label for="goalCar">Car ID (optional):</label>
+                <input type="number" id="goalCar" placeholder="1">
+                
+                <button onclick="scoreGoal()">⚽ Score Goal</button>
+            </div>
+
+            <div class="quick-commands" style="margin-top: 10px;">
+                <h4>Quick Scoring:</h4>
+                <button onclick="quickScoreGoal('red')">🔴 Red Goal</button>
+                <button onclick="quickScoreGoal('blue')">🔵 Blue Goal</button>
+                <button onclick="quickScoreGoal('green')">🟢 Green Goal</button>
+                <button onclick="quickScoreGoal('yellow')">� Yellow Goal</button>
+            </div>
+        </div>
+
+        <div class="command-section" style="margin-top: 20px;">
+            <h4>👥 Team Management</h4>
+            <div class="command-inputs">
+                <label for="teamColor">Team Color:</label>
+                <input type="text" id="teamColor" placeholder="red" value="red">
+                
+                <label for="teamName">Team Name (optional):</label>
+                <input type="text" id="teamName" placeholder="Team Red">
+                
+                <button onclick="addTeam()">➕ Add Team</button>
+            </div>
+
+            <div class="command-inputs" style="margin-top: 10px;">
+                <label for="carTeamId">Car ID:</label>
+                <input type="number" id="carTeamId" placeholder="1">
+                
+                <label for="carTeamColor">Team:</label>
+                <select id="carTeamColor">
+                    <option value="red">Red Team</option>
+                    <option value="blue">Blue Team</option>
+                    <option value="green">Green Team</option>
+                    <option value="yellow">Yellow Team</option>
+                </select>
+                
+                <button onclick="addCarToTeam()">🚗➕ Add Car to Team</button>
+                <button onclick="removeCarFromTeams()">🚗➖ Remove Car from Teams</button>
+            </div>
+
+            <div class="quick-commands" style="margin-top: 10px;">
+                <h4>Quick Team Setup:</h4>
+                <button onclick="setupDefaultTeams()">⚡ Setup Red vs Blue</button>
+                <button onclick="clearAllTeams()">🗑️ Clear All Teams</button>
+                <button onclick="assignAvailableCars()">🎲 Auto-assign Cars</button>
+            </div>
+        </div>
+
+        <div class="command-section" style="margin-top: 20px;">
+            <h4>🎯 Game Scenarios</h4>
+            <div class="quick-commands">
+                <button onclick="simulateMatch()">🎮 Simulate Full Match</button>
+                <button onclick="simulateQuickGoals()">⚡ Quick Goal Test</button>
+                <button onclick="testGameFlow()">🔄 Test Game Flow</button>
+                <button onclick="emergencyStopGame()">🚨 Emergency Stop</button>
+            </div>
+        </div>
+    </div>
         <p>Send commands directly to cars via Bluetooth Low Energy:</p>
         <div class="command-section">
             <div class="command-inputs">
@@ -267,12 +373,35 @@
     <div class="container">
         <h2>🎮 Controls Help</h2>
         <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
-            <h4>Mouse Controls:</h4>
+            <h4>Car Controls:</h4>
             <ul>
                 <li><strong>Forward/Backward/Stop:</strong> Use the direction buttons</li>
                 <li><strong>Steering:</strong> Use the slider or steering buttons</li>
                 <li><strong>Boost:</strong> Toggle boost on/off while moving</li>
                 <li><strong>Car Selection:</strong> Select a car to control it exclusively</li>
+            </ul>
+            
+            <h4>Game Management:</h4>
+            <ul>
+                <li><strong>Always Available:</strong> A game is always ready - no need to create one</li>
+                <li><strong>Start/Reset Game:</strong> Begins a new match and resets all scores/time</li>
+                <li><strong>Pause Game:</strong> Stops the timer but preserves game state</li>
+                <li><strong>Resume Game:</strong> Continues from where the game was paused</li>
+                <li><strong>End Game:</strong> Permanently finishes the current match</li>
+                <li><strong>Auto-End:</strong> Game automatically ends when time expires</li>
+                <li><strong>Team Management:</strong> Add teams and assign cars to teams</li>
+                <li><strong>Scoring:</strong> Record goals for teams (red, blue, green, yellow)</li>
+            </ul>
+            
+            <h4>API Testing Features:</h4>
+            <ul>
+                <li><strong>Always-Available Game:</strong> No create_game needed - game is always ready</li>
+                <li><strong>start_game:</strong> Resets and starts a new match (with optional match length)</li>
+                <li><strong>stop_game:</strong> Pauses the game (preserves state and time)</li>
+                <li><strong>resume_game:</strong> New action to continue paused games</li>
+                <li><strong>end_game:</strong> Permanently ends the current match</li>
+                <li><strong>goal_scored:</strong> Action that matches documentation</li>
+                <li><strong>Auto-Timer:</strong> Game automatically ends when time expires</li>
             </ul>
             
             <h4>Keyboard Controls:</h4>
@@ -285,12 +414,12 @@
                 <li><strong>Shift:</strong> Activate boost</li>
             </ul>
             
-            <h4>Movement Tests:</h4>
+            <h4>Test Scenarios:</h4>
             <ul>
-                <li><strong>Circular Movement:</strong> Tests turning in a circle</li>
-                <li><strong>Figure-8:</strong> Tests complex steering patterns</li>
-                <li><strong>Precision Steering:</strong> Tests all steering angles</li>
-                <li><strong>Emergency Stop:</strong> Immediately stops all cars</li>
+                <li><strong>Simulate Full Match:</strong> Complete game flow with pause/resume testing</li>
+                <li><strong>Quick Goal Test:</strong> Rapid goal scoring simulation</li>
+                <li><strong>Game Flow Test:</strong> Tests start/pause/resume/end cycle</li>
+                <li><strong>Emergency Stop:</strong> Stops both game and all car movement</li>
             </ul>
             
             <p><em>Note: Select "Keyboard Control" on a car to enable keyboard controls for that specific car.</em></p>
@@ -391,6 +520,16 @@
                 updateCarControls(data.cars);
             }
             
+            if (data.free_cars) {
+                // Handle get_free_cars response
+                addMessage(`Free cars: [${data.free_cars.join(', ')}]`, 'success');
+            }
+            
+            if (data.game_status) {
+                // Handle game status response
+                updateGameStatus(data.game_status);
+            }
+            
             if (data.bluetooth_status) {
                 // Handle Bluetooth status response
                 updateBluetoothStatus(data.bluetooth_status);
@@ -417,6 +556,345 @@
                                   data.status === 'error' ? 'error' : 'info';
                 addMessage(`${data.action || 'Response'}: ${data.message}`, messageType);
             }
+        }
+
+        function updateGameStatus(gameStatus) {
+            const statusContent = document.getElementById('gameStatusContent');
+            if (statusContent) {
+                if (gameStatus) {
+                    const teams = gameStatus.teams || {};
+                    let teamsHtml = '<h5>Teams:</h5>';
+                    
+                    for (const [teamColor, teamData] of Object.entries(teams)) {
+                        const score = teamData.score || 0;
+                        const cars = teamData.cars || [];
+                        teamsHtml += `
+                            <div style="margin: 5px 0; padding: 8px; background: ${teamColor === 'red' ? '#ffebee' : teamColor === 'blue' ? '#e3f2fd' : teamColor === 'green' ? '#e8f5e8' : '#fff9c4'}; border-radius: 5px;">
+                                <strong>${teamColor.toUpperCase()} Team:</strong> Score: ${score}, Cars: [${cars.join(', ')}]
+                            </div>
+                        `;
+                    }
+                    
+                    const timeRemaining = gameStatus.time_remaining !== undefined ? 
+                        `${Math.floor(gameStatus.time_remaining / 60)}:${(gameStatus.time_remaining % 60).toString().padStart(2, '0')}` : 
+                        'Unknown';
+                    
+                    const gameState = gameStatus.state || 'Unknown';
+                    const matchLength = gameStatus.match_length_seconds || 'Unknown';
+                    const elapsedTime = gameStatus.elapsed_time !== undefined ? 
+                        `${Math.floor(gameStatus.elapsed_time / 60)}:${(gameStatus.elapsed_time % 60).toString().padStart(2, '0')}` : 
+                        'Unknown';
+                    const pausedTime = gameStatus.total_paused_time || 0;
+                    
+                    // State color coding
+                    const stateColors = {
+                        'active': 'green',
+                        'paused': 'orange', 
+                        'ended': 'red',
+                        'not_started': 'blue'
+                    };
+                    
+                    statusContent.innerHTML = `
+                        <div style="margin-bottom: 10px;">
+                            <strong>Game State:</strong> <span style="font-weight: bold; color: ${stateColors[gameState] || 'gray'};">${gameState.toUpperCase().replace('_', ' ')}</span><br>
+                            <strong>Time Remaining:</strong> ${timeRemaining}<br>
+                            <strong>Elapsed Time:</strong> ${elapsedTime}<br>
+                            <strong>Match Length:</strong> ${matchLength}s<br>
+                            ${pausedTime > 0 ? `<strong>Total Paused Time:</strong> ${pausedTime}s<br>` : ''}
+                        </div>
+                        ${teamsHtml}
+                        <div style="margin-top: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 0.9em;">
+                            <strong>Controls:</strong> 
+                            ${gameState === 'not_started' ? 'Click "Start/Reset Game" to begin' : ''}
+                            ${gameState === 'active' ? 'Game is running - you can pause or end it' : ''}
+                            ${gameState === 'paused' ? 'Game is paused - you can resume or end it' : ''}
+                            ${gameState === 'ended' ? 'Game has ended - click "Start/Reset Game" for a new game' : ''}
+                        </div>
+                    `;
+                } else {
+                    statusContent.innerHTML = '<em>No game status available</em>';
+                }
+            }
+        }
+
+        // Game Management Functions
+        function startGame() {
+            const matchLength = document.getElementById('matchLength').value || null;
+            const message = {
+                "action": "start_game"
+            };
+            
+            if (matchLength) {
+                message.match_length_seconds = parseInt(matchLength);
+                addMessage(`Starting new game with ${matchLength} seconds...`);
+            } else {
+                addMessage("Starting game with default length...");
+            }
+            
+            sendMessage(message);
+        }
+
+        function stopGame() {
+            addMessage("Pausing game...");
+            sendMessage({
+                "action": "stop_game"
+            });
+        }
+
+        function resumeGame() {
+            addMessage("Resuming game...");
+            sendMessage({
+                "action": "resume_game"
+            });
+        }
+
+        function endGame() {
+            addMessage("Ending game...");
+            sendMessage({
+                "action": "end_game"
+            });
+        }
+
+        function getGameStatus() {
+            addMessage("Getting game status...");
+            sendMessage({
+                "action": "get_game_status"
+            });
+        }
+
+        function scoreGoal() {
+            const team = document.getElementById('goalTeam').value;
+            const player = document.getElementById('goalPlayer').value;
+            const car = document.getElementById('goalCar').value;
+            
+            const message = {
+                "action": "goal_scored",
+                "team": team
+            };
+            
+            if (player) message.player_id = player;
+            if (car) message.car_id = parseInt(car);
+            
+            addMessage(`Scoring goal for ${team} team...`);
+            sendMessage(message);
+        }
+
+        function quickScoreGoal(team) {
+            addMessage(`Quick goal for ${team} team...`);
+            sendMessage({
+                "action": "goal_scored",
+                "team": team
+            });
+        }
+
+        function addTeam() {
+            const color = document.getElementById('teamColor').value;
+            const name = document.getElementById('teamName').value;
+            
+            if (!color) {
+                addMessage('Please enter a team color', 'error');
+                return;
+            }
+            
+            const message = {
+                "action": "add_team",
+                "color": color
+            };
+            
+            if (name) message.name = name;
+            
+            addMessage(`Adding ${color} team...`);
+            sendMessage(message);
+        }
+
+        function addCarToTeam() {
+            const carId = document.getElementById('carTeamId').value;
+            const teamColor = document.getElementById('carTeamColor').value;
+            
+            if (!carId) {
+                addMessage('Please enter a car ID', 'error');
+                return;
+            }
+            
+            addMessage(`Adding car ${carId} to ${teamColor} team...`);
+            sendMessage({
+                "action": "add_car_to_team",
+                "car_id": parseInt(carId),
+                "team": teamColor
+            });
+        }
+
+        function removeCarFromTeams() {
+            const carId = document.getElementById('carTeamId').value;
+            
+            if (!carId) {
+                addMessage('Please enter a car ID', 'error');
+                return;
+            }
+            
+            addMessage(`Removing car ${carId} from all teams...`);
+            sendMessage({
+                "action": "remove_car_from_teams",
+                "car_id": parseInt(carId)
+            });
+        }
+
+        // Quick setup functions
+        function setupDefaultTeams() {
+            addMessage('Setting up Red vs Blue teams...', 'info');
+            
+            // Add teams
+            setTimeout(() => {
+                sendMessage({"action": "add_team", "color": "red", "name": "Red Team"});
+            }, 100);
+            
+            setTimeout(() => {
+                sendMessage({"action": "add_team", "color": "blue", "name": "Blue Team"});
+            }, 200);
+            
+            // Assign cars if available
+            setTimeout(() => {
+                assignAvailableCars();
+            }, 500);
+        }
+
+        function clearAllTeams() {
+            addMessage('Clearing all team assignments...', 'info');
+            
+            // Remove all cars from teams (assuming cars 0-3 exist)
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    sendMessage({
+                        "action": "remove_car_from_teams",
+                        "car_id": i
+                    });
+                }, i * 100);
+            }
+        }
+
+        function assignAvailableCars() {
+            addMessage('Auto-assigning cars to teams...', 'info');
+            
+            // Get available car IDs
+            const carIds = Object.keys(cars).map(id => parseInt(id));
+            
+            if (carIds.length === 0) {
+                addMessage('No cars available for assignment', 'error');
+                return;
+            }
+            
+            // Assign cars alternating between red and blue teams
+            carIds.forEach((carId, index) => {
+                const team = index % 2 === 0 ? 'red' : 'blue';
+                setTimeout(() => {
+                    sendMessage({
+                        "action": "add_car_to_team",
+                        "car_id": carId,
+                        "team": team
+                    });
+                    addMessage(`Assigned car ${carId} to ${team} team`);
+                }, index * 200);
+            });
+        }
+
+        // Game simulation functions
+        function simulateMatch() {
+            addMessage('🎮 Starting full match simulation...', 'info');
+            
+            // Step 1: Start game (resets and creates new game)
+            setTimeout(() => {
+                startGame();
+            }, 500);
+            
+            // Step 2: Setup teams
+            setTimeout(() => {
+                setupDefaultTeams();
+            }, 1000);
+            
+            // Step 3: Simulate some goals
+            setTimeout(() => {
+                quickScoreGoal('red');
+            }, 2500);
+            
+            setTimeout(() => {
+                quickScoreGoal('blue');
+            }, 3500);
+            
+            setTimeout(() => {
+                quickScoreGoal('red');
+            }, 4500);
+            
+            // Step 4: Test pause/resume
+            setTimeout(() => {
+                stopGame();
+                addMessage('Pausing game for 2 seconds...');
+            }, 5500);
+            
+            setTimeout(() => {
+                resumeGame();
+            }, 7500);
+            
+            // Step 5: Check status
+            setTimeout(() => {
+                getGameStatus();
+            }, 8500);
+            
+            addMessage('Match simulation will run for 8 seconds with pause/resume test...', 'info');
+        }
+
+        function simulateQuickGoals() {
+            addMessage('⚡ Quick goal simulation...', 'info');
+            
+            const teams = ['red', 'blue', 'red', 'blue', 'red'];
+            teams.forEach((team, index) => {
+                setTimeout(() => {
+                    quickScoreGoal(team);
+                    addMessage(`Simulated goal ${index + 1} for ${team} team`);
+                }, index * 1000);
+            });
+            
+            // Get final status
+            setTimeout(() => {
+                getGameStatus();
+            }, teams.length * 1000 + 500);
+        }
+
+        function testGameFlow() {
+            addMessage('🔄 Testing complete game flow...', 'info');
+            
+            // Complete flow test
+            const steps = [
+                { delay: 0, action: () => startGame(), msg: 'Starting/resetting game...' },
+                { delay: 1000, action: () => addTeam(), msg: 'Adding team...' },
+                { delay: 1500, action: () => quickScoreGoal('red'), msg: 'Scoring goal...' },
+                { delay: 2000, action: () => getGameStatus(), msg: 'Checking status...' },
+                { delay: 2500, action: () => stopGame(), msg: 'Pausing game...' },
+                { delay: 3500, action: () => resumeGame(), msg: 'Resuming game...' },
+                { delay: 4000, action: () => endGame(), msg: 'Ending game...' },
+                { delay: 4500, action: () => getGameStatus(), msg: 'Final status check...' }
+            ];
+            
+            steps.forEach(step => {
+                setTimeout(() => {
+                    addMessage(step.msg);
+                    step.action();
+                }, step.delay);
+            });
+        }
+
+        function emergencyStopGame() {
+            addMessage('🚨 EMERGENCY STOP - Stopping game and all cars!', 'error');
+            
+            // Stop the game
+            stopGame();
+            
+            // Stop all car movement
+            stopAllMovement();
+            
+            // Get final status
+            setTimeout(() => {
+                getGameStatus();
+            }, 1000);
         }
 
         function updateBluetoothStatus(bluetoothStatus) {
