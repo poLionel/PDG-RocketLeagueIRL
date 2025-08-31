@@ -21,6 +21,9 @@ namespace RLIRL.App.Models
         public partial DateTime? StartTime { get; set; }
 
         [ObservableProperty]
+        public partial int PauseTime { get; set; }
+
+        [ObservableProperty]
         public partial GameState State { get; set; }
 
         [ObservableProperty]

@@ -183,7 +183,7 @@ namespace RLIRL.App.ViewModels
             if (Game.State == GameState.Paused) return;
 
             // Get the time left in the game or zero if the game is over
-            var timeLeft = Game.StartTime?.AddSeconds(Game.MatchLengthSeconds) - DateTime.UtcNow;
+            var timeLeft = Game.StartTime?.AddSeconds(Game.MatchLengthSeconds).AddSeconds(Game.PauseTime) - DateTime.UtcNow;
             if(timeLeft <= TimeSpan.Zero || Game.State == GameState.Ended)
                 timeLeft = TimeSpan.Zero;
             

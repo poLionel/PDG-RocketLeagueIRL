@@ -20,6 +20,7 @@ namespace RLIRL.App
                 .ForMember(dest => dest.RedScore, opt => opt.MapFrom(src => src.RedTeamScore))
                 .ForMember(dest => dest.MatchLengthSeconds, opt => opt.MapFrom(src => src.MatchLengthSeconds))
                 .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartDate))
+                .ForMember(dest => dest.PauseTime, opt => opt.MapFrom(src => src.TotalPausedTime))
                 .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.State))
                 .ForMember(dest => dest.StateMessage, opt => opt.MapFrom(src => GetStateMessage(src.State)));
 
