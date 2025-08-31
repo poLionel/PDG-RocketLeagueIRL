@@ -8,6 +8,6 @@ namespace RLIRL.Server.Abstractions.ClientCommands
     public class GoalScoredCommand : IClientCommand
     {
         [JsonPropertyName("team")]
-        public string Team { get; set; } = string.Empty;
+        public required string Team { get; set; }
     }
 }

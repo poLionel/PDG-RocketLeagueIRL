@@ -85,10 +85,26 @@
                             Text="Pause Game"
                             Command="{Binding StopGameCommand}"
                             Style="{StaticResource AdminPauseButton}"
-                            IsEnabled="{Binding CanStopGame}">
+                            IsEnabled="{Binding CanStopGame}"
+                            IsVisible="{Binding IsResumeShown, Converter={toolkit:InvertedBoolConverter}}">
                         <Button.ImageSource>
                             <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                              Glyph="{x:Static fonts:FluentUI.pause_12_regular}"
+                                             Size="{StaticResource SmallIconSize}"
+                                             Color="{StaticResource White}" />
+                        </Button.ImageSource>
+                    </Button>
+
+
+                    <Button Grid.Column="1"
+                            Text="Resume Game"
+                            Command="{Binding ResumeGameCommand}"
+                            Style="{StaticResource AdminResumeButton}"
+                            IsEnabled="{Binding CanResumeGame}"
+                            IsVisible="{Binding IsResumeShown}">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.play_12_regular}"
                                              Size="{StaticResource SmallIconSize}"
                                              Color="{StaticResource White}" />
                         </Button.ImageSource>

@@ -1,11 +1,11 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using AutoMapper;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RLIRL.App.Models;
 using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Business.Abstractions.Models;
-using System.Collections.ObjectModel;
-using AutoMapper;
 using RLIRL.Server.Abstractions.ServerResponses;
+using System.Collections.ObjectModel;
 
 namespace RLIRL.App.ViewModels
 {
@@ -38,6 +38,12 @@ namespace RLIRL.App.ViewModels
         [ObservableProperty]
         public partial bool CanScoreGoal { get; set; }
 
+        [ObservableProperty]
+        public partial bool CanResumeGame { get; set; }
+
+        [ObservableProperty]
+        public partial bool IsResumeShown { get; set; }
+
         private Timer? _gameTimer;
         static DateTime? _gameTimerStartTime;
 
@@ -67,6 +73,12 @@ namespace RLIRL.App.ViewModels
         private void StopGame()
         {
             gameService.StopGame();
+        }
+
+        [RelayCommand]
+        private void ResumeGame()
+        {
+            gameService.ResumeGame();
         }
 
         [RelayCommand]
@@ -116,7 +128,8 @@ namespace RLIRL.App.ViewModels
             if (e != null)
             {
                 // Map the GameStatus to GameInfo
-                Game = mapper.Map<GameInfo>(e);
+                Game ??= new();
+                mapper.Map(e, Game);
 
                 // Update the timer
                 StartOrUpdateGameTimer();
@@ -126,6 +139,8 @@ namespace RLIRL.App.ViewModels
                 CanStopGame = e.State == GameState.Active;
                 CanEndGame = e.State == GameState.Active || e.State == GameState.Paused;
                 CanScoreGoal = e.State == GameState.Active || e.State == GameState.Paused;
+                CanResumeGame = e.State == GameState.Paused;
+                IsResumeShown = e.State == GameState.Paused;
             }
             else
             {
