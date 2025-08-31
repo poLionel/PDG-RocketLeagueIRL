@@ -1,8 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RLIRL.App.Models;
 using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Business.Abstractions.Models;
 using RLIRL.Server.Abstractions.ClientCommands;
+using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.App.ViewModels
 {
@@ -10,11 +12,12 @@ namespace RLIRL.App.ViewModels
     {
         #region Constructor
 
-        public GameViewModel(ICarControlService carControlService) 
+        public GameViewModel(ICarControlService carControlService, IGameService gameService) 
         {
             _carControlService = carControlService;
-            //_gameService = gameService;
-            Timer = string.Empty;
+            _gameService = gameService;
+
+            _gameService.GameStatusChanged += OnGameStatusChanged;
         }
 
         #endregion
@@ -45,12 +48,16 @@ namespace RLIRL.App.ViewModels
         /// <inheritdoc />
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _gameService.GameStatusChanged -= OnGameStatusChanged;
         }
 
-        public void UpdateGameStatus(GameStatus? status)
+
+        public void OnGameStatusChanged(object? sender, GameStatus? e)
         {
-            throw new NotImplementedException();
+            if (e == null)
+                Game ??= new();
+            else
+                Game = new GameInfo();
         }
 
         #endregion
@@ -58,22 +65,16 @@ namespace RLIRL.App.ViewModels
         #region Properties
 
         [ObservableProperty]
-        private bool _isBoosting;
+        public partial bool IsBoosting { get; set; }
 
         [ObservableProperty]
-        private int _steering;
+        public partial int Steering { get; set; }
 
         [ObservableProperty]
-        private Direction _direction;
+        public partial Direction Direction { get; set; }
 
         [ObservableProperty]
-        private int scoreTeamA;
-
-        [ObservableProperty]
-        private int scoreTeamB;
-
-        [ObservableProperty]
-        private string timer;
+        public partial GameInfo Game { get; set; } = new();
 
         #endregion
 
@@ -85,8 +86,6 @@ namespace RLIRL.App.ViewModels
 
         #endregion
 
-        public event EventHandler<GameStatus?>? GameStatusChanged;
 
-        public GameStatus? CurrentGameStatus => throw new NotImplementedException();
     }
 }
