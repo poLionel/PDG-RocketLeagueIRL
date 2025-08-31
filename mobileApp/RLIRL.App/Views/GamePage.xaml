@@ -5,18 +5,53 @@
              xmlns:vm="clr-namespace:RLIRL.App.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:DataType="vm:GameViewModel">
-    <Grid BackgroundColor="LightGray">
+    
+    
+    <Grid BackgroundColor="Gray">
         <!-- HUD + Commandes -->
         <Grid Padding="16"
               RowDefinitions="Auto,*"
               ColumnDefinitions="*,*">
 
             <!-- HUD (score/chrono/connexion) -->
-            <HorizontalStackLayout Grid.Row="0" Grid.ColumnSpan="2" Spacing="24" BackgroundColor="Black" Opacity="0.1" VerticalOptions="Center">
-                <Label Text="{Binding Game.BlueScore}" BackgroundColor="Blue" TextColor="White"/>
-                <Label Text="{Binding Game.TimeLeft}" TextColor="White"/>
-                <Label Text="{Binding Game.RedScore}" BackgroundColor="Orange" Background="Transparent" TextColor="White"/>
-            </HorizontalStackLayout>
+            <Grid Grid.Row="0" Grid.ColumnSpan="2" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,16,0,8">
+                <Border Padding="6" Background="#111111CC" StrokeThickness="0">
+                    <Border.Shadow>
+                        <Shadow Opacity="0.35" Radius="12" Offset="0,4"/>
+                    </Border.Shadow>
+                    
+                    <!--TODO need to adjust between 360-520 depending on device-->
+                    <Grid WidthRequest="420" ColumnDefinitions="120, *, 120" RowDefinitions="Auto">
+                        
+                        <!--Team blue-->
+                        <Border Grid.Column="0" BackgroundColor="{StaticResource GameBlue}" Padding="12,8">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="18,0,0,18"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="0" HorizontalOptions="Center">
+                                <Label Text="{Binding Game.BlueScore}" FontSize="36" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                                <!--Ev add label => team 1-->
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!--Score-->
+                        <Grid Grid.Column="1" Padding="12,4" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Label Text="{Binding Game.TimeLeft}" FontSize="36" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                        </Grid>
+                        
+                        <!--Team red-->
+                        <Border Grid.Column="2" BackgroundColor="{StaticResource GameRed}" Padding="12,8">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="18,0,0,18"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="0" HorizontalOptions="Center">
+                                <Label Text="{Binding Game.RedScore}" FontSize="36" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                                <!--Ev add label => team 2-->
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
 
             <!-- Zone commandes -->
             <Grid Grid.Row="1" Grid.ColumnSpan="2">

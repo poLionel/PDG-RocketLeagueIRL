@@ -8,8 +8,7 @@
              xmlns:models="clr-namespace:RLIRL.App.Models"
              x:Class="RLIRL.App.Views.GameAdminPage"
              x:DataType="viewmodels:GameAdminViewModel"
-             x:Name="AdminPage"
-             Title="Game Admin Panel">
+             x:Name="AdminPage">
 
     <ScrollView Style="{StaticResource AdminMainScrollView}">
         <Grid Style="{StaticResource AdminMainGrid}">
