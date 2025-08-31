@@ -71,7 +71,8 @@
                     <Button Grid.Column="0"
                             Text="Start Game"
                             Command="{Binding StartGameCommand}"
-                            Style="{StaticResource AdminStartButton}">
+                            Style="{StaticResource AdminStartButton}"
+                            IsEnabled="{Binding CanStartGame}">
                         <Button.ImageSource>
                             <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                              Glyph="{x:Static fonts:FluentUI.play_12_regular}"
@@ -83,7 +84,8 @@
                     <Button Grid.Column="1"
                             Text="Pause Game"
                             Command="{Binding StopGameCommand}"
-                            Style="{StaticResource AdminPauseButton}">
+                            Style="{StaticResource AdminPauseButton}"
+                            IsEnabled="{Binding CanStopGame}">
                         <Button.ImageSource>
                             <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                              Glyph="{x:Static fonts:FluentUI.pause_12_regular}"
@@ -95,7 +97,8 @@
                     <Button Grid.Column="2"
                             Text="Stop Game"
                             Command="{Binding EndGameCommand}"
-                            Style="{StaticResource AdminStopButton}">
+                            Style="{StaticResource AdminStopButton}"
+                            IsEnabled="{Binding CanEndGame}">
                         <Button.ImageSource>
                             <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                              Glyph="{x:Static fonts:FluentUI.stop_16_regular}"
@@ -161,7 +164,8 @@
                                 Text="BLUE GOAL!"
                                 Command="{Binding ScoreGoalCommand}"
                                 CommandParameter="blue"
-                                Style="{StaticResource AdminBlueTeamButton}">
+                                Style="{StaticResource AdminBlueTeamButton}"
+                                IsEnabled="{Binding CanScoreGoal}">
                             <Button.ImageSource>
                                 <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                                  Glyph="{x:Static fonts:FluentUI.star_24_regular}"
@@ -174,7 +178,8 @@
                                 Text="RED GOAL!"
                                 Command="{Binding ScoreGoalCommand}"
                                 CommandParameter="red"
-                                Style="{StaticResource AdminRedTeamButton}">
+                                Style="{StaticResource AdminRedTeamButton}"
+                                IsEnabled="{Binding CanScoreGoal}">
                             <Button.ImageSource>
                                 <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                                  Glyph="{x:Static fonts:FluentUI.star_24_regular}"
@@ -188,7 +193,8 @@
                     <Button Text="Undo Last Goal"
                             Command="{Binding UndoLastGoalCommand}"
                             Style="{StaticResource AdminSecondaryButton}"
-                            HorizontalOptions="Center">
+                            HorizontalOptions="Center"
+                            IsEnabled="{Binding CanScoreGoal}">
                         <Button.ImageSource>
                             <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                              Glyph="{x:Static fonts:FluentUI.arrow_undo_16_regular}"

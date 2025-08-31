@@ -26,6 +26,18 @@ namespace RLIRL.App.ViewModels
         [ObservableProperty]
         public partial bool IsLoading { get; set; }
 
+        [ObservableProperty]
+        public partial bool CanStartGame { get; set; }
+
+        [ObservableProperty]
+        public partial bool CanStopGame { get; set; }
+
+        [ObservableProperty]
+        public partial bool CanEndGame { get; set; }
+
+        [ObservableProperty]
+        public partial bool CanScoreGoal { get; set; }
+
         private Timer? _gameTimer;
         static DateTime? _gameTimerStartTime;
 
@@ -107,6 +119,12 @@ namespace RLIRL.App.ViewModels
 
                 // Update the timer
                 StartOrUpdateGameTimer();
+
+                // Update the button states
+                CanStartGame = e.State == GameState.Ended || e.State == GameState.Paused;
+                CanStopGame = e.State == GameState.Active;
+                CanEndGame = e.State == GameState.Active || e.State == GameState.Paused;
+                CanScoreGoal = e.State == GameState.Active || e.State == GameState.Paused;
             }
             else
             {
