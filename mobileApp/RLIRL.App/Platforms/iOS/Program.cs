@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace RLIRL.App
+namespace RLIRL.App.Platforms.iOS
 {
     public class Program
     {

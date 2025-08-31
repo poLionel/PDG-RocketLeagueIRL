@@ -11,4 +11,9 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RLIRL.Business.Abstractions\RLIRL.Business.Abstractions.csproj" />
+    <ProjectReference Include="..\RLIRL.Server.Abstractions\RLIRL.Server.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>
