@@ -92,12 +92,6 @@
 
                     <!-- Speed + jauge boost -->
                     <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="16" HorizontalOptions="End">
-                        <!-- Jauge boost (verticale via Rotation) -->
-                        <ProgressBar WidthRequest="18" HeightRequest="120"
-                                     Rotation="270"
-                                     Progress="{Binding Boost}" 
-                                     VerticalOptions="Center" />
-
                         <!-- Bouton Speed avec drag vers le haut = boost -->
                         <Button x:Name="SpeedButton"
                                 Text="Speed up"

@@ -64,7 +64,7 @@ namespace RLIRL.App.ViewModels
         #region Properties
 
         [ObservableProperty]
-        public partial bool IsBoosting { get; set; }
+        public partial bool IsBoosting { get; set; } //TODO need to use it for SetBoost
 
         [ObservableProperty]
         public partial int Steering { get; set; }
