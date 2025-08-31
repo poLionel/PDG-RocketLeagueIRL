@@ -16,7 +16,7 @@
 
             <!-- HUD (score/chrono/connexion) -->
             <Grid Grid.Row="0" Grid.ColumnSpan="2" HorizontalOptions="Center" VerticalOptions="Start" Margin="0,16,0,8">
-                <Border Padding="6" Background="#111111CC" StrokeThickness="0">
+                <Border Padding="6" Background="#111111CC" StrokeThickness="0" StrokeShape="RoundRectangle 10,10,10,10">
                     <Border.Shadow>
                         <Shadow Opacity="0.35" Radius="12" Offset="0,4"/>
                     </Border.Shadow>
