@@ -48,6 +48,7 @@ namespace RLIRL.App
             builder.Services.AddTransient<MenuViewModel>();
             builder.Services.AddTransient<GameViewModel>();
             builder.Services.AddTransient<GameAdminViewModel>();
+            builder.Services.AddTransient<CarSelectorViewModel>();
 
             var app = builder.Build();
 

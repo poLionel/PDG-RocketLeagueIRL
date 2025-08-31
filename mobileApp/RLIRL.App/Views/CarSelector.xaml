@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:RLIRL.App.ViewModels"
+             xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="RLIRL.App.Views.CarSelector"
+             x:DataType="viewmodels:CarSelectorViewModel">
+
+    <StackLayout Spacing="{StaticResource ItemSpacing}">
+        <!-- Team Selection Grid -->
+        <Grid ColumnSpacing="20"
+              IsVisible="{Binding IsLoading, Converter={toolkit:InvertedBoolConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Blue Team Clickable Zone -->
+            <Border Grid.Column="0" 
+                    Style="{StaticResource AppBlueTeamContainer}"
+                    x:Name="BlueTeamBorder">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsBlueTeamAvailable}" Value="False">
+                        <Setter Property="Opacity" Value="0.5" />
+                    </DataTrigger>
+                </Border.Triggers>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding JoinBlueTeamCommand}" />
+                    <PointerGestureRecognizer PointerEntered="OnBlueTeamPointerEntered" 
+                                                PointerExited="OnBlueTeamPointerExited" />
+                </Border.GestureRecognizers>
+
+                <StackLayout Spacing="{StaticResource SmallSpacing}">
+                    <Image HorizontalOptions="Center"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            x:Name="BlueTeamIcon">
+                        <Image.Triggers>
+                            <DataTrigger TargetType="Image" Binding="{Binding IsBlueTeamAvailable}" Value="False">
+                                <Setter Property="Opacity" Value="0.6" />
+                            </DataTrigger>
+                        </Image.Triggers>
+                        <Image.Source>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                Glyph="{x:Static fonts:FluentUI.people_team_24_regular}"
+                                                Size="48"
+                                                Color="{StaticResource White}" />
+                        </Image.Source>
+                    </Image>
+
+                    <Label Text="BLUE TEAM" 
+                            Style="{StaticResource AppTeamLabel}"
+                            x:Name="BlueTeamTitle" />
+
+                    <Label x:Name="BlueTeamCarsLabel"
+                            Text="{Binding BlueTeamCarsAvailable, StringFormat='{0} cars available'}"
+                            Style="{StaticResource AppTeamSubtitle}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsBlueTeamAvailable}" Value="False">
+                                <Setter Property="Text" Value="No cars available" />
+                                <Setter Property="Opacity" Value="0.7" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+
+                    <Label x:Name="BlueTeamActionLabel" 
+                            Text="TAP TO JOIN"
+                            Style="{StaticResource AppTeamAction}"
+                            Margin="0,10,0,0">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsBlueTeamAvailable}" Value="False">
+                                <Setter Property="Text" Value="UNAVAILABLE" />
+                                <Setter Property="Opacity" Value="0.7" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </StackLayout>
+            </Border>
+
+            <!-- Red Team Clickable Zone -->
+            <Border Grid.Column="1" 
+                    Style="{StaticResource AppRedTeamContainer}"
+                    x:Name="RedTeamBorder">
+                <Border.Triggers>
+                    <DataTrigger TargetType="Border" Binding="{Binding IsRedTeamAvailable}" Value="False">
+                        <Setter Property="Opacity" Value="0.5" />
+                    </DataTrigger>
+                </Border.Triggers>
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding JoinRedTeamCommand}" />
+                    <PointerGestureRecognizer PointerEntered="OnRedTeamPointerEntered" 
+                                                PointerExited="OnRedTeamPointerExited" />
+                </Border.GestureRecognizers>
+
+                <StackLayout Spacing="{StaticResource SmallSpacing}">
+                    <Image HorizontalOptions="Center"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            x:Name="RedTeamIcon">
+                        <Image.Triggers>
+                            <DataTrigger TargetType="Image" Binding="{Binding IsRedTeamAvailable}" Value="False">
+                                <Setter Property="Opacity" Value="0.6" />
+                            </DataTrigger>
+                        </Image.Triggers>
+                        <Image.Source>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                Glyph="{x:Static fonts:FluentUI.people_team_24_regular}"
+                                                Size="48"
+                                                Color="{StaticResource White}" />
+                        </Image.Source>
+                    </Image>
+
+                    <Label Text="RED TEAM" 
+                            Style="{StaticResource AppTeamLabel}"
+                            x:Name="RedTeamTitle" />
+
+                    <Label x:Name="RedTeamCarsLabel"
+                            Text="{Binding RedTeamCarsAvailable, StringFormat='{0} cars available'}"
+                            Style="{StaticResource AppTeamSubtitle}">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsRedTeamAvailable}" Value="False">
+                                <Setter Property="Text" Value="No cars available" />
+                                <Setter Property="Opacity" Value="0.7" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+
+                    <Label x:Name="RedTeamActionLabel" 
+                            Text="TAP TO JOIN"
+                            Style="{StaticResource AppTeamAction}"
+                            Margin="0,10,0,0">
+                        <Label.Triggers>
+                            <DataTrigger TargetType="Label" Binding="{Binding IsRedTeamAvailable}" Value="False">
+                                <Setter Property="Text" Value="UNAVAILABLE" />
+                                <Setter Property="Opacity" Value="0.7" />
+                            </DataTrigger>
+                        </Label.Triggers>
+                    </Label>
+                </StackLayout>
+            </Border>
+        </Grid>
+
+        <!-- Loading Indicator -->
+        <StackLayout IsVisible="{Binding IsLoading}" 
+                        HorizontalOptions="Center" 
+                        Spacing="{StaticResource SmallSpacing}"
+                        Margin="0,20,0,0">
+            <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                                Color="{StaticResource DodgerBlue}" />
+            <Label Text="Connecting to car..." 
+                    Style="{StaticResource AppSubtitle}"
+                    HorizontalTextAlignment="Center" />
+        </StackLayout>
+    </StackLayout>
+</ContentView>
