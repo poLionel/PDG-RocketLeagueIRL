@@ -16,7 +16,7 @@
     <x:Double x:Key="TinySpacing">5</x:Double>
     
     <!-- Common Paddings -->
-    <Thickness x:Key="SectionPadding">20</Thickness>
+    <Thickness x:Key="SectionPadding">10</Thickness>
     <Thickness x:Key="ItemPadding">15</Thickness>
     <Thickness x:Key="SmallPadding">10</Thickness>
     <Thickness x:Key="ButtonPadding">15</Thickness>
