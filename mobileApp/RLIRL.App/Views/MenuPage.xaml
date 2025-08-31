@@ -3,8 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:views="clr-namespace:RLIRL.App.Views"
              xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
-             x:Class="RLIRL.App.Views.MenuPage"
-             Title="MenuPage">
+             x:Class="RLIRL.App.Views.MenuPage">
     
     <ScrollView Style="{StaticResource AdminMainScrollView}">
         <Grid Style="{StaticResource AdminMainGrid}">
