@@ -36,7 +36,7 @@
 
                         <!--Score-->
                         <Grid Grid.Column="1" Padding="12,4" HorizontalOptions="Center" VerticalOptions="Center">
-                            <Label Text="{Binding Game.TimeLeft}" FontSize="36" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding Timer}" FontSize="36" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
                         </Grid>
                         
                         <!--Team red-->
@@ -87,31 +87,31 @@
                 <VerticalStackLayout
                     HorizontalOptions="End"
                     VerticalOptions="End"
-                    Margin="20"
-                    Spacing="16">
+                    Margin="0,40,30,30"
+                    Spacing="20">
 
-                    <!-- Speed + jauge boost -->
+                    <!-- Speed -->
                     <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="16" HorizontalOptions="End">
                         <!-- Bouton Speed avec drag vers le haut = boost -->
                         <Button x:Name="SpeedButton"
-                                Text="Speed up"
-                                WidthRequest="110" HeightRequest="110"
-                                CornerRadius="55"
-                                FontAttributes="Bold"
-                                BackgroundColor="#EEEEEEAA">
+                            Text="Speed up"
+                            WidthRequest="110" HeightRequest="110"
+                            CornerRadius="55"
+                            FontAttributes="Bold"
+                            BackgroundColor="#EEEEEEAA">
 
-                            <Button.GestureRecognizers>
+                            <!--<Button.GestureRecognizers>
                                 <PanGestureRecognizer PanUpdated="OnSpeedPanUpdated"/>
-                            </Button.GestureRecognizers>
+                            </Button.GestureRecognizers>-->
                             <Button.Behaviors>
-                                <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding AcceleratePressedCommand}"/>
+                                <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding AcceleratePressedCommand}" />
                                 <toolkit:EventToCommandBehavior EventName="Released" Command="{Binding AccelerateReleaseCommand}"/>
                             </Button.Behaviors>
                             <Button.Triggers>
                                 <!-- effet visuel quand boost actif -->
                                 <DataTrigger TargetType="Button"
-                                             Binding="{Binding IsBoosting}"
-                                             Value="True">
+                                     Binding="{Binding IsBoosting}"
+                                     Value="True">  
                                     <Setter Property="BackgroundColor" Value="#00E676AA"/>
                                     <Setter Property="Scale" Value="1.05"/>
                                     <Setter Property="Shadow">
@@ -120,16 +120,23 @@
                                         </Setter.Value>
                                     </Setter>
                                 </DataTrigger>
+                                <!-- “clicked” visuel -->
+                                <DataTrigger TargetType="Button"
+                                     Binding="{Binding IsClicked}"
+                                     Value="True">
+                                    <Setter Property="BackgroundColor" Value="Violet"/>
+                                </DataTrigger>
+                                
                             </Button.Triggers>
                         </Button>
                     </Grid>
 
                     <!-- Brake -->
                     <Button Text="Brake"
-                            WidthRequest="110" HeightRequest="110"
-                            CornerRadius="55"
-                            FontAttributes="Bold"
-                            BackgroundColor="#EEEEEEAA">
+        WidthRequest="110" HeightRequest="110"
+        CornerRadius="55"
+        FontAttributes="Bold"
+        BackgroundColor="#EEEEEEAA">
                         <Button.Behaviors>
                             <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding BrakePressedCommand}"/>
                             <toolkit:EventToCommandBehavior EventName="Released" Command="{Binding BrakeReleaseCommand}"/>

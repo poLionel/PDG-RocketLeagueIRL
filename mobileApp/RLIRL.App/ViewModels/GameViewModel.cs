@@ -3,7 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using RLIRL.App.Models;
 using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Business.Abstractions.Models;
+using RLIRL.Business.Services;
 using RLIRL.Server.Abstractions.ClientCommands;
+using System.Diagnostics;
 
 namespace RLIRL.App.ViewModels
 {
@@ -11,12 +13,15 @@ namespace RLIRL.App.ViewModels
     {
         #region Constructor
 
-        public GameViewModel(ICarControlService carControlService, IGameService gameService)
+        public GameViewModel(ICarControlService carControlService, IGameService gameService, ITimerService timerService)
         {
             _carControlService = carControlService;
             _gameService = gameService;
+            _timerService = timerService;
 
             _gameService.GameStatusChanged += OnGameStatusChanged;
+            _timerService.TimeLeftChanged += OnTimerChanged;
+            
         }
 
         #endregion
@@ -24,7 +29,13 @@ namespace RLIRL.App.ViewModels
         #region Commands 
 
         [RelayCommand]
-        private void AcceleratePressed() => _carControlService.SetDirection(Direction.Forward);
+        private void AcceleratePressed()
+        {
+            _carControlService.SetDirection(Direction.Forward);
+            IsClicked = true;
+
+            Trace.WriteLine("CA clique");
+        }
 
         [RelayCommand]
         private void AccelerateRelease() => _carControlService.SetDirection(Direction.Stopped);
@@ -48,15 +59,21 @@ namespace RLIRL.App.ViewModels
         public void Dispose()
         {
             _gameService.GameStatusChanged -= OnGameStatusChanged;
+            _timerService.TimeLeftChanged -= OnTimerChanged;
         }
 
 
-        public void OnGameStatusChanged(object? sender, GameStatus? e)
+        private void OnGameStatusChanged(object? sender, GameStatus? e)
         {
-            if (e == null)
+            if (e != null)
                 Game ??= new();
             else
                 Game = new GameInfo();
+        }
+
+        private void OnTimerChanged(object? sender, TimeSpan e)
+        {
+            Timer = e.ToString(@"m\:ss");
         }
 
         #endregion
@@ -75,6 +92,12 @@ namespace RLIRL.App.ViewModels
         [ObservableProperty]
         public partial GameInfo Game { get; set; } = new();
 
+        [ObservableProperty]
+        public partial string Timer { get; set; } = "5:00";
+
+        [ObservableProperty]
+        public partial bool IsClicked { get; set; } = false;
+
         #endregion
 
         #region Private Fields
@@ -83,8 +106,8 @@ namespace RLIRL.App.ViewModels
 
         private readonly IGameService _gameService;
 
+        private readonly ITimerService _timerService;
+
         #endregion
-
-
     }
 }
