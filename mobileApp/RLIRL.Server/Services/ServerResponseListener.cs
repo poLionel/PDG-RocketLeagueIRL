@@ -75,7 +75,7 @@ namespace RLIRL.Server.Services
             {
                 try
                 {
-                    using var webSocket = await webSocketProvider.GetWebSocketClientAsync(cancellationToken);
+                    var webSocket = await webSocketProvider.GetWebSocketClientAsync(cancellationToken);
                     await ProcessResponsesAsync(webSocket, buffer, cancellationToken);
                 }
                 catch

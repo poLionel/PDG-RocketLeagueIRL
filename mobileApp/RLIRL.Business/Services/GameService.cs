@@ -32,6 +32,9 @@ namespace RLIRL.Business.Services
             // Send a request to start the game
             var startGameCommand = new StartGameCommand();
             clientCommandQueue.EnqueueCommand(startGameCommand);
+
+            // Ask refresh data
+            Refresh();
         }
 
         public void StopGame()
@@ -39,6 +42,9 @@ namespace RLIRL.Business.Services
             // Send a request to stop the game
             var stopGameCommand = new StopGameCommand();
             clientCommandQueue.EnqueueCommand(stopGameCommand);
+
+            // Ask refresh data
+            Refresh();
         }
 
         public void ResumeGame()
@@ -46,6 +52,9 @@ namespace RLIRL.Business.Services
             // Send a request to resume the game
             var resumeGameCommand = new ResumeGameCommand();
             clientCommandQueue.EnqueueCommand(resumeGameCommand);
+
+            // Ask refresh data
+            Refresh();
         }
 
         public void EndGame()
@@ -53,6 +62,9 @@ namespace RLIRL.Business.Services
             // Send a request to end the game
             var endGameCommand = new EndGameCommand();
             clientCommandQueue.EnqueueCommand(endGameCommand);
+
+            // Ask refresh data
+            Refresh();
         }
 
         public void ScoreGoal(string team)
@@ -63,6 +75,9 @@ namespace RLIRL.Business.Services
                 Team = team
             };
             clientCommandQueue.EnqueueCommand(scoreGoalCommand);
+
+            // Ask refresh data
+            Refresh();
         }
     }
 }

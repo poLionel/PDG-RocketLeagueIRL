@@ -49,12 +49,12 @@ namespace RLIRL.App.ViewModels
 
         public void Initialize()
         {
+            gameService.GameStatusChanged += OnGameStatusChanged;
+            cameraFeedService.CameraFeedsChanged += CameraFeedsChanged;
+
             RefreshGameStatus();
             RefreshCameraFeeds();
             RefreshCars();
-
-            gameService.GameStatusChanged += OnGameStatusChanged;
-            cameraFeedService.CameraFeedsChanged += CameraFeedsChanged;
         }
 
         [RelayCommand]

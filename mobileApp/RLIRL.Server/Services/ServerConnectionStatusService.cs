@@ -9,7 +9,7 @@ namespace RLIRL.Server.Services
         {
             try
             {
-                using var _ = await webSocketProvider.GetWebSocketClientAsync(CancellationToken.None);
+                var _ = await webSocketProvider.GetWebSocketClientAsync(CancellationToken.None);
                 return true;
             }
             catch (WebSocketException)
