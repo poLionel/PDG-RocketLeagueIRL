@@ -4,7 +4,8 @@
              x:Class="RLIRL.App.Views.GamePage"
              xmlns:vm="clr-namespace:RLIRL.App.ViewModels"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             x:DataType="vm:GameViewModel">
+             x:DataType="vm:GameViewModel"
+             x:Name="test">
     
     
     <Grid BackgroundColor="Gray">
@@ -104,8 +105,8 @@
                                 <PanGestureRecognizer PanUpdated="OnSpeedPanUpdated"/>
                             </Button.GestureRecognizers>-->
                             <Button.Behaviors>
-                                <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding AcceleratePressedCommand}" />
-                                <toolkit:EventToCommandBehavior EventName="Released" Command="{Binding AccelerateReleaseCommand}"/>
+                                <toolkit:EventToCommandBehavior EventName="Pressed" BindingContext="{Binding Path=BindingContext, Source={x:Reference SpeedButton}, x:DataType=Button}" Command="{Binding AcceleratePressedCommand}"/>
+                                <toolkit:EventToCommandBehavior EventName="Released" BindingContext="{Binding Path=BindingContext, Source={x:Reference SpeedButton}, x:DataType=Button}" Command="{Binding AccelerateReleaseCommand}"/>
                             </Button.Behaviors>
                             <Button.Triggers>
                                 <!-- effet visuel quand boost actif -->
@@ -132,14 +133,14 @@
                     </Grid>
 
                     <!-- Brake -->
-                    <Button Text="Brake"
-        WidthRequest="110" HeightRequest="110"
-        CornerRadius="55"
-        FontAttributes="Bold"
-        BackgroundColor="#EEEEEEAA">
+                    <Button Text="Brake" x:Name="Brake"
+                        WidthRequest="110" HeightRequest="110"
+                        CornerRadius="55"
+                        FontAttributes="Bold"
+                        BackgroundColor="#EEEEEEAA">
                         <Button.Behaviors>
-                            <toolkit:EventToCommandBehavior EventName="Pressed" Command="{Binding BrakePressedCommand}"/>
-                            <toolkit:EventToCommandBehavior EventName="Released" Command="{Binding BrakeReleaseCommand}"/>
+                            <toolkit:EventToCommandBehavior EventName="Pressed" BindingContext="{Binding Path=BindingContext, Source={x:Reference Brake}, x:DataType=Button}" Command="{Binding BrakePressedCommand}"/>
+                            <toolkit:EventToCommandBehavior EventName="Released" BindingContext="{Binding Path=BindingContext, Source={x:Reference Brake}, x:DataType=Button}" Command="{Binding BrakeReleaseCommand}"/>
                         </Button.Behaviors>
                     </Button>
                 </VerticalStackLayout>

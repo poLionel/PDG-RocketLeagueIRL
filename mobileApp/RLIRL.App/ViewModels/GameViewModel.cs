@@ -33,12 +33,14 @@ namespace RLIRL.App.ViewModels
         {
             _carControlService.SetDirection(Direction.Forward);
             IsClicked = true;
-
-            Trace.WriteLine("CA clique");
         }
 
         [RelayCommand]
-        private void AccelerateRelease() => _carControlService.SetDirection(Direction.Stopped);
+        private void AccelerateRelease()
+        {
+            _carControlService.SetDirection(Direction.Stopped);
+            IsClicked = false;
+        }
 
         [RelayCommand]
         private void BrakePressed() => _carControlService.SetDirection(Direction.Backward);
