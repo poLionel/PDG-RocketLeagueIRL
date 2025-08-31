@@ -12,6 +12,7 @@
         void UpdateCurrentCar(int? currentCar);
         void UpdateFreeCars(IEnumerable<int> freeCars);
 
+        void Refresh();
         void ReleaseCar();
         void SelectCar(int carId);
     }

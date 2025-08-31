@@ -58,7 +58,6 @@ namespace RLIRL.App.ViewModels
             cameraFeedService.CameraFeedsChanged += CameraFeedsChanged;
             timerService.TimeLeftChanged += TimeLeftChanged;
 
-            RefreshGameStatus();
             RefreshCameraFeeds();
             RefreshCars();
         }

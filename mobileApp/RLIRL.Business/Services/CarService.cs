@@ -4,14 +4,24 @@ using RLIRL.Server.Abstractions.ClientCommands;
 
 namespace RLIRL.Business.Services
 {
-    public class CarService(IClientCommandQueue clientCommandQueue) : ICarService
+    public class CarService : ICarService
     {
+        private readonly IClientCommandQueue clientCommandQueue;
+
         public IEnumerable<int> FreeCars { get; set; } = [];
         public int? CurrentCar { get; set; }
 
         public event EventHandler<IEnumerable<int>>? FreeCarsChanged;
 
         public event EventHandler<int?>? CurrentCarChanged;
+
+        public CarService(IClientCommandQueue clientCommandQueue)
+        {
+            this.clientCommandQueue = clientCommandQueue;
+
+            // Send an initial refresh to get the list of free cars
+            Refresh();
+        }
 
         public void UpdateFreeCars(IEnumerable<int> freeCars)
         {
@@ -29,6 +39,13 @@ namespace RLIRL.Business.Services
                 CurrentCar = currentCar;
                 CurrentCarChanged?.Invoke(this, currentCar);
             }
+        }
+
+        public void Refresh()
+        {
+            // Request to refresh the list of free cars
+            var refreshCommand = new GetFreeCarsCommand();
+            clientCommandQueue.EnqueueCommand(refreshCommand);
         }
 
         public void SelectCar(int carId)
