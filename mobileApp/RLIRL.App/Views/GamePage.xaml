@@ -8,7 +8,7 @@
              x:Name="GameView">
     
     
-    <Grid BackgroundColor="Gray">
+    <Grid>
         <!-- HUD + Commandes -->
         <Grid Padding="16"
               RowDefinitions="Auto,*"
