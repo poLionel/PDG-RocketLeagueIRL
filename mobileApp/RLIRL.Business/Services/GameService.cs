@@ -63,9 +63,6 @@ namespace RLIRL.Business.Services
             // Send a request to end the game
             var endGameCommand = new EndGameCommand();
             clientCommandQueue.EnqueueCommand(endGameCommand);
-
-            // Ask refresh data
-            Refresh();
         }
 
         public void ScoreGoal(string team)
@@ -76,9 +73,13 @@ namespace RLIRL.Business.Services
                 Team = team
             };
             clientCommandQueue.EnqueueCommand(scoreGoalCommand);
+        }
 
-            // Ask refresh data
-            Refresh();
+        public void UndoGoal()
+        {
+            // Send a request to undo the last goal
+            var undoGoalCommand = new UndoGoalCommand();
+            clientCommandQueue.EnqueueCommand(undoGoalCommand);
         }
     }
 }

@@ -216,7 +216,7 @@
 
                     <!-- Undo Last Goal -->
                     <Button Text="Undo Last Goal"
-                            Command="{Binding UndoLastGoalCommand}"
+                            Command="{Binding UndoGoalCommand}"
                             Style="{StaticResource AdminSecondaryButton}"
                             HorizontalOptions="Center"
                             IsEnabled="{Binding CanScoreGoal}">

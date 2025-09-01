@@ -53,6 +53,11 @@ namespace RLIRL.Business.Abstractions.Abstractions
         /// </summary>
         /// <param name="team">Team that scored the goal</param>
         void ScoreGoal(string team);
+
+        /// <summary>
+        /// Request to undo the last scored goal
+        /// </summary>
+        void UndoGoal();
     }
 }
 
