@@ -2,25 +2,42 @@
 using RLIRL.Server.Abstractions.Attributes;
 using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace RLIRL.Server.Services
 {
     internal class ServerCommandSerializer : IServerCommandSerializer
     {
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+            WriteIndented = false,
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+        };
+
         public byte[] SerializeCommand(IClientCommand serverCommand)
         {
-            // If the command has a CommandNameAttribute, use it as the action property
+            // Create an anonymous object that includes the action
             var action = serverCommand.GetType().GetCustomAttribute<CommandNameAttribute>()?.Name;
-            var jsonNode = JsonSerializer.SerializeToNode(serverCommand) as JsonObject;
-            if (jsonNode != null && action != null)
+
+            // Serialize the command first
+            var commandJson = JsonSerializer.Serialize(serverCommand, _jsonOptions);
+
+            // If we have an action, we need to merge it in
+            if (action != null)
             {
-                jsonNode["action"] = action;
+                var commandObject = JsonSerializer.Deserialize<JsonElement>(commandJson);
+                var resultObject = new Dictionary<string, object> { ["action"] = action };
+
+                // Add all properties from the command
+                foreach (var property in commandObject.EnumerateObject())
+                {
+                    resultObject[property.Name] = property.Value;
+                }
+
+                commandJson = JsonSerializer.Serialize(resultObject, _jsonOptions);
             }
 
-            // Encode the command
-            var jsonPayload = jsonNode?.ToJsonString() ?? JsonSerializer.Serialize(serverCommand);
-            return System.Text.Encoding.UTF8.GetBytes(jsonPayload);
+            return System.Text.Encoding.UTF8.GetBytes(commandJson);
         }
     }
 }

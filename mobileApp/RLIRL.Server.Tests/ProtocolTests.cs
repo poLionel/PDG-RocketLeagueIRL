@@ -27,7 +27,7 @@ namespace RLIRL.Server.Tests
             {
                 Car = 1,
                 Direction = Direction.Backward,
-                Steering = 0,
+                Steering = 10,
                 Boost = true
             };
             var data = CommandSerializer.SerializeCommand(command);
