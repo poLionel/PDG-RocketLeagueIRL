@@ -5,7 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:RLIRL.App"
     xmlns:views="clr-namespace:RLIRL.App.Views"
-    Shell.FlyoutBehavior="Flyout"
     Title="RLIRL.App">
 
     <!--The first shell content is the startup page-->
