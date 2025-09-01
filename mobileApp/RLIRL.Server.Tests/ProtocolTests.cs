@@ -13,7 +13,7 @@ namespace RLIRL.Server.Tests
             Host = "localhost",
             Port = 8000,
             Secure = false,
-            IsHostGateway = false,
+            IsHostDefaultGateway = false,
             MaxPacketSize = 1024 * 1024 // 1 MB
         };
 

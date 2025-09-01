@@ -50,6 +50,11 @@ namespace RLIRL.App
             builder.Services.AddTransient<GameAdminViewModel>();
             builder.Services.AddTransient<CarSelectorViewModel>();
 
+            // Android specific services
+#if ANDROID
+            builder.Services.AddSingleton<IGatewayProvider, Platforms.Android.AndroidGatewayProvider>();
+#endif
+
             var app = builder.Build();
 
             // Start the server command sender and listener
