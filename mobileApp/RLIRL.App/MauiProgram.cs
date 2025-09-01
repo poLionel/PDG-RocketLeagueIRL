@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RLIRL.App.Helper;
 using RLIRL.App.Resources.Fonts;
+using RLIRL.App.Services;
 using RLIRL.App.ViewModels;
 using RLIRL.Business;
 using RLIRL.Server;
@@ -38,9 +39,11 @@ namespace RLIRL.App
             builder.Logging.AddDebug();
 #endif
 
+            // Register services
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
             builder.Services.AddAutoMapper(cfg => { }, typeof(MapperProfile));
+            builder.Services.AddSingleton<IOrientationService, EmptyOrientationService>();
 
             // ViewModels
             builder.Services.AddTransient<WifiConnectViewModel>();
@@ -53,6 +56,7 @@ namespace RLIRL.App
             // Android specific services
 #if ANDROID
             builder.Services.AddSingleton<IGatewayProvider, Platforms.Android.AndroidGatewayProvider>();
+            builder.Services.AddSingleton<IOrientationService, Platforms.Android.OrientationService>();
 #endif
 
             var app = builder.Build();

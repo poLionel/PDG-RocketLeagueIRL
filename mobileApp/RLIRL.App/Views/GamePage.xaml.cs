@@ -24,10 +24,7 @@ public partial class GamePage : ContentPage
 	{
 		InitializeComponent();
 		BindingContext = ServiceHelper.Services.GetService<GameViewModel>();
-
-#if ANDROID
         _orientation = ServiceHelper.Get<IOrientationService>();
-#endif
 	}
 
     static int Quantize(double v, int step) => (int)Math.Clamp(step * Math.Round(v / step), -100, 100);

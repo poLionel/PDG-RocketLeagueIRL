@@ -96,10 +96,10 @@
                         <!-- Bouton Speed avec drag vers le haut = boost -->
                         <Button x:Name="SpeedButton"
                             Text="Speed up"
-                            WidthRequest="110" HeightRequest="110"
+                            WidthRequest="70" HeightRequest="70"
                             CornerRadius="55"
                             FontAttributes="Bold"
-                            BackgroundColor="#EEEEEEAA">
+                            BackgroundColor="DodgerBlue">
 
                             <!--<Button.GestureRecognizers>
                                 <PanGestureRecognizer PanUpdated="OnSpeedPanUpdated"/>
@@ -109,10 +109,14 @@
                                 <toolkit:EventToCommandBehavior EventName="Released" BindingContext="{Binding Path=BindingContext, Source={x:Reference SpeedButton}, x:DataType=Button}" Command="{Binding AccelerateReleaseCommand}"/>
                             </Button.Behaviors>
                             <Button.Triggers>
+                                <!-- Clicked color trigger -->
+                                <Trigger TargetType="Button" Property="IsPressed" Value="True">
+                                    <Setter Property="BackgroundColor" Value="#191970"/>
+                                </Trigger>
                                 <!-- effet visuel quand boost actif -->
                                 <DataTrigger TargetType="Button"
                                      Binding="{Binding IsBoosting}"
-                                     Value="True">  
+                                     Value="True">
                                     <Setter Property="BackgroundColor" Value="#00E676AA"/>
                                     <Setter Property="Scale" Value="1.05"/>
                                     <Setter Property="Shadow">
@@ -121,27 +125,26 @@
                                         </Setter.Value>
                                     </Setter>
                                 </DataTrigger>
-                                <!-- “clicked” visuel -->
-                                <DataTrigger TargetType="Button"
-                                     Binding="{Binding IsClicked}"
-                                     Value="True">
-                                    <Setter Property="BackgroundColor" Value="Violet"/>
-                                </DataTrigger>
-                                
                             </Button.Triggers>
                         </Button>
                     </Grid>
 
                     <!-- Brake -->
                     <Button Text="Brake" x:Name="Brake"
-                        WidthRequest="110" HeightRequest="110"
+                        WidthRequest="70" HeightRequest="70"
                         CornerRadius="55"
                         FontAttributes="Bold"
-                        BackgroundColor="#EEEEEEAA">
+                        BackgroundColor="DodgerBlue">
                         <Button.Behaviors>
                             <toolkit:EventToCommandBehavior EventName="Pressed" BindingContext="{Binding Path=BindingContext, Source={x:Reference Brake}, x:DataType=Button}" Command="{Binding BrakePressedCommand}"/>
                             <toolkit:EventToCommandBehavior EventName="Released" BindingContext="{Binding Path=BindingContext, Source={x:Reference Brake}, x:DataType=Button}" Command="{Binding BrakeReleaseCommand}"/>
                         </Button.Behaviors>
+                        <Button.Triggers>
+                            <!-- Clicked color trigger -->
+                            <Trigger TargetType="Button" Property="IsPressed" Value="True">
+                                <Setter Property="BackgroundColor" Value="#191970"/>
+                            </Trigger>
+                        </Button.Triggers>
                     </Button>
                 </VerticalStackLayout>
             </Grid>
