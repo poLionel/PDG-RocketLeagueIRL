@@ -7,20 +7,14 @@ namespace RLIRL.Server.Services
 {
     internal class ServerCommandSerializer : IServerCommandSerializer
     {
-        private static readonly JsonSerializerOptions _jsonOptions = new()
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            WriteIndented = false,
-            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-        };
-
         public byte[] SerializeCommand(IClientCommand serverCommand)
         {
             // Create an anonymous object that includes the action
             var action = serverCommand.GetType().GetCustomAttribute<CommandNameAttribute>()?.Name;
 
             // Serialize the command first
-            var commandJson = JsonSerializer.Serialize(serverCommand, _jsonOptions);
+            var commandJson = JsonSerializer.Serialize(serverCommand, serverCommand.GetType());
+
 
             // If we have an action, we need to merge it in
             if (action != null)
@@ -34,7 +28,7 @@ namespace RLIRL.Server.Services
                     resultObject[property.Name] = property.Value;
                 }
 
-                commandJson = JsonSerializer.Serialize(resultObject, _jsonOptions);
+                commandJson = JsonSerializer.Serialize(resultObject);
             }
 
             return System.Text.Encoding.UTF8.GetBytes(commandJson);

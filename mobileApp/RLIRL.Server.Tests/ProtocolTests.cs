@@ -67,7 +67,7 @@ namespace RLIRL.Server.Tests
             Assert.NotNull(response!.free_cars);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact]
         public async Task TestSelectCarCommand()
         {
             // Prepare the command
@@ -92,7 +92,7 @@ namespace RLIRL.Server.Tests
             Assert.Equal(1, (int)response!.car);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact]
         public async Task TestFreeCarCommand()
         {
             // Prepare the command
@@ -117,7 +117,7 @@ namespace RLIRL.Server.Tests
             Assert.Equal(1, (int)response!.car);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact]
         public async Task TestGetCarStatusCommand()
         {
             // Prepare the command
@@ -147,7 +147,7 @@ namespace RLIRL.Server.Tests
             Assert.NotNull(response!.boost_value);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact]
         public async Task TestGetAccessibleCarFeedsCommand()
         {
             // Prepare the command
@@ -192,7 +192,7 @@ namespace RLIRL.Server.Tests
             Assert.True(result.Count > 0);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact]
         public async Task TestGoalScoredCommand()
         {
             // Prepare the command
