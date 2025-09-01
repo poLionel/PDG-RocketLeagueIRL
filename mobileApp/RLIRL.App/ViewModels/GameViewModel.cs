@@ -51,7 +51,13 @@ namespace RLIRL.App.ViewModels
         [RelayCommand]
         private void SetBoost(bool isActive) => _carControlService.SetBoost(isActive);
 
-        //TODO joystick
+        [RelayCommand]
+        private void SetSteering(int value)
+        {
+            value = Math.Clamp(value, -100, 100);
+            Steering = value;
+            _carControlService.SetSteering(value);
+        }
 
         #endregion
 
