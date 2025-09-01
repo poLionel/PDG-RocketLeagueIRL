@@ -19,7 +19,7 @@ namespace RLIRL.Server.Tests
 
         private readonly IServerCommandSerializer CommandSerializer = new ServerCommandSerializer();
 
-        [Fact]
+        [Fact(Skip = "Needs car")]
         public async Task TestMoveCarCommand()
         {
             // Prepare the command
@@ -67,7 +67,7 @@ namespace RLIRL.Server.Tests
             Assert.NotNull(response!.free_cars);
         }
 
-        [Fact]
+        [Fact(Skip = "Needs car")]
         public async Task TestSelectCarCommand()
         {
             // Prepare the command
@@ -92,7 +92,7 @@ namespace RLIRL.Server.Tests
             Assert.Equal(1, (int)response!.car);
         }
 
-        [Fact]
+        [Fact(Skip = "Needs car")]
         public async Task TestFreeCarCommand()
         {
             // Prepare the command
@@ -117,7 +117,7 @@ namespace RLIRL.Server.Tests
             Assert.Equal(1, (int)response!.car);
         }
 
-        [Fact]
+        [Fact(Skip = "Needs car")]
         public async Task TestGetCarStatusCommand()
         {
             // Prepare the command
@@ -147,7 +147,7 @@ namespace RLIRL.Server.Tests
             Assert.NotNull(response!.boost_value);
         }
 
-        [Fact]
+        [Fact(Skip = "Needs car")]
         public async Task TestGetAccessibleCarFeedsCommand()
         {
             // Prepare the command
