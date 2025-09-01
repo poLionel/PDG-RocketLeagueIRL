@@ -8,8 +8,56 @@ operations which can take significant time to complete.
 
 Key functions:
 - Car command transmission via BLE
-- WiFi provisioning for car setup
-- Real-time motor control with feedback
+- WiFi provisioning for car     if success:
+        # Get the updated game status
+        cur    if success:
+        response = {
+            "status": "success",
+            "action": "resume_game",
+            "message": "Game resumed!"
+        }
+        
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
+        
+        return responsee_manage    if success:
+        response = {
+            "status": "success",
+            "action": "goal_scored",
+            "message": f"Goal scored by {team_color} team!",
+            "team": team_color,
+            "player_id": player_id,
+            "car_id": car_id
+        }
+        
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
+        
+        return response()
+        
+        response = {
+            "status": "success",
+            "action": "resume_game",
+            "message": "Game resumed!",
+            "game_status": current_game.to_dict()
+        }
+        
+        # Broadcast the response with game status to all clients
+        await broadcast_response(response)
+        
+        return responseime motor control with feedback
 - Asynchronous device discovery and pairing
 - Game management with broadcasting
 """
@@ -395,8 +443,14 @@ async def handle_start_game_async(data, game_manager=None):
             "message": "Game started!"
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
@@ -424,8 +478,14 @@ async def handle_stop_game_async(data, game_manager=None):
             "message": "Game stopped!"
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
@@ -453,8 +513,14 @@ async def handle_resume_game_async(data, game_manager=None):
             "message": "Game resumed!"
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
@@ -473,10 +539,6 @@ async def handle_end_game_async(data, game_manager=None):
             "message": "Game manager not available"
         }
     
-    # Get game status before ending for broadcast
-    current_game = game_manager.get_current_game()
-    pre_end_status = current_game.to_dict()
-    
     success = game_manager.end_game()
     
     if success:
@@ -486,8 +548,14 @@ async def handle_end_game_async(data, game_manager=None):
             "message": "Game ended!"
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
@@ -523,11 +591,20 @@ async def handle_goal_scored_async(data, game_manager=None):
         response = {
             "status": "success",
             "action": "goal_scored",
-            "message": f"Goal scored by {team_color} team!"
+            "message": f"Goal scored by {team_color} team!",
+            "team": team_color,
+            "player_id": player_id,
+            "car_id": car_id
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
