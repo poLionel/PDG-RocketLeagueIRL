@@ -22,10 +22,7 @@ public partial class GamePage : ContentPage
 	{
 		InitializeComponent();
 		BindingContext = ServiceHelper.Services.GetService<GameViewModel>();
-
-#if ANDROID
         _orientation = ServiceHelper.Get<IOrientationService>();
-#endif
 	}
 
     #endregion

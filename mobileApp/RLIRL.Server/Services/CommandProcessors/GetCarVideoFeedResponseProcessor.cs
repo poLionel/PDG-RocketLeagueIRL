@@ -7,7 +7,8 @@ namespace RLIRL.Server.Services.CommandProcessors
     {
         public override Task ProcessResponseAsync(GetCarVideoFeedResponse response)
         {
-            throw new NotImplementedException();
+            // Ignore
+            return Task.CompletedTask;
         }
     }
 }

@@ -255,7 +255,9 @@
                     </Grid>
 
                     <!-- Camera Feed Grid -->
-                    <CollectionView ItemsSource="{Binding PlayerCameraFeeds}" Style="{StaticResource AdminCameraGrid}">
+                    <CollectionView ItemsSource="{Binding PlayerCameraFeeds}"
+                                    Style="{StaticResource AdminCameraGrid}"
+                                    IsVisible="{Binding Cars,Converter={toolkit:IsListNotNullOrEmptyConverter}}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:CarInfo">
                                 <Border Style="{StaticResource AdminCameraContainer}">
@@ -292,8 +294,9 @@
 
                     <!-- No cameras message -->
                     <StackLayout IsVisible="{Binding PlayerCameraFeeds, Converter={toolkit:IsListNullOrEmptyConverter}}"
-                                 Style="{StaticResource AdminEmptyStateContainer}">
-                        <Image HorizontalOptions="Center">
+                                 Style="{StaticResource AdminEmptyStateContainer}"
+                                 Margin="0,0,0,25">
+                        <Image HorizontalOptions="Center" MaximumWidthRequest="50">
                             <Image.Source>
                                 <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                                  Glyph="{x:Static fonts:FluentUI.camera_off_24_regular}"
@@ -332,7 +335,9 @@
                     </Grid>
 
                     <!-- Car List -->
-                    <CollectionView ItemsSource="{Binding Cars}" Style="{StaticResource AdminCarList}">
+                    <CollectionView ItemsSource="{Binding Cars}"
+                                    Style="{StaticResource AdminCarList}"
+                                    IsVisible="{Binding Cars,Converter={toolkit:IsListNotNullOrEmptyConverter}}">
                         <CollectionView.ItemTemplate>
                             <DataTemplate x:DataType="models:CarInfo">
                                 <Border Style="{StaticResource AdminItemContainer}">
@@ -383,8 +388,9 @@
 
                     <!-- No cars message -->
                     <StackLayout IsVisible="{Binding Cars, Converter={toolkit:IsListNullOrEmptyConverter}}"
-                                 Style="{StaticResource AdminEmptyStateContainer}">
-                        <Image HorizontalOptions="Center">
+                                 Style="{StaticResource AdminEmptyStateContainer}"
+                                 Margin="0,0,0,25">
+                        <Image HorizontalOptions="Center" MaximumWidthRequest="50">
                             <Image.Source>
                                 <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                                  Glyph="{x:Static fonts:FluentUI.box_24_regular}"

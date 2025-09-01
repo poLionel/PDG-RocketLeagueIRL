@@ -13,13 +13,13 @@ namespace RLIRL.Server.Tests
             Host = "localhost",
             Port = 8000,
             Secure = false,
-            IsHostGateway = false,
+            IsHostDefaultGateway = false,
             MaxPacketSize = 1024 * 1024 // 1 MB
         };
 
         private readonly IServerCommandSerializer CommandSerializer = new ServerCommandSerializer();
 
-        [Fact]
+        [Fact(Skip = "Needs car")]
         public async Task TestMoveCarCommand()
         {
             // Prepare the command
@@ -27,7 +27,7 @@ namespace RLIRL.Server.Tests
             {
                 Car = 1,
                 Direction = Direction.Backward,
-                Steering = 0,
+                Steering = 10,
                 Boost = true
             };
             var data = CommandSerializer.SerializeCommand(command);
@@ -67,7 +67,7 @@ namespace RLIRL.Server.Tests
             Assert.NotNull(response!.free_cars);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact(Skip = "Needs car")]
         public async Task TestSelectCarCommand()
         {
             // Prepare the command
@@ -92,7 +92,7 @@ namespace RLIRL.Server.Tests
             Assert.Equal(1, (int)response!.car);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact(Skip = "Needs car")]
         public async Task TestFreeCarCommand()
         {
             // Prepare the command
@@ -117,7 +117,7 @@ namespace RLIRL.Server.Tests
             Assert.Equal(1, (int)response!.car);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact(Skip = "Needs car")]
         public async Task TestGetCarStatusCommand()
         {
             // Prepare the command
@@ -147,7 +147,7 @@ namespace RLIRL.Server.Tests
             Assert.NotNull(response!.boost_value);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact(Skip = "Needs car")]
         public async Task TestGetAccessibleCarFeedsCommand()
         {
             // Prepare the command
@@ -192,7 +192,7 @@ namespace RLIRL.Server.Tests
             Assert.True(result.Count > 0);
         }
 
-        [Fact(Skip = "Needs car connectivity")]
+        [Fact]
         public async Task TestGoalScoredCommand()
         {
             // Prepare the command

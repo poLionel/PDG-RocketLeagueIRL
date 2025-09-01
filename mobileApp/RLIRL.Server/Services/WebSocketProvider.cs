@@ -1,13 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
 using RLIRL.Server.Abstractions.Abstractions;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
 using System.Net.WebSockets;
 
 namespace RLIRL.Server.Services
 {
-    internal class WebSocketProvider(IOptions<ServerConfiguration> serverConfiguration) : IWebSocketProvider, IDisposable
+    internal class WebSocketProvider(IOptions<ServerConfiguration> serverConfiguration, IGatewayProvider gatewayProvider) : IWebSocketProvider, IDisposable
     {
         private ClientWebSocket? currentWebSocketClient;
         private readonly SemaphoreSlim webSocketClientSemaphore = new(1, 1);
@@ -31,7 +28,7 @@ namespace RLIRL.Server.Services
                 }
 
                 // Create a new connection
-                var host = await GetHostAsync() ?? throw new WebSocketException("No valid host found for the server");
+                var host = GetHost() ?? throw new WebSocketException("No valid host found for the server");
                 using var handler = new SocketsHttpHandler();
                 var ws = new ClientWebSocket();
 
@@ -58,48 +55,21 @@ namespace RLIRL.Server.Services
             }
         }
 
-        private async Task<Uri?> GetHostAsync()
+        private Uri? GetHost()
         {
+            var protocol = serverConfiguration.Value.Secure ? "wss" : "ws";
+
             // If the server is not the network gateway, return the configured host
-            if (!serverConfiguration.Value.IsHostGateway)
+            if (!serverConfiguration.Value.IsHostDefaultGateway)
             {
                 if (string.IsNullOrEmpty(serverConfiguration.Value.Host)) return null;
-                var protocol = serverConfiguration.Value.Secure ? "wss" : "ws";
                 return new Uri($"{protocol}://{serverConfiguration.Value.Host}:{serverConfiguration.Value.Port}");
             }
 
-            // Look for the first available gateway address
-            var gatewayAddresses = NetworkInterface.GetAllNetworkInterfaces()
-                .Where(ni => ni.OperationalStatus == OperationalStatus.Up)
-                .SelectMany(ni => ni.GetIPProperties().GatewayAddresses);
-
-            // Try to connect to each gateway address and return the first one that is available
-            foreach (var gateway in gatewayAddresses)
-            {
-                if (await IsServerAvailableAsync(gateway.Address, serverConfiguration.Value.Port))
-                {
-                    var protocol = serverConfiguration.Value.Secure ? "wss" : "ws";
-                    return new Uri($"{protocol}://{gateway.Address}:{serverConfiguration.Value.Port}");
-                }
-            }
-
-            // If no gateway is available, return null
-            return null;
-        }
-
-        private async Task<bool> IsServerAvailableAsync(IPAddress ipAddress, short port)
-        {
-            try
-            {
-                // Attempt to connect to the server using TCP
-                using var client = new TcpClient();
-                await client.ConnectAsync(ipAddress, port);
-                return true;
-            }
-            catch (SocketException)
-            {
-                return false;
-            }
+            // Otherwise return the gateway address
+            var gateway = gatewayProvider.GetGateway();
+            if (gateway == null) return null;
+            return new Uri($"{protocol}://{gateway}:{serverConfiguration.Value.Port}");
         }
 
         public void Dispose()

@@ -19,6 +19,7 @@ namespace RLIRL.Server
                 .AddSingleton<IServerResponseListener, ServerResponseListener>()
                 .AddSingleton<IServerCommandSender, ServerCommandSender>()
                 .AddSingleton<IServerConnectionStatusService, ServerConnectionStatusService>()
+                .AddSingleton<IGatewayProvider, GatewayProvider>()
                 .AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
             services.RegisterResponseProcessors();
