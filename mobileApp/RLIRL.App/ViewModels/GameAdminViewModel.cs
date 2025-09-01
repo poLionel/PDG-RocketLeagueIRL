@@ -105,12 +105,6 @@ namespace RLIRL.App.ViewModels
         }
 
         [RelayCommand]
-        private void UndoLastGoal()
-        {
-            // TODO: Implement undo last goal logic
-        }
-
-        [RelayCommand]
         private void RefreshCameraFeeds()
         {
             cameraFeedService.Refresh();
