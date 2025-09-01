@@ -188,8 +188,8 @@ async def handle_send_to_car_async(data, car_manager=None):
 async def handle_set_wifi_credentials_async(data, car_manager=None):
     """Handle setting WiFi credentials on a car via Bluetooth (async version)."""
     car_id = data.get("car")
-    ssid = data.get("ssid", "TestWiFi")
-    password = data.get("password", "TestPassword123")
+    ssid = data.get("ssid", "RL-Hotspot")
+    password = data.get("password", "rocketleague")
     
     logger.info(f"Setting WiFi credentials on car {car_id}: SSID={ssid}")
     
