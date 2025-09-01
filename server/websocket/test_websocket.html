@@ -257,6 +257,7 @@
                 <button onclick="quickScoreGoal('blue')">🔵 Blue Goal</button>
                 <button onclick="quickScoreGoal('green')">🟢 Green Goal</button>
                 <button onclick="quickScoreGoal('yellow')">� Yellow Goal</button>
+                <button onclick="undoGoal()">↩️ Undo Last Goal</button>
             </div>
         </div>
 
@@ -677,6 +678,11 @@
             
             addMessage(`Scoring goal for ${team} team...`);
             sendMessage(message);
+        }
+        
+        function undoGoal() {
+            addMessage('Undoing last goal...');
+            sendMessage({ "action": "undo_goal" });
         }
 
         function quickScoreGoal(team) {

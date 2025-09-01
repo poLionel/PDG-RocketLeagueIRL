@@ -93,14 +93,14 @@ async def handle_message(websocket, path=None):
                 # Route to async handlers first (for operations requiring await)
                 if action in ASYNC_HANDLERS:
                     # Pass game_manager to async game handlers
-                    if action in ["start_game", "stop_game", "resume_game", "end_game", "goal_scored"]:
+                    if action in ["start_game", "stop_game", "resume_game", "end_game", "goal_scored", "goal_undone", "undo_goal"]:
                         response = await ASYNC_HANDLERS[action](data, game_manager=game_manager)
                     else:
                         response = await ASYNC_HANDLERS[action](data, car_manager)
                 # Route to synchronous handlers for immediate operations
                 elif action in ACTION_HANDLERS:
                     # Synchronous game management actions
-                    if action in ["get_game_status", "score_goal", "add_car_to_team", "remove_car_from_teams", "add_team"]:
+                    if action in ["get_game_status", "undo_goal", "add_car_to_team", "remove_car_from_teams", "add_team"]:
                         response = ACTION_HANDLERS[action](data, game_manager=game_manager)
                     # Pass websocket_id for car assignment and ownership tracking
                     elif action in ["select_car", "free_car", "move_car", "send_to_car", "connect_to_car"]:

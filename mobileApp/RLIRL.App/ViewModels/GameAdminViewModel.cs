@@ -99,6 +99,12 @@ namespace RLIRL.App.ViewModels
         }
 
         [RelayCommand]
+        private void UndoGoal()
+        {
+            gameService.UndoGoal();
+        }
+
+        [RelayCommand]
         private void UndoLastGoal()
         {
             // TODO: Implement undo last goal logic
