@@ -285,3 +285,101 @@ class CarManager:
             list: List of Car objects assigned to the websocket
         """
         return [car for car in self.cars.values() if car.websocket_id == websocket_id]
+    
+    def get_cars_with_video_feeds(self):
+        """
+        Get all cars that have available video feeds.
+        
+        Returns:
+            list: List of Car objects with video feed URLs
+        """
+        return [car for car in self.cars.values() if car.video_feed_url is not None]
+    
+    def subscribe_to_video_feed(self, car_id, websocket_id):
+        """
+        Subscribe a websocket to a car's video feed.
+        
+        Args:
+            car_id (int): ID of the car to subscribe to
+            websocket_id (str): WebSocket connection identifier
+            
+        Returns:
+            tuple: (success: bool, message: str, car: Car or None)
+        """
+        car = self.get_car(car_id)
+        if not car:
+            return False, f"Car {car_id} not found", None
+        
+        if car.video_feed_url is None:
+            return False, f"Car {car_id} has no video feed available", None
+        
+        car.add_video_subscriber(websocket_id)
+        return True, f"Subscribed to video feed for car {car_id}", car
+    
+    def unsubscribe_from_video_feed(self, car_id, websocket_id):
+        """
+        Unsubscribe a websocket from a car's video feed.
+        
+        Args:
+            car_id (int): ID of the car to unsubscribe from
+            websocket_id (str): WebSocket connection identifier
+            
+        Returns:
+            tuple: (success: bool, message: str)
+        """
+        car = self.get_car(car_id)
+        if not car:
+            return False, f"Car {car_id} not found"
+        
+        car.remove_video_subscriber(websocket_id)
+        return True, f"Unsubscribed from video feed for car {car_id}"
+    
+    def unsubscribe_websocket_from_all_feeds(self, websocket_id):
+        """
+        Unsubscribe a websocket from all video feeds when it disconnects.
+        
+        Args:
+            websocket_id (str): WebSocket connection identifier
+            
+        Returns:
+            list: List of car IDs that the websocket was unsubscribed from
+        """
+        unsubscribed_cars = []
+        for car in self.cars.values():
+            if websocket_id in car.video_subscribers:
+                car.remove_video_subscriber(websocket_id)
+                unsubscribed_cars.append(car.car_id)
+        return unsubscribed_cars
+    
+    def get_video_subscribers(self, car_id):
+        """
+        Get all websockets subscribed to a car's video feed.
+        
+        Args:
+            car_id (int): ID of the car
+            
+        Returns:
+            set: Set of websocket IDs subscribed to the car's feed
+        """
+        car = self.get_car(car_id)
+        if car:
+            return car.video_subscribers.copy()
+        return set()
+    
+    def update_car_video_feed(self, car_id, ip_address, port=None):
+        """
+        Update a car's video feed URL.
+        
+        Args:
+            car_id (int): ID of the car
+            ip_address (str): IP address of the car
+            port (int, optional): Port for video feed (defaults to 8080)
+            
+        Returns:
+            bool: True if car was found and updated, False otherwise
+        """
+        car = self.get_car(car_id)
+        if car:
+            car.set_video_feed_url(ip_address, port)
+            return True
+        return False

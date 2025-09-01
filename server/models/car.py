@@ -32,6 +32,12 @@ class Car:
         self.last_seen = None     # Timestamp of last BLE discovery
         self.websocket_id = None  # WebSocket connection identifier that controls this car
         
+        # Video feed properties
+        self.video_feed_url = None  # IP:PORT URL for video feed (e.g., "192.168.1.100:8080")
+        self.video_feed_port = 8080  # Default port for video feed
+        self.video_subscribers = set()  # WebSocket IDs subscribed to this car's video feed
+        self.last_video_frame = None  # Last received video frame (base64 encoded JPEG)
+        
     def update_status(self, **kwargs):
         """
         Update car status with provided parameters.
@@ -63,8 +69,32 @@ class Car:
             "connected": self.connected,
             "last_seen": self.last_seen.isoformat() if self.last_seen else None,
             "websocket_id": self.websocket_id,
-            "selected": self.websocket_id is not None
+            "selected": self.websocket_id is not None,
+            "video_feed_url": self.video_feed_url,
+            "has_video_feed": self.video_feed_url is not None,
+            "video_subscribers_count": len(self.video_subscribers)
         }
+    
+    def add_video_subscriber(self, websocket_id):
+        """Add a WebSocket subscriber to this car's video feed."""
+        self.video_subscribers.add(websocket_id)
+    
+    def remove_video_subscriber(self, websocket_id):
+        """Remove a WebSocket subscriber from this car's video feed."""
+        self.video_subscribers.discard(websocket_id)
+    
+    def set_video_feed_url(self, ip_address, port=None):
+        """Set the video feed URL for this car."""
+        if port is None:
+            port = self.video_feed_port
+        if ip_address:
+            self.video_feed_url = f"{ip_address}:{port}"
+        else:
+            self.video_feed_url = None
+    
+    def update_video_frame(self, frame_data):
+        """Update the last received video frame."""
+        self.last_video_frame = frame_data
     
     def __str__(self):
         selected_status = f" [Selected by {self.websocket_id}]" if self.websocket_id else " [Available]"

@@ -205,7 +205,37 @@ App sends:
 }
 ```
 
-Server responds with a jpeg of the last frame.
+To unsubscribe from all video feeds, send an empty car ID:
+
+```
+{
+  "action": "get_car_video_feed",
+  "car": ""
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "get_car_video_feed",
+  "message": "Subscribed to video feed for car 1",
+  "following_car": 1,
+  "video_feed_url": "192.168.1.100:8080"
+}
+```
+
+The server will then periodically fetch video frames from the car's IP camera and broadcast them to subscribed clients as:
+
+```
+{
+  "action": "video_frame_update",
+  "car": 1,
+  "video_frame": "<base64_encoded_jpeg>",
+  "timestamp": "1693123456.789"
+}
+```
 
 ### A goal is scored <!-- omit from toc -->
 
@@ -408,6 +438,31 @@ Server responds:
   "status": "success",
   "action": "remove_car_from_teams",
   "message": "Car 2 removed from all teams"
+}
+```
+
+### Set car video IP <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "set_car_video_ip",
+  "car": 1,
+  "ip_address": "192.168.1.100",
+  "port": 8080
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "set_car_video_ip",
+  "message": "Video feed URL set for car 1",
+  "car": 1,
+  "video_feed_url": "192.168.1.100:8080"
 }
 ```
 

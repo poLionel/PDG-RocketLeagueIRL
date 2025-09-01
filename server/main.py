@@ -3,6 +3,7 @@ import logging
 from websocket import start_server_with_managers
 from models import Car, CarManager, GameManager
 from bluetooth import BluetoothService, check_bluetooth_dependencies, set_bluetooth_service
+from video_feed_service import VideoFeedService, set_video_feed_service
 
 # Configure application-wide logging for debugging and monitoring
 logging.basicConfig(level=logging.INFO)
@@ -81,8 +82,9 @@ async def main():
     1. Car management system initialization
     2. Game management system initialization
     3. Bluetooth service startup (if available)
-    4. WebSocket server launch
-    5. Graceful shutdown handling
+    4. Video feed service startup
+    5. WebSocket server launch
+    6. Graceful shutdown handling
     """
     logger.info("Starting Rocket League IRL Server")
     
@@ -104,6 +106,12 @@ async def main():
         bluetooth_service = None
         discovery_task = None
     
+    # Initialize video feed service
+    import websocket
+    video_service = VideoFeedService(car_manager, websocket)
+    set_video_feed_service(video_service)
+    await video_service.start()
+    
     try:
         # Start WebSocket server with both managers - this blocks until server stops
         await start_server_with_managers(car_manager, game_manager)
@@ -112,6 +120,8 @@ async def main():
         logger.info("Received interrupt signal, shutting down...")
     finally:
         # Ensure clean shutdown of all async resources
+        if video_service:
+            await video_service.stop()
         if bluetooth_service:
             await bluetooth_service.stop_auto_discovery()
         if discovery_task:
