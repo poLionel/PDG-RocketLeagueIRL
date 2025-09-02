@@ -18,9 +18,14 @@ public:
   void                  disconnect(bool erase_cfg = true);   // coupe le Wi-Fi (option: effacer cfg)
   
   String                get_device_id() const { return device_id_; }
+  
   bool                  is_connected() const;
   String                ip() const;                        // IP locale (ou "")
+  String                mac() const;                        // Adresse MAC (toujours dispo)
+  String                netmask() const;                    // Masque (si connecté)
+  String                gateway() const;                    // Passerelle (si connecté)
   int32_t               rssi() const;                     // RSSI si connecté (ou 0)
+
 
 private:
   String device_id_;

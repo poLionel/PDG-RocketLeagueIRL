@@ -28,7 +28,12 @@ public:
     int8_t              get_speed_direction() const { return speed_direction_.get(); }
     int8_t              get_decay_mode() const { return decay_mode_.get(); }
 
-    void                set_battery_level(uint8_t percent) { battery_.set(percent); battery_.publish(); } 
+    void                set_battery_level(uint8_t percent)  { battery_.set(percent);    battery_.publish(); }
+    void                set_ip(const String& ip)            { ip_addr_.set(ip);         ip_addr_.publish(); }
+    void                set_mac(const String& mac)          { mac_addr_.set(mac);       mac_addr_.publish(); }
+    void                set_netmask(const String& nm)       { netmask_.set(nm);         netmask_.publish(); }
+    void                set_gateway(const String& gw)       { gateway_.set(gw);         gateway_.publish(); }
+
 
     bool                wifi_credentials_available() const { return apply_wifi_credentials_.get(); }
     void                consume_wifi_credentiels(String& ssid, String& pass);
@@ -39,11 +44,18 @@ private:
     NimBLEService*      service_                        = nullptr;
     NimBLEAdvertising*  adv_                            = nullptr;
 
+    gatt_slot<String>   device_id_                      { CHAR_DEVID_UUID       , {""} };
+
     gatt_slot<String>   ssid_                           { CHAR_SSID_UUID        , {""} };
     gatt_slot<String>   pass_                           { CHAR_PASS_UUID        , {""} };
     gatt_slot<bool>     apply_wifi_credentials_         { CHAR_APPLY_UUID       , {false} };
+
+    gatt_slot<String>   ip_addr_                        { CHAR_IP_UUID          , {""} };
+    gatt_slot<String>   mac_addr_                       { CHAR_MAC_UUID         , {""} };
+    gatt_slot<String>   netmask_                        { CHAR_NETMASK_UUID     , {""} };
+    gatt_slot<String>   gateway_                        { CHAR_GATEWAY_UUID     , {""} };
+
     gatt_slot<String>   status_                         { CHAR_STATUS_UUID      , {"idle"} };
-    gatt_slot<String>   device_id_                      { CHAR_DEVID_UUID       , {""} };
     gatt_slot<uint8_t>  battery_                        { CHAR_BATTERY_UUID     , {100, 0, 100} };
 
     gatt_slot<int8_t>   x_direction_                    { CHAR_DIR_X_UUID       , {0, -100, 100} };
