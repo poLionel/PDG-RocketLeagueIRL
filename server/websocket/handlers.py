@@ -67,10 +67,9 @@ def translate_move_to_drive_params(move, x, boost):
         drive_y = 0    # No directional movement
         speed = 0      # Complete stop
     
-    # Boost mode increases speed and changes braking characteristics
+    # Boost mode increases speed
     if boost:
         speed = 100    # Maximum speed for boost
-        decay_mode = 1 # boost decay mode
         
     return drive_x, drive_y, speed, decay_mode
 
