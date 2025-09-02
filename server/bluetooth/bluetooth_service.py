@@ -124,6 +124,18 @@ class BluetoothService:
         """Send a command to a car via BLE (async wrapper)."""
         return await self.ble_service.send_command_to_car(ble_address, command, data)
 
+    async def get_car_ip_address_async(self, ble_address: str) -> Optional[str]:
+        """Get the IP address of a specific car via BLE."""
+        return await self.ble_service.get_car_ip_address(ble_address)
+
+    async def get_car_video_feed_url_async(self, ble_address: str) -> Optional[str]:
+        """Get the video feed URL for a specific car."""
+        return await self.ble_service.get_car_video_feed_url(ble_address)
+
+    async def read_network_config_async(self, ble_address: str) -> Optional[dict]:
+        """Read complete network configuration from a car."""
+        return await self.ble_service.read_network_config(ble_address)
+
 
 # Test function for quick BLE testing
 async def test_ble_scan():
@@ -158,6 +170,20 @@ async def test_ble_scan():
                 car_state = await ble_service.read_car_state(cars[0].address)
                 if car_state:
                     print(f"Car state: {car_state}")
+                
+                # Test reading IP address and video feed URL
+                ip_address = await ble_service.get_car_ip_address(cars[0].address)
+                if ip_address:
+                    print(f"Car IP address: {ip_address}")
+                    
+                    video_url = await ble_service.get_car_video_feed_url(cars[0].address)
+                    if video_url:
+                        print(f"Video feed URL: {video_url}")
+                
+                # Test reading network configuration
+                network_config = await ble_service.read_network_config(cars[0].address)
+                if network_config:
+                    print(f"Network config: {network_config}")
                 
                 await ble_service.disconnect_from_device(cars[0].address)
             else:
