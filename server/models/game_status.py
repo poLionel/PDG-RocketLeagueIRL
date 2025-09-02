@@ -96,7 +96,22 @@ class GameStatus:
             team.score += 1
             return True
         return False
-    
+
+    def undo_goal(self) -> bool:
+        """
+        Undo the last goal scored in the game.
+        
+        Returns:
+            bool: True if goal was undone, False if no goals to undo
+        """
+        if self.goals:
+            last_goal = self.goals.pop()
+            team = self.get_team(last_goal.team_color)
+            if team:
+                team.score -= 1
+            return True
+        return False
+
     def start_game(self):
         """Start the game."""
         self.start_date = datetime.now()

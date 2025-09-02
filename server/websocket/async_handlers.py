@@ -612,7 +612,38 @@ async def handle_goal_scored_async(data, game_manager=None):
             "status": "error",
             "action": "goal_scored",
             "message": f"Failed to score goal. Invalid team '{team_color}' or no active game."
-        }# Export the async handler
+        }
+    
+async def handle_undo_goal_async(data, game_manager=None):
+    """Handle undo goal requests."""
+    if not game_manager:
+        return {
+            "status": "error",
+            "action": "undo_goal",
+            "message": "Game manager not available"
+        }
+
+    success = game_manager.undo_goal()
+
+    if success:
+        response = {
+            "status": "success",
+            "action": "undo_goal",
+            "message": "Last goal undone!"
+        }
+
+        # Broadcast the same response to all clients
+        await broadcast_response(response)
+
+        return response
+    else:
+        return {
+            "status": "error",
+            "action": "undo_goal",
+            "message": "Failed to undo goal. No active game or goal to undo."
+        }
+
+# Export the async handler
 ASYNC_HANDLERS = {
     "send_to_car": handle_send_to_car_async,
     "set_wifi_credentials": handle_set_wifi_credentials_async,
@@ -625,4 +656,5 @@ ASYNC_HANDLERS = {
     "resume_game": handle_resume_game_async,
     "end_game": handle_end_game_async,
     "goal_scored": handle_goal_scored_async,
+    "undo_goal": handle_undo_goal_async,
 }

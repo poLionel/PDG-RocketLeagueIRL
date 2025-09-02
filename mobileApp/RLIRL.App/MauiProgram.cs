@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using RLIRL.App.Helper;
 using RLIRL.App.Resources.Fonts;
+using RLIRL.App.Services;
 using RLIRL.App.ViewModels;
 using RLIRL.Business;
 using RLIRL.Server;
@@ -38,24 +39,30 @@ namespace RLIRL.App
             builder.Logging.AddDebug();
 #endif
 
-#if ANDROID
-            builder.Services.AddSingleton<IOrientationService, RLIRL.App.Platforms.Android.OrientationService>();
-#endif
-
+            // Register services
             builder.Services.RegisterBusiness(builder.Configuration);
             builder.Services.RegisterServer(builder.Configuration);
             builder.Services.AddAutoMapper(cfg => { }, typeof(MapperProfile));
+            builder.Services.AddSingleton<IOrientationService, EmptyOrientationService>();
 
             // ViewModels
             builder.Services.AddTransient<WifiConnectViewModel>();
             builder.Services.AddTransient<WifiSelectorViewModel>();
             builder.Services.AddTransient<MenuViewModel>();
             builder.Services.AddTransient<GameViewModel>();
+            builder.Services.AddTransient<GameAdminViewModel>();
+            builder.Services.AddTransient<CarSelectorViewModel>();
+
+            // Android specific services
+#if ANDROID
+            builder.Services.AddSingleton<IGatewayProvider, Platforms.Android.AndroidGatewayProvider>();
+            builder.Services.AddSingleton<IOrientationService, Platforms.Android.OrientationService>();
+#endif
 
             var app = builder.Build();
 
             // Start the server command sender and listener
-            var commandListener = app.Services.GetRequiredService<IServerCommandListener>();
+            var commandListener = app.Services.GetRequiredService<IServerResponseListener>();
             commandListener.Start();
 
             var commandSender = app.Services.GetRequiredService<IServerCommandSender>();

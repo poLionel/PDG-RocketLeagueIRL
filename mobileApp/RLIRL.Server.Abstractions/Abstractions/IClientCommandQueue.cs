@@ -12,9 +12,10 @@
         void EnqueueCommand(IClientCommand command);
 
         /// <summary>
-        /// Dequeues a command from the queue for processing by the server
+        /// Wait for a command to be available in the queue and dequeue it
         /// </summary>
-        /// <returns>Command to process, or null if no commands are available</returns>
-        IClientCommand? DequeueCommand();
+        /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+        /// <returns>A command from the queue</returns>
+        Task<IClientCommand> DequeueCommandAsync(CancellationToken cancellationToken);
     }
 }
