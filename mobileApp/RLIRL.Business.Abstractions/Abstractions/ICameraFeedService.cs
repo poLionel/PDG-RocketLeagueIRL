@@ -31,13 +31,13 @@ namespace RLIRL.Business.Abstractions.Abstractions
         void UpdateAvailableFeeds(IEnumerable<int> availableFeeds);
 
         /// <summary>
-        /// Get the current active camera feed as a stream
+        /// Get the current active camera feed as a stream (singleton shared stream)
         /// </summary>
-        /// <returns></returns>
-        Stream? GetActiveCameraFeed();
+        /// <returns>The shared camera feed stream</returns>
+        Stream GetActiveCameraFeed();
 
         /// <summary>
-        /// Request refres camera feed data
+        /// Request refresh camera feed data
         /// </summary>
         void Refresh();
     }

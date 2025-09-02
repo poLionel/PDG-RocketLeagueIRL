@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using RLIRL.Server.Abstractions.Abstractions;
 using RLIRL.Server.Abstractions.ServerCommands;
+using RLIRL.Server.Abstractions.ServerResponses;
 using RLIRL.Server.Services;
 using RLIRL.Server.Services.CommandProcessors;
 
@@ -20,6 +21,7 @@ namespace RLIRL.Server
                 .AddSingleton<IServerCommandSender, ServerCommandSender>()
                 .AddSingleton<IServerConnectionStatusService, ServerConnectionStatusService>()
                 .AddSingleton<IGatewayProvider, GatewayProvider>()
+                .AddSingleton<IServerCameraFeedEncoder, ServerCameraFeedEncoder>()
                 .AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
             services.RegisterResponseProcessors();
@@ -39,7 +41,8 @@ namespace RLIRL.Server
                 .AddSingleton<IServerResponseProcessor<MoveCarResponse>, MoveCarResponseProcessor>()
                 .AddSingleton<IServerResponseProcessor<SelectCarResponse>, SelectCarResponseProcessor>()
                 .AddSingleton<IServerResponseProcessor<StartGameResponse>, StartGameResponseProcessor>()
-                .AddSingleton<IServerResponseProcessor<StopGameResponse>, StopGameResponseProcessor>();
+                .AddSingleton<IServerResponseProcessor<StopGameResponse>, StopGameResponseProcessor>()
+                .AddSingleton<IServerResponseProcessor<VideoFrameResponse>, VideoFrameResponseProcessor>();
 
             return services;
         }

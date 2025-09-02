@@ -34,8 +34,9 @@ namespace RLIRL.Business.Services
             CameraFeedsChanged?.Invoke(this, CameraFeeds);
         }
 
-        public Stream? GetActiveCameraFeed()
+        public Stream GetActiveCameraFeed()
         {
+            // Now returns the singleton stream - all consumers share the same data
             return serverCameraFeedService.GetCurrentCameraFeed();
         }
 
