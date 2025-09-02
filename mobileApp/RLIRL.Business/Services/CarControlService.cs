@@ -60,14 +60,15 @@ namespace RLIRL.Business.Services
         private void SendUpdateCommand()
         {
             // If there is no current car, do not send any command
-            if (carService.CurrentCar == null) return;
+            var car = carService.CurrentCar;
+            if (car == null) return;
 
             var command = new MoveCarCommand()
             {
                 Direction = _direction,
                 Boost = _boost,
                 Steering = _steering,
-                Car = carService.CurrentCar.Value
+                Car = car.Value,
             };
 
             commandQueue.EnqueueCommand(command);
