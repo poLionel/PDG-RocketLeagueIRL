@@ -268,7 +268,7 @@ async def game_time_monitor():
                     from .async_handlers import broadcast_game_event
                     await broadcast_game_event(
                         "game_ended",
-                        "⏰ Game ended - Time expired!",
+                        "Game ended - Time expired!",
                         final_status
                     )
                     

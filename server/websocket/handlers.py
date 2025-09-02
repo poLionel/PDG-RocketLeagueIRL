@@ -1137,50 +1137,17 @@ def handle_get_car_ip_address(data, car_manager=None):
     
     if not BLUETOOTH_AVAILABLE:
         return {
-            "status": "error",
+            "status": "info",
             "action": "get_car_ip_address",
-            "message": "Bluetooth service not available"
+            "message": "IP address retrieval is handled automatically by the provisioning service. Check 'get_auto_provisioning_status' for details."
         }
     
-    bluetooth_service = get_bluetooth_service()
-    if not bluetooth_service:
-        return {
-            "status": "error",
-            "action": "get_car_ip_address",
-            "message": "Bluetooth service not initialized"
-        }
-    
-    try:
-        # Find the car
-        car = car_manager.get_car(car_id)
-        if not car:
-            return {
-                "status": "error",
-                "action": "get_car_ip_address",
-                "message": f"Car {car_id} not found"
-            }
-        
-        if not car.ble_address:
-            return {
-                "status": "error",
-                "action": "get_car_ip_address",
-                "message": f"Car {car_id} has no BLE address"
-            }
-        
-        # This will be handled async in the WebSocket async handler
-        return {
-            "status": "pending",
-            "action": "get_car_ip_address",
-            "car": car_id,
-            "message": "Reading IP address from car..."
-        }
-        
-    except Exception as e:
-        return {
-            "status": "error",
-            "action": "get_car_ip_address",
-            "message": f"Error getting car IP address: {str(e)}"
-        }
+    # This functionality is now handled by the auto provisioning service
+    return {
+        "status": "info",
+        "action": "get_car_ip_address",
+        "message": "IP address retrieval is handled automatically by the provisioning service. Check 'get_auto_provisioning_status' for details."
+    }
 
 # Removed redundant handlers - auto_configure_video_feed handles these use cases efficiently
 
@@ -1203,64 +1170,33 @@ def handle_auto_configure_video_feed(data, car_manager=None):
             "message": "Car ID is required"
         }
     
-    if not BLUETOOTH_AVAILABLE:
+    # Check if car exists and get current status
+    car = car_manager.get_car(car_id)
+    if not car:
         return {
             "status": "error",
             "action": "auto_configure_video_feed",
-            "message": "Bluetooth service not available"
+            "message": f"Car {car_id} not found"
         }
     
-    bluetooth_service = get_bluetooth_service()
-    if not bluetooth_service:
+    # Check if already configured by auto provisioning service
+    if car.video_feed_url and not force_update:
         return {
-            "status": "error",
+            "status": "success",
             "action": "auto_configure_video_feed",
-            "message": "Bluetooth service not initialized"
-        }
-    
-    try:
-        # Find the car
-        car = car_manager.get_car(car_id)
-        if not car:
-            return {
-                "status": "error",
-                "action": "auto_configure_video_feed",
-                "message": f"Car {car_id} not found"
-            }
-        
-        if not car.ble_address:
-            return {
-                "status": "error",
-                "action": "auto_configure_video_feed",
-                "message": f"Car {car_id} has no BLE address"
-            }
-        
-        # Check if already configured
-        if car.video_feed_url and not force_update:
-            return {
-                "status": "success",
-                "action": "auto_configure_video_feed",
-                "message": f"Car {car_id} already has video feed configured",
-                "car": car_id,
-                "video_feed_url": car.video_feed_url,
-                "force_update_available": True
-            }
-        
-        # This will be handled async in the WebSocket async handler
-        return {
-            "status": "pending",
-            "action": "auto_configure_video_feed",
+            "message": f"Car {car_id} video feed was auto-configured by provisioning service",
             "car": car_id,
-            "force_update": force_update,
-            "message": "Auto-configuring video feed from car IP..."
+            "video_feed_url": car.video_feed_url,
+            "auto_configured": True
         }
-        
-    except Exception as e:
-        return {
-            "status": "error",
-            "action": "auto_configure_video_feed",
-            "message": f"Error auto-configuring video feed: {str(e)}"
-        }
+    
+    # Inform that auto provisioning handles this
+    return {
+        "status": "info",
+        "action": "auto_configure_video_feed",
+        "car": car_id,
+        "message": "Video feed configuration is handled automatically by the provisioning service. Check 'get_auto_provisioning_status' for details."
+    }
 
 
 def handle_get_auto_provisioning_status(data, car_manager=None):

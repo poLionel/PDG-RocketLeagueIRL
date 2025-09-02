@@ -143,44 +143,73 @@
     </style>
 </head>
 <body>
-    <h1>🚗⚽ Rocket League IRL WebSocket API Tester</h1>
+    <h1>Rocket League IRL WebSocket API Tester</h1>
     
     <div class="container">
-        <h2>📱 Connection Status</h2>
+        <h2>Connection Status</h2>
         <p><strong>Workflow:</strong> Connect → Scan Phase → Control Phase → Send Commands</p>
         <div id="connectionStatus" class="status disconnected">Disconnected</div>
-        <button onclick="connectWebSocket()">🔗 Connect</button>
-        <button onclick="disconnectWebSocket()">❌ Disconnect</button>
+        <button onclick="connectWebSocket()">Connect</button>
+        <button onclick="disconnectWebSocket()">Disconnect</button>
     </div>
 
     <div class="container">
-        <h2>📹 Video Feed Testing</h2>
-        <p>Test video feed functionality with real-time streaming from cars:</p>
+        <h2>🤖 Auto Provisioning Service</h2>
+        <p>Monitor automatic WiFi provisioning and IP address retrieval:</p>
         <div class="command-section">
-            <h4>📡 Video Feed Control</h4>
+            <h4>� Service Status</h4>
             <div class="command-inputs">
-                <label for="videoCarId">Car ID for Video Feed:</label>
+                <button onclick="getAutoProvisioningStatus()">Get Status</button>
+                <button onclick="startAutoStatusMonitoring()">Start Auto-Refresh</button>
+                <button onclick="stopAutoStatusMonitoring()">Stop Auto-Refresh</button>
+            </div>
+            
+            <div id="autoProvisioningStatus" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+                <h4>Auto Provisioning Status</h4>
+                <div id="autoProvisioningContent">Click "Get Status" to check service status</div>
+            </div>
+            
+            <div style="margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
+                <h4>How Auto Provisioning Works:</h4>
+                <ol style="margin: 5px 0 5px 20px; font-size: 0.9em;">
+                    <li><strong>Discovery:</strong> When a car is discovered via BLE, it's automatically added to the provisioning queue</li>
+                    <li><strong>WiFi Setup:</strong> Server sends RL-Hotspot credentials to the car via BLE</li>
+                    <li><strong>Connection Wait:</strong> Waits 10 seconds for car to connect to WiFi</li>
+                    <li><strong>IP Retrieval:</strong> Reads car's IP address via BLE characteristic (up to 3 minutes)</li>
+                    <li><strong>Video Config:</strong> Automatically configures video feed URL (http://IP:81/stream)</li>
+                    <li><strong>Retry Logic:</strong> If any step fails, retries after 1 minute</li>
+                </ol>
+                <p style="margin: 10px 0 5px 0; font-size: 0.9em;"><strong>No manual intervention required!</strong> Cars are automatically configured when discovered.</p>
+            </div>
+        </div>
+    </div>
+        <p>Essential video feed functionality for car streaming:</p>
+        <div class="command-section">
+            <h4>Quick Video Setup</h4>
+            <div class="command-inputs">
+                <label for="videoCarId">Car ID:</label>
                 <input type="number" id="videoCarId" placeholder="1" value="1" min="0" max="10">
                 
-                <button onclick="subscribeToVideoFeed()">📹 Subscribe to Feed</button>
-                <button onclick="unsubscribeFromAllFeeds()">❌ Unsubscribe All</button>
-                <button onclick="getAccessibleFeeds()">📋 Get Available Feeds</button>
+                <button onclick="autoConfigureVideoFeed()">� Auto-Configure Video</button>
+                <button onclick="subscribeToVideoFeed()">Subscribe to Feed</button>
+                <button onclick="unsubscribeFromAllFeeds()">Unsubscribe All</button>
             </div>
             
             <div class="command-inputs" style="margin-top: 10px;">
-                <label for="videoIP">Car Video IP:</label>
+                <label for="videoIP">Manual Car Video IP:</label>
                 <input type="text" id="videoIP" placeholder="192.168.1.100" value="192.168.68.55">
                 
                 <label for="videoPort">Port:</label>
-                <input type="number" id="videoPort" placeholder="8080" value="8080" min="1000" max="65535">
+                <input type="number" id="videoPort" placeholder="8080" value="81" min="1000" max="65535">
                 
-                <button onclick="setCarVideoIP()">🔧 Set Video IP</button>
+                <button onclick="setCarVideoIP()">Set Video IP</button>
+                <button onclick="getCarIPAddress()">Get Car IP</button>
             </div>
             
             <div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
-                <h4>📺 Video Display</h4>
+                <h4>Video Display</h4>
                 <div id="videoDisplay" style="text-align: center; min-height: 200px; border: 2px dashed #ccc; padding: 20px;">
-                    <p>No video feed active. Subscribe to a car's video feed to see real-time footage.</p>
+                    <p>No video feed active. Use "Auto-Configure Video" for easy setup.</p>
                 </div>
                 <div id="videoStatus" style="margin-top: 10px; font-size: 0.9em; color: #666;">
                     Status: Not connected
@@ -188,35 +217,35 @@
             </div>
             
             <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
-                <h4>🧪 Video Feed Testing</h4>
+                <h4>🧪 Testing Tools</h4>
                 <div class="command-inputs">
                     <label for="testVideoCarId">Test Car ID:</label>
                     <input type="number" id="testVideoCarId" placeholder="1" value="1">
                     
-                    <button onclick="sendTestVideoFrame()">📸 Send Test Frame</button>
-                    <button onclick="simulateVideoStream()">🎬 Simulate Video Stream</button>
-                    <button onclick="stopVideoSimulation()">⏹️ Stop Simulation</button>
+                    <button onclick="sendTestVideoFrame()">Send Test Frame</button>
+                    <button onclick="simulateVideoStream()">Simulate Stream</button>
+                    <button onclick="stopVideoSimulation()">Stop Simulation</button>
                 </div>
                 
                 <div style="margin-top: 10px;">
-                    <h5>Available Test Actions:</h5>
-                    <ul style="margin: 5px 0 5px 20px; font-size: 0.9em;">
-                        <li><strong>Subscribe to Feed:</strong> Start receiving video from a specific car</li>
-                        <li><strong>Set Video IP:</strong> Configure the car's camera IP address</li>
-                        <li><strong>Send Test Frame:</strong> Simulate a car sending a video frame</li>
-                        <li><strong>Simulate Stream:</strong> Send multiple test frames continuously</li>
-                    </ul>
+                    <h5>Streamlined Workflow:</h5>
+                    <ol style="margin: 5px 0 5px 20px; font-size: 0.9em;">
+                        <li><strong>Auto-Configure:</strong> Automatically reads car's IP via BLE and sets up video streaming</li>
+                        <li><strong>Subscribe:</strong> Start receiving real-time video from the configured car</li>
+                        <li><strong>Manual Setup:</strong> Manually set IP address if auto-configuration fails</li>
+                        <li><strong>Test Tools:</strong> Simulate video frames for testing without real hardware</li>
+                    </ol>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="container">
-        <h2>🚗 Car Controls</h2>
+        <h2>Car Controls</h2>
         <div class="controls-header">
-            <button onclick="getAllCars()">🔄 Refresh Cars</button>
+            <button onclick="getAllCars()">Refresh Cars</button>
             <button onclick="getFreeCars()">🆓 Get Free Cars</button>
-            <button onclick="getPhaseStatus()">📊 Get Phase Status</button>
+            <button onclick="getPhaseStatus()">Get Phase Status</button>
         </div>
         <div id="carControls" class="car-controls">
             <!-- Car controls will be populated here -->
@@ -224,17 +253,17 @@
     </div>
 
     <div class="container">
-        <h2>🔍 Bluetooth Management</h2>
+        <h2>Bluetooth Management</h2>
         <p>Manage Bluetooth discovery and connections:</p>
         <div class="command-section">
             <div class="controls-header">
-                <button onclick="switchToScanPhase()">🔍 Switch to Scan Phase</button>
-                <button onclick="switchToControlPhase()">🎮 Switch to Control Phase</button>
-                <button onclick="getBluetoothStatus()">📡 Get Bluetooth Status</button>
+                <button onclick="switchToScanPhase()">Switch to Scan Phase</button>
+                <button onclick="switchToControlPhase()">Switch to Control Phase</button>
+                <button onclick="getBluetoothStatus()">Get Bluetooth Status</button>
             </div>
             <div class="controls-header" style="margin-top: 10px;">
                 <button onclick="startBluetoothScan()">🔎 Start BLE Scan</button>
-                <button onclick="stopBluetoothScan()">⏹️ Stop BLE Scan</button>
+                <button onclick="stopBluetoothScan()">Stop BLE Scan</button>
             </div>
             <div id="bluetoothStatus" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
                 <h4>Bluetooth Status</h4>
@@ -242,7 +271,7 @@
             </div>
             
             <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
-                <h4>🔗 Pair Device</h4>
+                <h4>Pair Device</h4>
                 <div class="command-inputs">
                     <label for="pairDeviceAddress">Device Address:</label>
                     <input type="text" id="pairDeviceAddress" placeholder="XX:XX:XX:XX:XX:XX">
@@ -250,14 +279,14 @@
                     <label for="pairDeviceName">Device Name:</label>
                     <input type="text" id="pairDeviceName" placeholder="Device Name">
                     
-                    <button onclick="pairBluetoothDevice()">🔗 Pair Device</button>
+                    <button onclick="pairBluetoothDevice()">Pair Device</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="container">
-        <h2>🎮 Game Management</h2>
+        <h2>Game Management</h2>
         <p>Manage game state, teams, scoring, and match flow:</p>
         <div class="command-section">
             <h4>🏁 Game Controls</h4>
@@ -265,15 +294,15 @@
                 <label for="matchLength">Match Length (seconds):</label>
                 <input type="number" id="matchLength" placeholder="300" value="300" min="60" max="3600">
                 
-                <button onclick="startGame()">▶️ Start/Reset Game</button>
-                <button onclick="stopGame()">⏸️ Pause Game</button>
-                <button onclick="resumeGame()">▶️ Resume Game</button>
+                <button onclick="startGame()">Start/Reset Game</button>
+                <button onclick="stopGame()">Pause Game</button>
+                <button onclick="resumeGame()">Resume Game</button>
                 <button onclick="endGame()">🏁 End Game</button>
-                <button onclick="getGameStatus()">📊 Get Game Status</button>
+                <button onclick="getGameStatus()">Get Game Status</button>
             </div>
             
             <div style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                <h5>🎮 Game Flow Explanation:</h5>
+                <h5>Game Flow Explanation:</h5>
                 <ul style="margin: 5px 0 5px 20px; font-size: 0.9em;">
                     <li><strong>Start/Reset Game:</strong> Creates a new game and starts it immediately</li>
                     <li><strong>Pause Game:</strong> Stops the timer but keeps game state</li>
@@ -290,7 +319,7 @@
         </div>
 
         <div class="command-section" style="margin-top: 20px;">
-            <h4>⚽ Scoring</h4>
+            <h4>Scoring</h4>
             <div class="command-inputs">
                 <label for="goalTeam">Team:</label>
                 <select id="goalTeam">
@@ -306,7 +335,7 @@
                 <label for="goalCar">Car ID (optional):</label>
                 <input type="number" id="goalCar" placeholder="1">
                 
-                <button onclick="scoreGoal()">⚽ Score Goal</button>
+                <button onclick="scoreGoal()">Score Goal</button>
             </div>
 
             <div class="quick-commands" style="margin-top: 10px;">
@@ -315,7 +344,7 @@
                 <button onclick="quickScoreGoal('blue')">🔵 Blue Goal</button>
                 <button onclick="quickScoreGoal('green')">🟢 Green Goal</button>
                 <button onclick="quickScoreGoal('yellow')">� Yellow Goal</button>
-                <button onclick="undoGoal()">↩️ Undo Last Goal</button>
+                <button onclick="undoGoal()">Undo Last Goal</button>
             </div>
         </div>
 
@@ -343,24 +372,24 @@
                     <option value="yellow">Yellow Team</option>
                 </select>
                 
-                <button onclick="addCarToTeam()">🚗➕ Add Car to Team</button>
-                <button onclick="removeCarFromTeams()">🚗➖ Remove Car from Teams</button>
+                <button onclick="addCarToTeam()">➕ Add Car to Team</button>
+                <button onclick="removeCarFromTeams()">➖ Remove Car from Teams</button>
             </div>
 
             <div class="quick-commands" style="margin-top: 10px;">
                 <h4>Quick Team Setup:</h4>
                 <button onclick="setupDefaultTeams()">⚡ Setup Red vs Blue</button>
-                <button onclick="clearAllTeams()">🗑️ Clear All Teams</button>
+                <button onclick="clearAllTeams()">Clear All Teams</button>
                 <button onclick="assignAvailableCars()">🎲 Auto-assign Cars</button>
             </div>
         </div>
 
         <div class="command-section" style="margin-top: 20px;">
-            <h4>🎯 Game Scenarios</h4>
+            <h4>Game Scenarios</h4>
             <div class="quick-commands">
-                <button onclick="simulateMatch()">🎮 Simulate Full Match</button>
+                <button onclick="simulateMatch()">Simulate Full Match</button>
                 <button onclick="simulateQuickGoals()">⚡ Quick Goal Test</button>
-                <button onclick="testGameFlow()">🔄 Test Game Flow</button>
+                <button onclick="testGameFlow()">Test Game Flow</button>
                 <button onclick="emergencyStopGame()">🚨 Emergency Stop</button>
             </div>
         </div>
@@ -387,50 +416,50 @@
                 <label for="commandX">X (Steering):</label>
                 <input type="number" id="commandX" placeholder="Steering (-100 to 100)" value="0" min="-100" max="100">
                 
-                <button onclick="sendCustomCommand()">📡 Send Command</button>
+                <button onclick="sendCustomCommand()">Send Command</button>
             </div>
             
             <div class="wifi-section" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
-                <h4>📶 WiFi Credentials</h4>
+                <h4>WiFi Credentials</h4>
                 <div class="command-inputs">
                     <label for="wifiSSID">SSID:</label>
-                    <input type="text" id="wifiSSID" placeholder="WiFi Network Name" value="TestWiFi">
+                    <input type="text" id="wifiSSID" placeholder="WiFi Network Name" value="RL-Hotspot">
                     
                     <label for="wifiPassword">Password:</label>
-                    <input type="password" id="wifiPassword" placeholder="WiFi Password" value="TestPassword123">
+                    <input type="password" id="wifiPassword" placeholder="WiFi Password" value="rocketleague">
                     
-                    <button onclick="sendWiFiToAllCars()">📶 Set WiFi on All Cars</button>
+                    <button onclick="sendWiFiToAllCars()">Set WiFi on All Cars</button>
                 </div>
             </div>
             
             <div class="quick-commands">
                 <h4>Quick Commands:</h4>
                 <button onclick="sendQuickCommand('ping', 'Are you there?')">🏓 Ping All Cars</button>
-                <button onclick="sendQuickCommand('status', 'Send status update')">📊 Request Status</button>
+                <button onclick="sendQuickCommand('status', 'Send status update')">Request Status</button>
                 <button onclick="sendQuickCommand('test', 'Test from HTML interface')">🧪 Test Message</button>
-                <button onclick="sendQuickMoveCommand('forward', 0)">⬆️ All Forward</button>
-                <button onclick="sendQuickMoveCommand('stopped', 0)">⏹️ All Stop</button>
+                <button onclick="sendQuickMoveCommand('forward', 0)">All Forward</button>
+                <button onclick="sendQuickMoveCommand('stopped', 0)">All Stop</button>
                 
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;">
                     <h4>Movement Test Patterns:</h4>
-                    <button onclick="testCircularMovement()">🔄 Circular Movement Test</button>
+                    <button onclick="testCircularMovement()">Circular Movement Test</button>
                     <button onclick="testFigureEight()">∞ Figure-8 Test</button>
-                    <button onclick="testPrecisionSteering()">🎯 Precision Steering Test</button>
+                    <button onclick="testPrecisionSteering()">Precision Steering Test</button>
                     <button onclick="stopAllMovement()">🛑 Emergency Stop All</button>
                 </div>
                 
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;">
                     <h4>Phase Management:</h4>
-                    <button onclick="switchToScanPhase()">🔍 Scan Phase</button>
-                    <button onclick="switchToControlPhase()">🎮 Control Phase</button>
-                    <button onclick="getPhaseStatus()">📊 Phase Status</button>
+                    <button onclick="switchToScanPhase()">Scan Phase</button>
+                    <button onclick="switchToControlPhase()">Control Phase</button>
+                    <button onclick="getPhaseStatus()">Phase Status</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="container">
-        <h2>🎮 Controls Help</h2>
+        <h2>Controls Help</h2>
         <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
             <h4>Car Controls:</h4>
             <ul>
@@ -440,21 +469,34 @@
                 <li><strong>Car Selection:</strong> Select a car to control it exclusively</li>
             </ul>
             
-            <h4>Video Feed Testing:</h4>
+            <h4>🤖 Auto Provisioning Service:</h4>
             <ul>
+                <li><strong>Automatic Operation:</strong> No manual WiFi setup needed - cars are configured automatically</li>
+                <li><strong>Discovery Integration:</strong> Works with BLE discovery to provision new cars</li>
+                <li><strong>WiFi Credentials:</strong> Automatically sends RL-Hotspot credentials via BLE</li>
+                <li><strong>IP Retrieval:</strong> Reads car's IP address once connected to WiFi</li>
+                <li><strong>Video Configuration:</strong> Auto-configures video feed URLs</li>
+                <li><strong>Retry Logic:</strong> Failed attempts are retried after 1 minute</li>
+                <li><strong>Status Monitoring:</strong> Real-time status updates for all cars in the queue</li>
+            </ul>
+            
+            <h4>Video Feed Testing (Streamlined):</h4>
+            <ul>
+                <li><strong>Auto-Configure Video:</strong> One-click setup - reads car IP via BLE and configures streaming</li>
                 <li><strong>Subscribe to Feed:</strong> Start receiving real-time video from a specific car</li>
-                <li><strong>Set Video IP:</strong> Configure the car's camera IP address and port</li>
+                <li><strong>Get Car IP:</strong> Read car's WiFi IP address directly via BLE</li>
+                <li><strong>Set Video IP:</strong> Manually configure car's camera IP address and port</li>
                 <li><strong>Send Test Frame:</strong> Simulate a car sending a single video frame</li>
                 <li><strong>Simulate Stream:</strong> Send multiple test frames continuously (5 FPS for 10 seconds)</li>
                 <li><strong>Unsubscribe All:</strong> Stop receiving video from all cars</li>
-                <li><strong>Get Available Feeds:</strong> List all cars that can provide video feeds</li>
             </ul>
             
-            <h4>Video Feed API Actions:</h4>
+            <h4>Core Video API Actions:</h4>
             <ul>
-                <li><strong>get_accessible_car_feeds:</strong> Returns list of cars with video capabilities</li>
+                <li><strong>auto_configure_video_feed:</strong> One-step video setup via BLE IP reading</li>
+                <li><strong>get_car_ip_address:</strong> Read IP address from car's network configuration</li>
                 <li><strong>get_car_video_feed:</strong> Subscribe/unsubscribe to car video feed</li>
-                <li><strong>set_car_video_ip:</strong> Configure car's camera IP address</li>
+                <li><strong>set_car_video_ip:</strong> Configure car's camera IP address manually</li>
                 <li><strong>send_video_feed:</strong> Car sends video frame to server (for testing)</li>
                 <li><strong>video_frame_update:</strong> Broadcasted to subscribers when new frame arrives</li>
             </ul>
@@ -545,7 +587,7 @@
                 return;
             }
 
-            const wsUrl = 'ws://192.168.68.55:8000';
+            const wsUrl = 'ws://localhost:8000';
             addMessage(`Connecting to ${wsUrl}...`);
             
             socket = new WebSocket(wsUrl);
@@ -630,10 +672,6 @@
             }
             
             // Handle video feed responses
-            if (data.action === "get_accessible_car_feeds") {
-                updateAccessibleFeeds(data.accessible_feeds);
-            }
-            
             if (data.action === "get_car_video_feed") {
                 updateVideoFeedSubscription(data);
             }
@@ -642,8 +680,21 @@
                 updateVideoIPStatus(data);
             }
             
+            if (data.action === "auto_configure_video_feed") {
+                updateAutoConfigureStatus(data);
+            }
+            
+            if (data.action === "get_car_ip_address") {
+                updateCarIPStatus(data);
+            }
+            
             if (data.action === "video_frame_update" || data.action === "send_video_feed") {
                 updateVideoDisplay(data);
+            }
+            
+            // Handle auto provisioning responses
+            if (data.action === "get_auto_provisioning_status") {
+                updateAutoProvisioningStatus(data);
             }
             
             // Handle general status messages
@@ -900,7 +951,7 @@
 
         // Game simulation functions
         function simulateMatch() {
-            addMessage('🎮 Starting full match simulation...', 'info');
+            addMessage('Starting full match simulation...', 'info');
             
             // Step 1: Start game (resets and creates new game)
             setTimeout(() => {
@@ -961,7 +1012,7 @@
         }
 
         function testGameFlow() {
-            addMessage('🔄 Testing complete game flow...', 'info');
+            addMessage('Testing complete game flow...', 'info');
             
             // Complete flow test
             const steps = [
@@ -1076,7 +1127,7 @@
                             `<button onclick="freeCar(${car.car})" style="background-color: #f44336;">🔓 Free Car</button>` :
                             `<button onclick="selectCar(${car.car})" style="background-color: #4caf50;">🔒 Select Car</button>`
                         }
-                        <button onclick="setKeyboardControlCar(${car.car})" style="background-color: #2196f3;">⌨️ Keyboard Control</button>
+                        <button onclick="setKeyboardControlCar(${car.car})" style="background-color: #2196f3;">Keyboard Control</button>
                     </div>
                     <div class="controls">
                         <button onclick="moveCar(${car.car}, 'forward', ${car.x || 0})">↑ Forward</button>
@@ -1105,8 +1156,8 @@
                     </div>
                     <div class="boost-controls" style="margin-top: 10px;">
                         <label>BLE Commands:</label>
-                        <button onclick="connectToCar(${car.car})">🔗 Connect BLE</button>
-                        <button onclick="sendWiFiCredentials(${car.car})">📶 Set WiFi</button>
+                        <button onclick="connectToCar(${car.car})">Connect BLE</button>
+                        <button onclick="sendWiFiCredentials(${car.car})">Set WiFi</button>
                     </div>
                     ${car.ble_address ? `<div style="font-size: 0.8em; color: #666; margin-top: 5px;">BLE: ${car.ble_address}</div>` : ''}
                 `;
@@ -1312,8 +1363,8 @@
         }
 
         function sendWiFiCredentials(carId) {
-            const ssid = document.getElementById('wifiSSID').value || "TestWiFi";
-            const password = document.getElementById('wifiPassword').value || "TestPassword123";
+            const ssid = document.getElementById('wifiSSID').value || "RL-Hotspot";
+            const password = document.getElementById('wifiPassword').value || "rocketleague";
             
             addMessage(`Setting WiFi credentials on car ${carId}: SSID=${ssid}`);
             sendMessage({
@@ -1393,8 +1444,8 @@
         }
 
         function sendWiFiToAllCars() {
-            const ssid = document.getElementById('wifiSSID').value || "TestWiFi";
-            const password = document.getElementById('wifiPassword').value || "TestPassword123";
+            const ssid = document.getElementById('wifiSSID').value || "RL-Hotspot";
+            const password = document.getElementById('wifiPassword').value || "rocketleague";
             
             // Send to all available cars
             for (const carId in cars) {
@@ -1512,11 +1563,123 @@
         };
 
         // ============================================================================
-        // VIDEO FEED FUNCTIONS
+        // AUTO PROVISIONING SERVICE FUNCTIONS
+        // ============================================================================
+
+        let autoStatusInterval = null;
+
+        function getAutoProvisioningStatus() {
+            addMessage('Getting auto provisioning status...');
+            sendMessage({
+                "action": "get_auto_provisioning_status"
+            });
+        }
+
+        function startAutoStatusMonitoring() {
+            if (autoStatusInterval) {
+                addMessage('Auto-refresh already running', 'error');
+                return;
+            }
+            
+            addMessage('Starting auto-refresh of provisioning status...');
+            autoStatusInterval = setInterval(() => {
+                getAutoProvisioningStatus();
+            }, 10000); // Refresh every 10 seconds
+            
+            // Get initial status
+            getAutoProvisioningStatus();
+        }
+
+        function stopAutoStatusMonitoring() {
+            if (autoStatusInterval) {
+                clearInterval(autoStatusInterval);
+                autoStatusInterval = null;
+                addMessage('Stopped auto-refresh of provisioning status');
+            } else {
+                addMessage('Auto-refresh is not running', 'error');
+            }
+        }
+
+        function updateAutoProvisioningStatus(data) {
+            const statusContent = document.getElementById('autoProvisioningContent');
+            if (!statusContent) return;
+            
+            if (data.status === 'success' && data.provisioning_status) {
+                const status = data.provisioning_status;
+                
+                let carsHtml = '';
+                if (status.cars && Object.keys(status.cars).length > 0) {
+                    carsHtml = '<h5>Cars in Provisioning:</h5>';
+                    for (const [ble_address, carData] of Object.entries(status.cars)) {
+                        const stateColor = carData.completed ? 'green' : 
+                                          carData.failed ? 'red' : 'orange';
+                        
+                        carsHtml += `
+                            <div style="margin: 5px 0; padding: 8px; background: ${carData.completed ? '#e8f5e8' : carData.failed ? '#ffebee' : '#fff3e0'}; border-radius: 5px; border-left: 4px solid ${stateColor};">
+                                <strong>${carData.name}</strong> (${ble_address.slice(-8)})<br>
+                                <strong>State:</strong> <span style="color: ${stateColor};">${carData.state}</span><br>
+                                ${carData.ip_address ? `<strong>IP:</strong> ${carData.ip_address}<br>` : ''}
+                                <strong>Status:</strong> ${carData.completed ? 'Completed' : carData.failed ? 'Failed' : 'In Progress'}
+                            </div>
+                        `;
+                    }
+                } else {
+                    carsHtml = '<p><em>No cars currently in provisioning queue</em></p>';
+                }
+                
+                statusContent.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <strong>Service:</strong> <span style="color: ${status.service_running ? 'green' : 'red'};">${status.service_running ? '🟢 Running' : '🔴 Stopped'}</span><br>
+                        <strong>WiFi Network:</strong> ${status.wifi_ssid}<br>
+                        <strong>Total Cars:</strong> ${status.total_cars}<br>
+                        <strong>Completed:</strong> <span style="color: green;">${status.completed}</span> | 
+                        <strong>In Progress:</strong> <span style="color: orange;">${status.in_progress}</span> | 
+                        <strong>Failed:</strong> <span style="color: red;">${status.failed}</span>
+                    </div>
+                    ${carsHtml}
+                `;
+            } else {
+                statusContent.innerHTML = `<em>Error: ${data.message || 'Could not get provisioning status'}</em>`;
+            }
+        }
+
+        // ============================================================================
+        // VIDEO FEED FUNCTIONS (STREAMLINED)
         // ============================================================================
 
         let videoStreamInterval = null;
         let currentVideoFeed = null;
+
+        function autoConfigureVideoFeed() {
+            const carId = document.getElementById('videoCarId').value;
+            
+            if (!carId) {
+                addMessage('Please enter a car ID for auto-configuration', 'error');
+                return;
+            }
+            
+            addMessage(`Auto-configuring video feed for car ${carId}...`);
+            sendMessage({
+                "action": "auto_configure_video_feed",
+                "car": parseInt(carId),
+                "force_update": false
+            });
+        }
+
+        function getCarIPAddress() {
+            const carId = document.getElementById('videoCarId').value;
+            
+            if (!carId) {
+                addMessage('Please enter a car ID to get IP address', 'error');
+                return;
+            }
+            
+            addMessage(`Getting IP address for car ${carId} via BLE...`);
+            sendMessage({
+                "action": "get_car_ip_address",
+                "car": parseInt(carId)
+            });
+        }
 
         function subscribeToVideoFeed() {
             const carId = document.getElementById('videoCarId').value;
@@ -1541,13 +1704,6 @@
             });
         }
 
-        function getAccessibleFeeds() {
-            addMessage('Getting accessible video feeds...');
-            sendMessage({
-                "action": "get_accessible_car_feeds"
-            });
-        }
-
         function setCarVideoIP() {
             const carId = document.getElementById('videoCarId').value;
             const ip = document.getElementById('videoIP').value;
@@ -1568,7 +1724,7 @@
                 "action": "set_car_video_ip",
                 "car": parseInt(carId),
                 "ip_address": ip,
-                "port": parseInt(port) || 8080
+                "port": parseInt(port) || 81
             });
         }
 
@@ -1644,6 +1800,42 @@
             }
         }
 
+        function updateAutoConfigureStatus(data) {
+            if (data.status === 'success') {
+                addMessage(`Auto-configure success: ${data.message}`, 'success');
+                
+                if (data.video_feed_url) {
+                    addMessage(`Video feed URL configured: ${data.video_feed_url}`, 'info');
+                    
+                    // Automatically subscribe to the configured feed
+                    setTimeout(() => {
+                        subscribeToVideoFeed();
+                    }, 1000);
+                }
+            } else {
+                addMessage(`Auto-configure failed: ${data.message}`, 'error');
+            }
+        }
+
+        function updateCarIPStatus(data) {
+            if (data.status === 'success') {
+                addMessage(`Car IP address: ${data.ip_address}`, 'success');
+                
+                // Update the IP field for convenience
+                const ipField = document.getElementById('videoIP');
+                if (ipField && data.ip_address) {
+                    ipField.value = data.ip_address;
+                }
+                
+                // Show video URL if available
+                const port = document.getElementById('videoPort').value || 81;
+                const videoUrl = `http://${data.ip_address}:${port}/stream`;
+                addMessage(`Video URL: ${videoUrl}`, 'info');
+            } else {
+                addMessage(`Failed to get car IP: ${data.message}`, 'error');
+            }
+        }
+
         function updateAccessibleFeeds(feeds) {
             addMessage(`Accessible video feeds: [${feeds.join(', ')}]`, 'success');
         }
@@ -1665,7 +1857,7 @@
                     // Clear the display and show waiting message
                     const videoDisplay = document.getElementById('videoDisplay');
                     videoDisplay.innerHTML = `
-                        <p>📹 Subscribed to Car ${currentVideoFeed}</p>
+                        <p>Subscribed to Car ${currentVideoFeed}</p>
                         <p>Waiting for video frames...</p>
                         <div style="margin-top: 10px; font-size: 0.8em; color: #666;">
                             Video frames will appear here when the car starts streaming.
@@ -1690,7 +1882,14 @@
 
         function updateVideoIPStatus(data) {
             if (data.status === 'success') {
-                addMessage(`Video IP set for car ${data.car}: ${data.video_feed_url}`, 'success');
+                addMessage(`Video IP configured: ${data.video_feed_url}`, 'success');
+                
+                // Auto-subscribe to the feed if configured
+                setTimeout(() => {
+                    subscribeToVideoFeed();
+                }, 1000);
+            } else {
+                addMessage(`Failed to set video IP: ${data.message}`, 'error');
             }
         }
 
@@ -1705,7 +1904,7 @@
                     
                     videoDisplay.innerHTML = `
                         <div style="text-align: center;">
-                            <h4>📹 Live Feed - Car ${data.car_id}</h4>
+                            <h4>Live Feed - Car ${data.car_id}</h4>
                             <img src="data:image/jpeg;base64,${data.video_frame}" 
                                  style="max-width: 100%; max-height: 300px; border: 2px solid #007bff; border-radius: 5px;"
                                  alt="Video Frame from Car ${data.car_id}">

@@ -53,7 +53,7 @@ class AutoProvisioningService:
             
         self.running = True
         self.task = asyncio.create_task(self._run_service())
-        logger.info("🚀 Auto provisioning service started")
+        logger.info("Auto provisioning service started")
         
     async def stop(self):
         """Stop the automatic provisioning service."""
@@ -68,7 +68,7 @@ class AutoProvisioningService:
             except asyncio.CancelledError:
                 pass
                 
-        logger.info("⏹️ Auto provisioning service stopped")
+        logger.info("Auto provisioning service stopped")
         
     def add_discovered_car(self, ble_address: str, car_name: str = None):
         """
@@ -89,11 +89,11 @@ class AutoProvisioningService:
                 'completed': False,
                 'failed': False
             }
-            logger.info(f"📱 Added car {car_name or ble_address} to auto provisioning queue")
+            logger.info(f"Added car {car_name or ble_address} to auto provisioning queue")
             
     async def _run_service(self):
         """Main service loop that handles automatic provisioning."""
-        logger.info("🔄 Auto provisioning service main loop started")
+        logger.info("Auto provisioning service main loop started")
         
         while self.running:
             try:
@@ -138,7 +138,7 @@ class AutoProvisioningService:
                 
     async def _send_wifi_credentials(self, ble_address: str, state: dict, bluetooth_service):
         """Send WiFi credentials to a car."""
-        logger.info(f"📶 Sending WiFi credentials to {state['name']} ({ble_address})")
+        logger.info(f"Sending WiFi credentials to {state['name']} ({ble_address})")
         
         try:
             # Check if car is still discoverable
@@ -156,13 +156,13 @@ class AutoProvisioningService:
                 state['state'] = 'wifi_sent'
                 state['wifi_sent_at'] = time.time()
                 state['ip_check_count'] = 0
-                logger.info(f"✅ WiFi credentials sent successfully to {state['name']}")
+                logger.info(f"WiFi credentials sent successfully to {state['name']}")
                 
                 # Update car manager if car exists
                 await self._update_car_manager_status(ble_address, connected=True)
                 
             else:
-                logger.warning(f"❌ Failed to send WiFi credentials to {state['name']}")
+                logger.warning(f"Failed to send WiFi credentials to {state['name']}")
                 await self._schedule_retry(ble_address, state)
                 
         except Exception as e:
@@ -177,7 +177,7 @@ class AutoProvisioningService:
             
         # Start IP checking phase
         state['state'] = 'ip_checking'
-        logger.info(f"🔍 Starting IP address checking for {state['name']}")
+        logger.info(f"Starting IP address checking for {state['name']}")
         
     async def _continue_ip_checking(self, ble_address: str, state: dict, bluetooth_service):
         """Continue checking for car's IP address."""
@@ -193,19 +193,19 @@ class AutoProvisioningService:
                 state['completed'] = True
                 state['state'] = 'completed'
                 
-                logger.info(f"🎉 Successfully obtained IP address for {state['name']}: {ip_clean}")
+                logger.info(f"Successfully obtained IP address for {state['name']}: {ip_clean}")
                 
                 # Update car manager with IP
                 await self._configure_car_with_ip(ble_address, ip_clean)
                 
             elif state['ip_check_count'] >= self.max_ip_checks:
                 # Give up after max attempts
-                logger.warning(f"⏰ Max IP check attempts reached for {state['name']}, scheduling retry")
+                logger.warning(f"Max IP check attempts reached for {state['name']}, scheduling retry")
                 await self._schedule_retry(ble_address, state)
                 
             else:
                 # Continue checking
-                logger.debug(f"⏳ IP check {state['ip_check_count']}/{self.max_ip_checks} for {state['name']}")
+                logger.debug(f"IP check {state['ip_check_count']}/{self.max_ip_checks} for {state['name']}")
                 
         except Exception as e:
             logger.error(f"Error checking IP for {state['name']}: {e}")
@@ -215,7 +215,7 @@ class AutoProvisioningService:
     async def _check_retry_timing(self, ble_address: str, state: dict, current_time: float):
         """Check if it's time to retry a failed provisioning attempt."""
         if state['last_retry_at'] and (current_time - state['last_retry_at']) >= self.retry_delay:
-            logger.info(f"🔄 Retrying provisioning for {state['name']} after {self.retry_delay}s delay")
+            logger.info(f"Retrying provisioning for {state['name']} after {self.retry_delay}s delay")
             state['state'] = 'discovered'  # Reset to start over
             state['wifi_sent_at'] = None
             state['ip_check_count'] = 0
@@ -225,7 +225,7 @@ class AutoProvisioningService:
         """Schedule a car for retry after delay."""
         state['state'] = 'retry_waiting'
         state['last_retry_at'] = time.time()
-        logger.info(f"⏰ Scheduled retry for {state['name']} in {self.retry_delay} seconds")
+        logger.info(f"Scheduled retry for {state['name']} in {self.retry_delay} seconds")
         
     async def _configure_car_with_ip(self, ble_address: str, ip_address: str):
         """Configure car manager and video feed with obtained IP address."""
@@ -244,7 +244,7 @@ class AutoProvisioningService:
                 success = self.car_manager.update_car_video_feed(car.car_id, ip_address, port)
                 
                 if success:
-                    logger.info(f"📹 Configured video feed for {car.name}: http://{ip_address}:{port}/stream")
+                    logger.info(f"Configured video feed for {car.name}: http://{ip_address}:{port}/stream")
                     
                     # Update video feed service
                     try:
@@ -321,7 +321,7 @@ def initialize_auto_provisioning_service(car_manager, wifi_ssid="RL-Hotspot", wi
     if _auto_provisioning_service is None:
         _auto_provisioning_service = AutoProvisioningService(car_manager, wifi_ssid, wifi_password)
         _auto_provisioning_service.start()
-        logger.info("🚀 Auto provisioning service initialized and started")
+        logger.info("Auto provisioning service initialized and started")
     else:
         logger.warning("Auto provisioning service already initialized")
         
@@ -334,4 +334,4 @@ async def shutdown_auto_provisioning_service():
     if _auto_provisioning_service:
         await _auto_provisioning_service.stop()
         _auto_provisioning_service = None
-        logger.info("⏹️ Auto provisioning service shutdown")
+        logger.info("Auto provisioning service shutdown")
