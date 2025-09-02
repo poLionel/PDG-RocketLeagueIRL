@@ -17,6 +17,15 @@ import asyncio
 import logging
 from datetime import datetime
 
+# Auto provisioning integration
+try:
+    from provisioning.auto_provisioning_service import get_auto_provisioning_service
+    AUTO_PROVISIONING_AVAILABLE = True
+except ImportError:
+    AUTO_PROVISIONING_AVAILABLE = False
+    def get_auto_provisioning_service():
+        return None
+
 # Bluetooth functionality with graceful degradation
 try:
     from bluetooth.handlers import BLUETOOTH_HANDLERS, get_bluetooth_service
@@ -131,6 +140,7 @@ async def send_drive_command_to_car(car, move, x, boost):
         logger.error(f"Error sending drive command to car {car.car_id}: {e}")
         return False
 
+# Export all available handlers
 __all__ = [
     'handle_move_car',
     'handle_get_car_status',
@@ -151,11 +161,13 @@ __all__ = [
     'handle_add_car_to_team',
     'handle_remove_car_from_teams',
     'handle_add_team',
-    # Video feed handlers
+    # Video feed handlers (streamlined)
     'handle_get_accessible_car_feeds',
     'handle_get_car_video_feed',
     'handle_send_video_feed',
     'handle_set_car_video_ip',
+    'handle_get_car_ip_address',
+    'handle_auto_configure_video_feed',
     'ACTION_HANDLERS'
 ]
 
@@ -957,7 +969,7 @@ def handle_get_car_video_feed(data, car_manager=None, websocket_id=None):
         
         # Update video feed service
         try:
-            from video_feed_service import get_video_feed_service
+            from video import get_video_feed_service
             video_service = get_video_feed_service()
             if video_service:
                 asyncio.create_task(video_service.update_car_feeds())
@@ -983,7 +995,7 @@ def handle_get_car_video_feed(data, car_manager=None, websocket_id=None):
         
         # Update video feed service
         try:
-            from video_feed_service import get_video_feed_service
+            from video import get_video_feed_service
             video_service = get_video_feed_service()
             if video_service:
                 asyncio.create_task(video_service.update_car_feeds())
@@ -1084,7 +1096,7 @@ def handle_set_car_video_ip(data, car_manager=None):
     if success:
         # Update video feed service
         try:
-            from video_feed_service import get_video_feed_service
+            from video import get_video_feed_service
             video_service = get_video_feed_service()
             if video_service:
                 asyncio.create_task(video_service.update_car_feeds())
@@ -1105,8 +1117,179 @@ def handle_set_car_video_ip(data, car_manager=None):
             "message": f"Car {car_id} not found"
         }
 
+def handle_get_car_ip_address(data, car_manager=None):
+    """Handle getting a car's IP address via BLE."""
+    car_id = data.get("car")
+    
+    if not car_manager:
+        return {
+            "status": "error",
+            "action": "get_car_ip_address",
+            "message": "Car manager not available"
+        }
+    
+    if car_id is None:
+        return {
+            "status": "error",
+            "action": "get_car_ip_address",
+            "message": "Car ID is required"
+        }
+    
+    if not BLUETOOTH_AVAILABLE:
+        return {
+            "status": "error",
+            "action": "get_car_ip_address",
+            "message": "Bluetooth service not available"
+        }
+    
+    bluetooth_service = get_bluetooth_service()
+    if not bluetooth_service:
+        return {
+            "status": "error",
+            "action": "get_car_ip_address",
+            "message": "Bluetooth service not initialized"
+        }
+    
+    try:
+        # Find the car
+        car = car_manager.get_car(car_id)
+        if not car:
+            return {
+                "status": "error",
+                "action": "get_car_ip_address",
+                "message": f"Car {car_id} not found"
+            }
+        
+        if not car.ble_address:
+            return {
+                "status": "error",
+                "action": "get_car_ip_address",
+                "message": f"Car {car_id} has no BLE address"
+            }
+        
+        # This will be handled async in the WebSocket async handler
+        return {
+            "status": "pending",
+            "action": "get_car_ip_address",
+            "car": car_id,
+            "message": "Reading IP address from car..."
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "action": "get_car_ip_address",
+            "message": f"Error getting car IP address: {str(e)}"
+        }
 
-# Action dispatch dictionary
+# Removed redundant handlers - auto_configure_video_feed handles these use cases efficiently
+
+def handle_auto_configure_video_feed(data, car_manager=None):
+    """Handle auto-configuring video feed from car's IP address via BLE."""
+    car_id = data.get("car")
+    force_update = data.get("force_update", False)
+    
+    if not car_manager:
+        return {
+            "status": "error",
+            "action": "auto_configure_video_feed",
+            "message": "Car manager not available"
+        }
+    
+    if car_id is None:
+        return {
+            "status": "error",
+            "action": "auto_configure_video_feed",
+            "message": "Car ID is required"
+        }
+    
+    if not BLUETOOTH_AVAILABLE:
+        return {
+            "status": "error",
+            "action": "auto_configure_video_feed",
+            "message": "Bluetooth service not available"
+        }
+    
+    bluetooth_service = get_bluetooth_service()
+    if not bluetooth_service:
+        return {
+            "status": "error",
+            "action": "auto_configure_video_feed",
+            "message": "Bluetooth service not initialized"
+        }
+    
+    try:
+        # Find the car
+        car = car_manager.get_car(car_id)
+        if not car:
+            return {
+                "status": "error",
+                "action": "auto_configure_video_feed",
+                "message": f"Car {car_id} not found"
+            }
+        
+        if not car.ble_address:
+            return {
+                "status": "error",
+                "action": "auto_configure_video_feed",
+                "message": f"Car {car_id} has no BLE address"
+            }
+        
+        # Check if already configured
+        if car.video_feed_url and not force_update:
+            return {
+                "status": "success",
+                "action": "auto_configure_video_feed",
+                "message": f"Car {car_id} already has video feed configured",
+                "car": car_id,
+                "video_feed_url": car.video_feed_url,
+                "force_update_available": True
+            }
+        
+        # This will be handled async in the WebSocket async handler
+        return {
+            "status": "pending",
+            "action": "auto_configure_video_feed",
+            "car": car_id,
+            "force_update": force_update,
+            "message": "Auto-configuring video feed from car IP..."
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
+            "action": "auto_configure_video_feed",
+            "message": f"Error auto-configuring video feed: {str(e)}"
+        }
+
+
+def handle_get_auto_provisioning_status(data, car_manager=None):
+    """Handle getting auto provisioning service status."""
+    if not AUTO_PROVISIONING_AVAILABLE:
+        return {
+            "status": "error",
+            "action": "get_auto_provisioning_status",
+            "message": "Auto provisioning service not available"
+        }
+    
+    auto_service = get_auto_provisioning_service()
+    if not auto_service:
+        return {
+            "status": "error",
+            "action": "get_auto_provisioning_status",
+            "message": "Auto provisioning service not initialized"
+        }
+    
+    provisioning_status = auto_service.get_provisioning_status()
+    
+    return {
+        "status": "success",
+        "action": "get_auto_provisioning_status",
+        "provisioning_status": provisioning_status
+    }
+
+
+# Action dispatch dictionary (streamlined)
 ACTION_HANDLERS = {
     "move_car": handle_move_car,
     "get_car_status": handle_get_car_status,
@@ -1128,11 +1311,15 @@ ACTION_HANDLERS = {
     "add_car_to_team": handle_add_car_to_team,
     "remove_car_from_teams": handle_remove_car_from_teams,
     "add_team": handle_add_team,
-    # Video feed actions
+    # Video feed actions (streamlined to essential functions)
     "get_accessible_car_feeds": handle_get_accessible_car_feeds,
     "get_car_video_feed": handle_get_car_video_feed,
     "send_video_feed": handle_send_video_feed,
     "set_car_video_ip": handle_set_car_video_ip,
+    "get_car_ip_address": handle_get_car_ip_address,
+    "auto_configure_video_feed": handle_auto_configure_video_feed,
+    # Auto provisioning status
+    "get_auto_provisioning_status": handle_get_auto_provisioning_status,
 }
 
 # Add Bluetooth handlers if available

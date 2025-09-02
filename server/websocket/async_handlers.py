@@ -643,7 +643,180 @@ async def handle_undo_goal_async(data, game_manager=None):
             "message": "Failed to undo goal. No active game or goal to undo."
         }
 
-# Export the async handler
+# ============================================================================
+# ASYNC CAR NETWORK AND VIDEO FEED HANDLERS
+# ============================================================================
+
+async def handle_get_car_ip_address_async(data, car_manager=None):
+    """Handle getting a car's IP address via BLE (async version)."""
+    car_id = data.get("car")
+    
+    logger.info(f"Getting IP address for car {car_id} via BLE...")
+    
+    try:
+        # Find the car
+        car = None
+        if car_manager and car_id is not None:
+            car = car_manager.get_car(car_id)
+        
+        if not car:
+            return {
+                "status": "error",
+                "action": "get_car_ip_address",
+                "message": f"Car {car_id} not found"
+            }
+        
+        if not car.ble_address:
+            return {
+                "status": "error",
+                "action": "get_car_ip_address",
+                "message": f"Car {car_id} has no BLE address"
+            }
+        
+        # Get the Bluetooth service
+        bluetooth_service = get_bluetooth_service()
+        if not bluetooth_service:
+            return {
+                "status": "error",
+                "action": "get_car_ip_address",
+                "message": "Bluetooth service not initialized"
+            }
+        
+        # Get the IP address via BLE
+        ip_address = await bluetooth_service.ble_service.get_car_ip_address(car.ble_address)
+        
+        if ip_address:
+            # Update car status with new IP info
+            if car_manager:
+                car_manager.update_car_status(car_id, connected=True)
+            
+            return {
+                "status": "success",
+                "action": "get_car_ip_address",
+                "message": f"IP address retrieved for car {car.name}",
+                "car": car_id,
+                "ip_address": ip_address,
+                "car_status": car.get_status()
+            }
+        else:
+            return {
+                "status": "error",
+                "action": "get_car_ip_address",
+                "message": f"Failed to get IP address from car {car.name}. Make sure the car is connected to WiFi."
+            }
+        
+    except Exception as e:
+        logger.error(f"Error in handle_get_car_ip_address_async: {e}")
+        return {
+            "status": "error",
+            "action": "get_car_ip_address",
+            "message": f"Error getting car IP address: {str(e)}"
+        }
+
+# Removed redundant handlers - auto_configure_video_feed handles these use cases efficiently
+
+async def handle_auto_configure_video_feed_async(data, car_manager=None):
+    """Handle auto-configuring video feed from car's IP address via BLE (async version)."""
+    car_id = data.get("car")
+    force_update = data.get("force_update", False)
+    
+    logger.info(f"Auto-configuring video feed for car {car_id} via BLE...")
+    
+    try:
+        # Find the car
+        car = None
+        if car_manager and car_id is not None:
+            car = car_manager.get_car(car_id)
+        
+        if not car:
+            return {
+                "status": "error",
+                "action": "auto_configure_video_feed",
+                "message": f"Car {car_id} not found"
+            }
+        
+        if not car.ble_address:
+            return {
+                "status": "error",
+                "action": "auto_configure_video_feed",
+                "message": f"Car {car_id} has no BLE address"
+            }
+        
+        # Check if already configured
+        if car.video_feed_url and not force_update:
+            return {
+                "status": "success",
+                "action": "auto_configure_video_feed",
+                "message": f"Car {car.name} already has video feed configured",
+                "car": car_id,
+                "video_feed_url": car.video_feed_url,
+                "force_update_available": True
+            }
+        
+        # Get the Bluetooth service
+        bluetooth_service = get_bluetooth_service()
+        if not bluetooth_service:
+            return {
+                "status": "error",
+                "action": "auto_configure_video_feed",
+                "message": "Bluetooth service not initialized"
+            }
+        
+        # Get the IP address via BLE
+        ip_address = await bluetooth_service.ble_service.get_car_ip_address(car.ble_address)
+        
+        if ip_address and ip_address.strip():
+            # Configure video feed URL in car manager
+            ip_clean = ip_address.strip()
+            port = 81  # Standard port for car video streams
+            success = car_manager.update_car_video_feed(car_id, ip_clean, port)
+            
+            if success:
+                video_url = f"http://{ip_clean}:{port}/stream"
+                
+                # Update video feed service
+                try:
+                    from video import get_video_feed_service
+                    video_service = get_video_feed_service()
+                    if video_service:
+                        await video_service.update_car_feeds()
+                except Exception as e:
+                    logger.debug(f"Could not update video feed service: {e}")
+                
+                # Update car status with connection info
+                if car_manager:
+                    car_manager.update_car_status(car_id, connected=True)
+                
+                return {
+                    "status": "success",
+                    "action": "auto_configure_video_feed",
+                    "message": f"Video feed auto-configured for car {car.name}",
+                    "car": car_id,
+                    "ip_address": ip_clean,
+                    "port": port,
+                    "video_feed_url": video_url,
+                    "car_status": car.get_status()
+                }
+            else:
+                return {
+                    "status": "error",
+                    "action": "auto_configure_video_feed",
+                    "message": f"Failed to update video feed configuration for car {car.name}"
+                }
+        else:
+            return {
+                "status": "error",
+                "action": "auto_configure_video_feed",
+                "message": f"Could not get IP address from car {car.name}. Make sure the car is connected to WiFi."
+            }
+        
+    except Exception as e:
+        logger.error(f"Error in handle_auto_configure_video_feed_async: {e}")
+        return {
+            "status": "error",
+            "action": "auto_configure_video_feed",
+            "message": f"Error auto-configuring video feed: {str(e)}"
+        }# Export the async handler
 ASYNC_HANDLERS = {
     "send_to_car": handle_send_to_car_async,
     "set_wifi_credentials": handle_set_wifi_credentials_async,
@@ -657,4 +830,7 @@ ASYNC_HANDLERS = {
     "end_game": handle_end_game_async,
     "goal_scored": handle_goal_scored_async,
     "undo_goal": handle_undo_goal_async,
+    # Car network and video feed async handlers (streamlined)
+    "get_car_ip_address": handle_get_car_ip_address_async,
+    "auto_configure_video_feed": handle_auto_configure_video_feed_async,
 }

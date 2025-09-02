@@ -1,9 +1,12 @@
 import asyncio
 import logging
 from websocket import start_server_with_managers
-from models import Car, CarManager, GameManager
+from models.car import Car
+from models.car_manager import CarManager
+from models.game_manager import GameManager
 from bluetooth import BluetoothService, check_bluetooth_dependencies, set_bluetooth_service
-from video_feed_service import VideoFeedService, set_video_feed_service
+from video import VideoFeedService, set_video_feed_service
+from provisioning.auto_provisioning_service import initialize_auto_provisioning_service, shutdown_auto_provisioning_service
 
 # Configure application-wide logging for debugging and monitoring
 logging.basicConfig(level=logging.INFO)
@@ -37,6 +40,7 @@ async def start_bluetooth_service(car_manager: CarManager):
     - Service initialization
     - Event callback configuration
     - Auto-discovery task creation
+    - Auto-provisioning service integration
     
     Args:
         car_manager (CarManager): The car manager to associate discovered devices with
@@ -50,9 +54,16 @@ async def start_bluetooth_service(car_manager: CarManager):
     
     bluetooth_service = BluetoothService(car_manager)
     
+    # Initialize auto provisioning service
+    auto_provisioning = initialize_auto_provisioning_service(car_manager)
+    
     # Configure device event logging and car manager synchronization
     def device_callback(device, event):
         logger.info(f"Bluetooth event: {event} - {device}")
+        
+        # Auto-provision newly discovered cars
+        if event == "discovered" and auto_provisioning:
+            auto_provisioning.add_discovered_car(device.address, device.name)
         
         # Log updated car inventory after device state changes
         if event == "discovered":
@@ -68,6 +79,9 @@ async def start_bluetooth_service(car_manager: CarManager):
         logger.info(f"Found {len(paired_devices)} already paired devices:")
         for device in paired_devices:
             logger.info(f"  {device}")
+            # Auto-provision existing paired devices if they're discovered
+            if auto_provisioning:
+                auto_provisioning.add_discovered_car(device.address, device.name)
     
     # Start continuous device discovery using scan/advertise cycles
     discovery_task = asyncio.create_task(bluetooth_service.start_auto_discovery())
@@ -120,6 +134,7 @@ async def main():
         logger.info("Received interrupt signal, shutting down...")
     finally:
         # Ensure clean shutdown of all async resources
+        await shutdown_auto_provisioning_service()
         if video_service:
             await video_service.stop()
         if bluetooth_service:

@@ -159,7 +159,7 @@ async def cleanup_websocket_connection(websocket_id):
             
             # Update video feed service
             try:
-                from video_feed_service import get_video_feed_service
+                from video import get_video_feed_service
                 video_service = get_video_feed_service()
                 if video_service:
                     asyncio.create_task(video_service.update_car_feeds())
