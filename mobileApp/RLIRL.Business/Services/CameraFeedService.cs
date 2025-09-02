@@ -5,13 +5,16 @@ using RLIRL.Server.Abstractions.ClientCommands;
 
 namespace RLIRL.Business.Services
 {
-    internal class CameraFeedService(IClientCommandQueue clientCommandQueue) : ICameraFeedService
+    internal class CameraFeedService(IClientCommandQueue clientCommandQueue, IServerCameraFeedEncoder serverCameraFeedService) : ICameraFeedService
     {
         public IEnumerable<CameraFeed> CameraFeeds { get; private set; } = [];
+        public int? ActiveCameraFeed { get; private set; }
 
         public event EventHandler<IEnumerable<CameraFeed>>? CameraFeedsChanged;
 
-        private IEnumerable<int> availableCameraFeeds= [];
+        public event EventHandler<int>? ActiveCameraFeedChanged;
+
+        private IEnumerable<int> availableCameraFeeds = [];
 
         public void UpdateAvailableFeeds(IEnumerable<int> availableFeeds)
         {
@@ -19,6 +22,21 @@ namespace RLIRL.Business.Services
             {
                 availableCameraFeeds = availableFeeds;
             }
+        }
+
+        public void UpdateActiveCameraFeed(int? feed)
+        {
+            if (ActiveCameraFeed != feed)
+            {
+                ActiveCameraFeed = feed;
+            }
+
+            CameraFeedsChanged?.Invoke(this, CameraFeeds);
+        }
+
+        public Stream? GetActiveCameraFeed()
+        {
+            return serverCameraFeedService.GetCurrentCameraFeed();
         }
 
         public void Refresh()
