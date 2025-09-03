@@ -188,12 +188,12 @@ class VideoFeedService:
                 return False
             
             # Check if we're in control phase
-            if not bluetooth_service.ble_service.is_in_control_phase():
+            if not bluetooth_service.is_in_control_phase():
                 logger.debug("Cannot auto-configure: BLE service is in scan phase")
                 return False
             
             # Get IP address via BLE
-            ip_address = await bluetooth_service.ble_service.get_car_ip_address(car.ble_address)
+            ip_address = await bluetooth_service.get_car_ip_address(car.ble_address)
             
             if ip_address and ip_address.strip():
                 # Configure video feed URL in format http://IP:81/stream

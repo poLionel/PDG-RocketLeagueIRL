@@ -13,7 +13,7 @@ def set_bluetooth_service(service):
     Configure the global Bluetooth service for handler access.
     
     Args:
-        service: BluetoothService instance for device operations
+        service: BLEService instance for device operations
     """
     global bluetooth_service
     bluetooth_service = service
@@ -23,7 +23,7 @@ def get_bluetooth_service():
     Retrieve the global Bluetooth service instance.
     
     Returns:
-        BluetoothService: Active service instance or None if unavailable
+        BLEService: Active service instance or None if unavailable
     """
     return bluetooth_service
 
