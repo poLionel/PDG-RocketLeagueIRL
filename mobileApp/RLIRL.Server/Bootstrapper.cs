@@ -21,7 +21,6 @@ namespace RLIRL.Server
                 .AddSingleton<IServerCommandSender, ServerCommandSender>()
                 .AddSingleton<IServerConnectionStatusService, ServerConnectionStatusService>()
                 .AddSingleton<IGatewayProvider, GatewayProvider>()
-                .AddSingleton<IServerCameraFeedService, ServerCameraFeedEncoder>()
                 .AddAutoMapper(cfg => { }, typeof(MapperProfile));
 
             services.RegisterResponseProcessors();

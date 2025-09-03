@@ -5,17 +5,17 @@ using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.Business.Services
 {
-    internal class CameraFeedService(IClientCommandQueue clientCommandQueue, IServerCameraFeedService serverCameraFeedService) : ICameraFeedService
+    internal class CameraFeedService(IClientCommandQueue clientCommandQueue) : ICameraFeedService
     {
-        public IEnumerable<int> CameraFeeds { get; private set; } = [];
+        public IEnumerable<CameraFeed> CameraFeeds { get; private set; } = [];
 
-        public event EventHandler<IEnumerable<int>>? CameraFeedsChanged;
+        public event EventHandler<IEnumerable<CameraFeed>>? CameraFeedsChanged;
 
         public void UpdateAvailableFeeds(IEnumerable<CameraFeed> availableFeeds)
         {
             if (CameraFeeds != availableFeeds)
             {
-                CameraFeeds = availableFeeds.Select(f => f.CarId);
+                CameraFeeds = availableFeeds;
                 CameraFeedsChanged?.Invoke(this, CameraFeeds);
             }
         }

@@ -7,12 +7,12 @@ namespace RLIRL.Business.Abstractions.Abstractions
         /// <summary>
         /// Gets the available camera feeds
         /// </summary>
-        IEnumerable<int> CameraFeeds { get; }
+        IEnumerable<CameraFeed> CameraFeeds { get; }
 
         /// <summary>
         /// Event triggered when the available camera feed changes
         /// </summary>
-        event EventHandler<IEnumerable<int>>? CameraFeedsChanged;
+        event EventHandler<IEnumerable<CameraFeed>>? CameraFeedsChanged;
 
         /// <summary>
         /// Updates the available camera feeds

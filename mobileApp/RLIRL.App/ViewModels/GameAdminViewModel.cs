@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RLIRL.App.Models;
@@ -26,13 +27,13 @@ namespace RLIRL.App.ViewModels
         public partial ObservableCollection<CarInfo> Cars { get; set; } = new();
 
         [ObservableProperty]
-        public partial ObservableCollection<int> AvailableCameraFeeds { get; set; } = new();
+        public partial ObservableCollection<CameraFeedItem> AvailableCameraFeeds { get; set; } = new();
 
         [ObservableProperty]
         public partial int? SelectedCameraFeedId { get; set; }
 
         [ObservableProperty]
-        public partial Stream? VideoStream { get; set; }
+        public partial Uri? VideoStreamUrl { get; set; }
 
         [ObservableProperty]
         public partial string TimeLeft { get; set; } = "00:00";
@@ -117,12 +118,6 @@ namespace RLIRL.App.ViewModels
         }
 
         [RelayCommand]
-        private void SelectPlayerCamera(int cameraFeed)
-        {
-            SelectedCameraFeedId = cameraFeed;
-        }
-
-        [RelayCommand]
         private void RefreshCars()
         {
             // TODO: Implement refresh cars logic
@@ -135,12 +130,19 @@ namespace RLIRL.App.ViewModels
         }
 
         [RelayCommand]
-        private void SelectCameraFeed(int cameraFeedId)
+        private void SelectCameraFeed(CameraFeedItem? cameraFeed)
         {
-            SelectedCameraFeedId = cameraFeedId;
-            // TODO: Fetch the video stream for the selected camera feed
-            // For now, we'll just set a placeholder or null
-            VideoStream = null; // This will be implemented later to fetch actual stream
+            SelectedCameraFeedId = cameraFeed?.CarId;
+
+            // Validate the uri and create the MediaSource
+            if (cameraFeed != null && Uri.TryCreate(cameraFeed.Url, UriKind.Absolute, out var uri))
+            {
+                VideoStreamUrl = uri;
+            }
+            else
+            {
+                VideoStreamUrl = null;
+            }
         }
 
         private void OnGameStatusChanged(object? sender, GameStatus? e)
@@ -166,9 +168,9 @@ namespace RLIRL.App.ViewModels
             }
         }
 
-        private void CameraFeedsChanged(object? sender, IEnumerable<int>? e)
+        private void CameraFeedsChanged(object? sender, IEnumerable<CameraFeed>? e)
         {
-            this.AvailableCameraFeeds = new(e ?? []);
+            AvailableCameraFeeds = mapper.Map<ObservableCollection<CameraFeedItem>>(e ?? []);
         }
 
         private void TimeLeftChanged(object? sender, TimeSpan timeLeft)

@@ -273,22 +273,16 @@
                             Stroke="{StaticResource Gray300}"
                             StrokeThickness="2"
                             BackgroundColor="{StaticResource Black}"
-                            HeightRequest="200"
+                            HeightRequest="500"
                             Margin="0,10">
                         <Grid>
                             <!-- Video Stream (when available) -->
-                            <ContentView IsVisible="{Binding VideoStream, Converter={toolkit:IsNotNullConverter}}">
-                                <!-- This will be implemented later when video streaming is ready -->
-                                <Label Text="Video Stream Will Be Displayed Here"
-                                       TextColor="{StaticResource White}"
-                                       FontSize="14"
-                                       FontAttributes="Italic"
-                                       HorizontalOptions="Center"
-                                       VerticalOptions="Center" />
+                            <ContentView IsVisible="{Binding VideoStreamUrl, Converter={toolkit:IsNotNullConverter}}">
+                                <WebView Source="{Binding VideoStreamUrl}"></WebView>
                             </ContentView>
 
                             <!-- Placeholder when no stream is selected or available -->
-                            <StackLayout IsVisible="{Binding VideoStream, Converter={toolkit:IsNullConverter}}"
+                            <StackLayout IsVisible="{Binding VideoStreamUrl, Converter={toolkit:IsNullConverter}}"
                                         HorizontalOptions="Center"
                                         VerticalOptions="Center"
                                         Spacing="10">
@@ -322,22 +316,22 @@
                         <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
                             <CollectionView ItemsSource="{Binding AvailableCameraFeeds}"
                                             SelectionMode="Single"
-                                            SelectedItem="{Binding SelectedCameraFeedId, Mode=TwoWay}"
+                                            SelectionChanged="FeedCollectionViewSelectionChanged"                                           
                                             ItemsLayout="HorizontalList"
                                             x:Name="FeedCollectionView">
                                 <CollectionView.ItemTemplate>
-                                    <DataTemplate x:DataType="x:Int32">
+                                    <DataTemplate x:DataType="models:CameraFeedItem">
                                         <Grid Padding="5">
                                             <Border Padding="0"
                                                     WidthRequest="80"
                                                     HeightRequest="80"
                                                     StrokeShape="RoundRectangle 12,12,12,12"
                                                     StrokeThickness="2"
-                                                    BackgroundColor="{Binding ., Converter={StaticResource SelectedBackgroundConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}"
-                                                    Stroke="{Binding ., Converter={StaticResource SelectedStrokeConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}">
+                                                    BackgroundColor="{Binding CarId, Converter={StaticResource SelectedBackgroundConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}"
+                                                    Stroke="{Binding CarId, Converter={StaticResource SelectedStrokeConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}">
                                                 <Border.GestureRecognizers>
                                                     <TapGestureRecognizer Command="{Binding BindingContext.SelectCameraFeedCommand, Source={x:Reference AdminPage}}"
-                                                                          CommandParameter="{Binding .}" />
+                                                                          CommandParameter="{Binding CarId}" />
                                                 </Border.GestureRecognizers>
                                                 
                                                 <StackLayout HorizontalOptions="Center"
@@ -349,14 +343,14 @@
                                                             <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                                                              Glyph="{x:Static fonts:FluentUI.video_24_regular}"
                                                                              Size="24"
-                                                                             Color="{Binding ., Converter={StaticResource SelectedTextColorConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}" />
+                                                                             Color="{Binding CarId, Converter={StaticResource SelectedTextColorConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}" />
                                                         </Image.Source>
                                                     </Image>
-                                                    <Label Text="{Binding ., StringFormat='#{0}'}"
+                                                    <Label Text="{Binding CarId, StringFormat='#{0}'}"
                                                            FontSize="12"
                                                            FontAttributes="Bold"
                                                            HorizontalTextAlignment="Center"
-                                                           TextColor="{Binding ., Converter={StaticResource SelectedTextColorConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}" />
+                                                           TextColor="{Binding CarId, Converter={StaticResource SelectedTextColorConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}" />
                                                 </StackLayout>
                                             </Border>
                                         </Grid>
