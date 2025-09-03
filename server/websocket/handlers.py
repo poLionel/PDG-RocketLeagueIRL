@@ -938,7 +938,7 @@ def handle_get_accessible_car_feeds(data, car_manager=None):
 
     # Map the car id, the url of the feed and the port
     accessible_feeds = [
-        {"car_id": car.car_id, "url": car.video_feed_url, "port": car.video_feed_port}
+        {"car_id": car.car_id, "url": car.video_feed_url }
         for car in all_cars if car.video_feed_url
     ]
 

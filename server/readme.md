@@ -78,8 +78,7 @@ Server responds:
   "accessible_feeds": [
     {
       "car_id": 1,
-      "url": "192.168.1.100",
-      "port": 8080
+      "url": "192.168.1.100:8080",
     },
     ...
   ]

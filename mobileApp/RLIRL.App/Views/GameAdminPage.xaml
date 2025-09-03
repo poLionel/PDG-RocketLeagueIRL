@@ -6,9 +6,23 @@
              xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
              xmlns:viewmodels="clr-namespace:RLIRL.App.ViewModels"
              xmlns:models="clr-namespace:RLIRL.App.Models"
+             xmlns:converters="clr-namespace:RLIRL.App.Converters"
              x:Class="RLIRL.App.Views.GameAdminPage"
              x:DataType="viewmodels:GameAdminViewModel"
              x:Name="AdminPage">
+
+    <ContentPage.Resources>
+        <converters:EqualToParameterConverter x:Key="EqualToParameterConverter" />
+        <converters:EqualToParameterConverter x:Key="SelectedBackgroundConverter" 
+                                              TrueValue="{StaticResource DodgerBlue}" 
+                                              FalseValue="{StaticResource Gray200}" />
+        <converters:EqualToParameterConverter x:Key="SelectedStrokeConverter" 
+                                              TrueValue="{StaticResource DodgerBlue}" 
+                                              FalseValue="{StaticResource Gray300}" />
+        <converters:EqualToParameterConverter x:Key="SelectedTextColorConverter" 
+                                              TrueValue="{StaticResource White}" 
+                                              FalseValue="{StaticResource Gray600}" />
+    </ContentPage.Resources>
 
     <ScrollView Style="{StaticResource AdminMainScrollView}">
         <Grid Style="{StaticResource AdminMainGrid}">
@@ -17,7 +31,7 @@
                 <RowDefinition Height="auto" />  <!-- Game Controls -->
                 <RowDefinition Height="auto" />  <!-- Score and Timer -->
                 <RowDefinition Height="auto" />  <!-- Goal Scoring Controls -->
-                <RowDefinition Height="*" />     <!-- Player Management -->
+                <RowDefinition Height="auto" />  <!-- Video Management -->
                 <RowDefinition Height="auto" />  <!-- Car Management -->
             </Grid.RowDefinitions>
 
@@ -230,7 +244,7 @@
                 </StackLayout>
             </Border>
 
-            <!-- Player Camera Views -->
+            <!-- Camera Feed Management -->
             <Border Grid.Row="4" Style="{StaticResource AdminSectionContainer}">
                 <StackLayout Spacing="{StaticResource ItemSpacing}">
                     <Grid ColumnSpacing="{StaticResource ItemSpacing}">
@@ -239,7 +253,7 @@
                             <ColumnDefinition Width="auto" />
                         </Grid.ColumnDefinitions>
 
-                        <Label Grid.Column="0" Text="Player Camera Feeds" Style="{StaticResource AdminSectionTitle}" />
+                        <Label Grid.Column="0" Text="Camera Feed Sources" Style="{StaticResource AdminSectionTitle}" />
                         
                         <Border Grid.Column="1" Style="{StaticResource AppRefreshButtonContainer}">
                             <ImageButton Command="{Binding RefreshCameraFeedsCommand}"
@@ -254,58 +268,102 @@
                         </Border>
                     </Grid>
 
-                    <!-- Camera Feed Grid -->
-                    <CollectionView ItemsSource="{Binding PlayerCameraFeeds}"
-                                    Style="{StaticResource AdminCameraGrid}"
-                                    IsVisible="{Binding Cars,Converter={toolkit:IsListNotNullOrEmptyConverter}}">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:CarInfo">
-                                <Border Style="{StaticResource AdminCameraContainer}">
-                                    <Grid>
-                                        <!-- Camera feed placeholder -->
-                                        <Rectangle Style="{StaticResource AdminCameraPlaceholder}" />
-                                        
-                                        <!-- Player info overlay -->
-                                        <Grid Style="{StaticResource AdminCameraOverlay}">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="auto" />
-                                            </Grid.ColumnDefinitions>
-                                            
-                                            <StackLayout Grid.Column="0">
-                                                <Label Text="{Binding PlayerName}" Style="{StaticResource AdminCameraPlayerName}" />
-                                                <Label Text="{Binding CarId, StringFormat='Car #{0}'}" Style="{StaticResource AdminCameraCarInfo}" />
-                                                <Label Text="{Binding Team}" 
-                                                       Style="{StaticResource AdminCameraTeamInfo}"
-                                                       TextColor="{Binding TeamColor}" />
-                                            </StackLayout>
-                                            
-                                            <Button Grid.Column="1"
-                                                    Text="Select"
-                                                    Command="{Binding Path=BindingContext.SelectPlayerCameraCommand, Source={x:Reference AdminPage}}"
-                                                    CommandParameter="{Binding .}"
-                                                    Style="{StaticResource AdminCompactButton}" />
-                                        </Grid>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    <!-- Camera View Display -->
+                    <Border StrokeShape="RoundRectangle 8,8,8,8"
+                            Stroke="{StaticResource Gray300}"
+                            StrokeThickness="2"
+                            BackgroundColor="{StaticResource Black}"
+                            HeightRequest="200"
+                            Margin="0,10">
+                        <Grid>
+                            <!-- Video Stream (when available) -->
+                            <ContentView IsVisible="{Binding VideoStream, Converter={toolkit:IsNotNullConverter}}">
+                                <!-- This will be implemented later when video streaming is ready -->
+                                <Label Text="Video Stream Will Be Displayed Here"
+                                       TextColor="{StaticResource White}"
+                                       FontSize="14"
+                                       FontAttributes="Italic"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center" />
+                            </ContentView>
 
-                    <!-- No cameras message -->
-                    <StackLayout IsVisible="{Binding PlayerCameraFeeds, Converter={toolkit:IsListNullOrEmptyConverter}}"
-                                 Style="{StaticResource AdminEmptyStateContainer}"
-                                 Margin="0,0,0,25">
-                        <Image HorizontalOptions="Center" MaximumWidthRequest="50">
-                            <Image.Source>
-                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
-                                                 Glyph="{x:Static fonts:FluentUI.camera_off_24_regular}"
-                                                 Size="{StaticResource EmptyStateIconSize}"
-                                                 Color="{StaticResource Gray500}" />
-                            </Image.Source>
-                        </Image>
-                        <Label Text="No camera feeds available" Style="{StaticResource AdminEmptyStateTitle}" />
-                        <Label Text="Camera feeds will appear here when players are connected" Style="{StaticResource AdminEmptyStateSubtext}" />
+                            <!-- Placeholder when no stream is selected or available -->
+                            <StackLayout IsVisible="{Binding VideoStream, Converter={toolkit:IsNullConverter}}"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center"
+                                        Spacing="10">
+                                <Image MaximumWidthRequest="60">
+                                    <Image.Source>
+                                        <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                        Glyph="{x:Static fonts:FluentUI.video_off_24_regular}"
+                                                        Size="60"
+                                                        Color="{StaticResource Gray500}" />
+                                    </Image.Source>
+                                </Image>
+                                <Label Text="{Binding SelectedCameraFeedId, StringFormat='Camera Feed {0}', TargetNullValue='No Camera Selected'}"
+                                       TextColor="{StaticResource Gray500}"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center" />
+                                <Label Text="Select a camera source below to view feed"
+                                       TextColor="{StaticResource Gray400}"
+                                       FontSize="12"
+                                       HorizontalTextAlignment="Center"
+                                       IsVisible="{Binding SelectedCameraFeedId, Converter={toolkit:IsNullConverter}}" />
+                            </StackLayout>
+                        </Grid>
+                    </Border>
+
+                    <!-- Available Camera Sources -->
+                    <StackLayout IsVisible="{Binding AvailableCameraFeeds, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
+                                 Spacing="{StaticResource TinySpacing}">
+                        <Label Text="Available Sources:" Style="{StaticResource AdminItemSubtext}" />
+                        
+                        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
+                            <CollectionView ItemsSource="{Binding AvailableCameraFeeds}"
+                                            SelectionMode="Single"
+                                            SelectedItem="{Binding SelectedCameraFeedId, Mode=TwoWay}"
+                                            ItemsLayout="HorizontalList"
+                                            x:Name="FeedCollectionView">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="x:Int32">
+                                        <Grid Padding="5">
+                                            <Border Padding="0"
+                                                    WidthRequest="80"
+                                                    HeightRequest="80"
+                                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                                    StrokeThickness="2"
+                                                    BackgroundColor="{Binding ., Converter={StaticResource SelectedBackgroundConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}"
+                                                    Stroke="{Binding ., Converter={StaticResource SelectedStrokeConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}">
+                                                <Border.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding BindingContext.SelectCameraFeedCommand, Source={x:Reference AdminPage}}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </Border.GestureRecognizers>
+                                                
+                                                <StackLayout HorizontalOptions="Center"
+                                                             VerticalOptions="Center"
+                                                             Spacing="8">
+                                                    <Image WidthRequest="24"
+                                                           HeightRequest="24">
+                                                        <Image.Source>
+                                                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                                             Glyph="{x:Static fonts:FluentUI.video_24_regular}"
+                                                                             Size="24"
+                                                                             Color="{Binding ., Converter={StaticResource SelectedTextColorConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}" />
+                                                        </Image.Source>
+                                                    </Image>
+                                                    <Label Text="{Binding ., StringFormat='#{0}'}"
+                                                           FontSize="12"
+                                                           FontAttributes="Bold"
+                                                           HorizontalTextAlignment="Center"
+                                                           TextColor="{Binding ., Converter={StaticResource SelectedTextColorConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}" />
+                                                </StackLayout>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </ScrollView>
                     </StackLayout>
                 </StackLayout>
             </Border>

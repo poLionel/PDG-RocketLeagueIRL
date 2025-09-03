@@ -150,73 +150,8 @@ async def cleanup_websocket_connection(websocket_id):
         if freed_cars:
             logger.info(f"Freed cars {freed_cars} from disconnected websocket {websocket_id}")
             print(f"Freed cars {freed_cars} from disconnected websocket {websocket_id}")
-        
-        # Unsubscribe from all video feeds
-        unsubscribed_cars = car_manager.unsubscribe_websocket_from_all_feeds(websocket_id)
-        if unsubscribed_cars:
-            logger.info(f"Unsubscribed websocket {websocket_id} from video feeds: {unsubscribed_cars}")
-            print(f"Unsubscribed websocket {websocket_id} from video feeds: {unsubscribed_cars}")
-            
-            # Update video feed service
-            try:
-                from video import get_video_feed_service
-                video_service = get_video_feed_service()
-                if video_service:
-                    asyncio.create_task(video_service.update_car_feeds())
-            except:
-                pass
     
     logger.info(f"WebSocket connection {websocket_id} cleaned up")
-
-async def broadcast_video_frame(response):
-    """
-    Broadcast video frame to subscribed clients.
-    
-    Args:
-        response (dict): Response from send_video_feed handler containing video data
-    """
-    if not response.get("subscribers"):
-        return
-    
-    car_id = response.get("car_id")
-    subscribers = response.get("subscribers", [])
-    video_frame = response.get("video_frame")
-    
-    if not video_frame or not subscribers:
-        return
-    
-    # Create broadcast message for video frame
-    video_message = {
-        "action": "video_frame_update",
-        "car": car_id,
-        "video_frame": video_frame,
-        "timestamp": str(datetime.now().isoformat())
-    }
-    
-    message_str = json.dumps(video_message)
-    disconnected_connections = []
-    
-    # Send to subscribed connections only
-    for websocket_id in subscribers:
-        if websocket_id in active_connections:
-            websocket = active_connections[websocket_id]
-            try:
-                await websocket.send(message_str)
-                logger.debug(f"Video frame sent to subscriber {websocket_id}")
-            except websockets.exceptions.ConnectionClosed:
-                logger.info(f"Subscriber {websocket_id} closed during video broadcast")
-                disconnected_connections.append(websocket_id)
-            except Exception as e:
-                logger.error(f"Error broadcasting video to {websocket_id}: {e}")
-                disconnected_connections.append(websocket_id)
-    
-    # Clean up disconnected subscribers
-    for websocket_id in disconnected_connections:
-        if car_manager:
-            car_manager.unsubscribe_websocket_from_all_feeds(websocket_id)
-        await cleanup_websocket_connection(websocket_id)
-    
-    logger.debug(f"Video frame broadcast to {len(subscribers) - len(disconnected_connections)} subscribers")
 
 async def broadcast_to_all_clients(message):
     """

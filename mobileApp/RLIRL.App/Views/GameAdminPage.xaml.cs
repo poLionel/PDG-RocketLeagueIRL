@@ -1,3 +1,4 @@
+using RLIRL.App.Helper;
 using RLIRL.App.ViewModels;
 
 namespace RLIRL.App.Views;
@@ -6,12 +7,8 @@ public partial class GameAdminPage : ContentPage
 {
     public GameAdminPage()
     {
+        BindingContext = ServiceHelper.Get<GameAdminViewModel>();
         InitializeComponent();
-    }
-
-    public GameAdminPage(GameAdminViewModel viewModel) : this()
-    {
-        BindingContext = viewModel;
     }
 
     protected override void OnAppearing()

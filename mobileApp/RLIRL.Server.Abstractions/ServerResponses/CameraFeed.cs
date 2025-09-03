@@ -9,8 +9,5 @@ namespace RLIRL.Server.Abstractions.ServerResponses
 
         [JsonPropertyName("url")]
         public required string Url { get; set; }
-
-        [JsonPropertyName("port")]
-        public short Port { get; set; }
     }
 }

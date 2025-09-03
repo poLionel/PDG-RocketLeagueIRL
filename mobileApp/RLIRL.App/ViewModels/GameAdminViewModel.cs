@@ -23,13 +23,16 @@ namespace RLIRL.App.ViewModels
         public partial GameInfo Game { get; set; } = new();
 
         [ObservableProperty]
-        public partial ObservableCollection<PlayerCameraFeedInfo> PlayerCameraFeeds { get; set; } = new();
-
-        [ObservableProperty]
         public partial ObservableCollection<CarInfo> Cars { get; set; } = new();
 
         [ObservableProperty]
         public partial ObservableCollection<int> AvailableCameraFeeds { get; set; } = new();
+
+        [ObservableProperty]
+        public partial int? SelectedCameraFeedId { get; set; }
+
+        [ObservableProperty]
+        public partial Stream? VideoStream { get; set; }
 
         [ObservableProperty]
         public partial string TimeLeft { get; set; } = "00:00";
@@ -114,9 +117,9 @@ namespace RLIRL.App.ViewModels
         }
 
         [RelayCommand]
-        private void SelectPlayerCamera(PlayerCameraFeedInfo cameraFeed)
+        private void SelectPlayerCamera(int cameraFeed)
         {
-            // TODO: Implement select player camera logic
+            SelectedCameraFeedId = cameraFeed;
         }
 
         [RelayCommand]
@@ -129,6 +132,15 @@ namespace RLIRL.App.ViewModels
         private void ToggleCarAssignment(CarInfo car)
         {
             // TODO: Implement toggle car assignment logic
+        }
+
+        [RelayCommand]
+        private void SelectCameraFeed(int cameraFeedId)
+        {
+            SelectedCameraFeedId = cameraFeedId;
+            // TODO: Fetch the video stream for the selected camera feed
+            // For now, we'll just set a placeholder or null
+            VideoStream = null; // This will be implemented later to fetch actual stream
         }
 
         private void OnGameStatusChanged(object? sender, GameStatus? e)
