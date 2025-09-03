@@ -255,8 +255,8 @@ namespace RLIRL.Server.Tests
 
             // Check if the response is valid
             Assert.NotNull(response);
-            Assert.Equal("get_game_status", (string)response!.status);
-            Assert.Equal("stop_game", (string)response!.action);
+            Assert.Equal("success", (string)response!.status);
+            Assert.Equal("get_game_status", (string)response!.action);
         }
 
         private async Task<object?> WaitForResponseAsync(ClientWebSocket wsClient, CancellationToken cancellationToken)
