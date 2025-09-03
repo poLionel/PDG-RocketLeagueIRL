@@ -17,9 +17,6 @@ class CarManager:
         """Initialize the car manager with an empty list of cars."""
         self.cars = {}  # Dictionary mapping car_id to Car objects
         self.game_manager: Optional['GameManager'] = None
-        # Add test cars
-        self.add_car(Car(car_id=1, ble_name="RL-CAR-1", ble_address="cc:ba:97:0d:8c:b5"))
-        self.add_car(Car(car_id=2, ble_name="RL-CAR-2", ble_address="cc:ba:97:0d:8c:b6"))
 
     def set_game_manager(self, game_manager: 'GameManager'):
         """Set the game manager reference."""
