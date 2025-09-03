@@ -112,16 +112,15 @@
                                 <toolkit:EventToCommandBehavior EventName="Pressed" BindingContext="{Binding Path=BindingContext, Source={x:Reference SpeedButton}, x:DataType=ImageButton}" Command="{Binding AcceleratePressedCommand}"/>
                                 <toolkit:EventToCommandBehavior EventName="Released" BindingContext="{Binding Path=BindingContext, Source={x:Reference SpeedButton}, x:DataType=ImageButton}" Command="{Binding AccelerateReleaseCommand}"/>
                             </ImageButton.Behaviors>
+
+                            <ImageButton.GestureRecognizers>
+                                <PanGestureRecognizer PanUpdated="OnSpeedPanUpdated"/>
+                            </ImageButton.GestureRecognizers>
                             <ImageButton.Triggers>
-                                <!-- Clicked color trigger -->
-                                <Trigger TargetType="ImageButton" Property="IsPressed" Value="True">
-                                    <Setter Property="BackgroundColor" Value="#191970"/>
-                                </Trigger>
-                                <!-- effet visuel quand boost actif -->
-                                <DataTrigger TargetType="ImageButton" Value="True">
+                                <DataTrigger TargetType="ImageButton" Binding="{Binding IsBoosting}" Value="True">
                                     <Setter Property="Shadow">
                                         <Setter.Value>
-                                            <Shadow Brush="Black" Offset="0,6" Radius="12" Opacity="0.35"/>
+                                            <Shadow Brush="Black" Offset="0,6" Radius="14" Opacity="0.45" />
                                         </Setter.Value>
                                     </Setter>
                                 </DataTrigger>
