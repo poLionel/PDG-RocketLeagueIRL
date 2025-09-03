@@ -110,7 +110,7 @@ class AutoProvisioningService:
     async def _process_provisioning_queue(self):
         """Process all cars in the provisioning queue."""
         bluetooth_service = get_bluetooth_service()
-        if not bluetooth_service or not bluetooth_service.ble_service:
+        if not bluetooth_service:
             return
             
         current_time = time.time()
@@ -142,13 +142,13 @@ class AutoProvisioningService:
         
         try:
             # Check if car is still discoverable
-            if ble_address not in bluetooth_service.ble_service.discovered_devices:
+            if ble_address not in bluetooth_service.discovered_devices:
                 logger.warning(f"Car {ble_address} no longer discoverable, scheduling retry")
                 await self._schedule_retry(ble_address, state)
                 return
                 
             # Send WiFi credentials
-            success = await bluetooth_service.ble_service.set_wifi_on_car(
+            success = await bluetooth_service.set_wifi_on_car(
                 ble_address, self.wifi_ssid, self.wifi_password
             )
             
@@ -185,7 +185,7 @@ class AutoProvisioningService:
         
         try:
             # Try to read IP address
-            ip_address = await bluetooth_service.ble_service.get_car_ip_address(ble_address)
+            ip_address = await bluetooth_service.get_car_ip_address(ble_address)
             
             if ip_address and ip_address.strip():
                 ip_clean = ip_address.strip()

@@ -80,7 +80,7 @@ async def handle_send_to_car_async(data, car_manager=None):
             }
         
         # Locate the BLE device in the discovered devices registry
-        ble_devices = bluetooth_service.ble_service.discovered_devices
+        ble_devices = bluetooth_service.discovered_devices
         ble_device = ble_devices.get(car.ble_address)
         
         if not ble_device:
@@ -170,7 +170,7 @@ async def handle_connect_to_car_async(data, car_manager=None):
             }
         
         # Get the BLE device
-        ble_devices = bluetooth_service.ble_service.discovered_devices
+        ble_devices = bluetooth_service.discovered_devices
         ble_device = ble_devices.get(car.ble_address)
         
         if not ble_device:
@@ -188,7 +188,7 @@ async def handle_connect_to_car_async(data, car_manager=None):
             }
         
         logger.info(f"Connecting to {ble_device.name}...")
-        connected_device = await bluetooth_service.ble_service.connect_to_device(car.ble_address)
+        connected_device = await bluetooth_service.connect_to_device(car.ble_address)
         
         if connected_device:
             # Update car status
@@ -227,7 +227,7 @@ async def handle_switch_to_scan_phase_async(data, car_manager=None):
             }
         
         # Switch to scan phase and discover cars
-        discovered_cars = await bluetooth_service.ble_service.start_scan_phase()
+        discovered_cars = await bluetooth_service.start_scan_phase()
         
         return {
             "status": "success",
@@ -257,13 +257,13 @@ async def handle_switch_to_control_phase_async(data, car_manager=None):
             }
         
         # Switch to control phase
-        await bluetooth_service.ble_service.switch_to_control_phase()
+        await bluetooth_service.switch_to_control_phase()
         
         return {
             "status": "success",
             "message": "Switched to control phase. You can now send commands to cars.",
             "phase": "control",
-            "discovered_cars": [car.to_dict() for car in bluetooth_service.ble_service.discovered_devices.values()]
+            "discovered_cars": [car.to_dict() for car in bluetooth_service.discovered_devices.values()]
         }
         
     except Exception as e:

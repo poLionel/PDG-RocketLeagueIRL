@@ -4,7 +4,7 @@ from websocket import start_server_with_managers
 from models.car import Car
 from models.car_manager import CarManager
 from models.game_manager import GameManager
-from bluetooth import BluetoothService, check_bluetooth_dependencies, set_bluetooth_service
+from bluetooth import BLEService, check_bluetooth_dependencies, set_bluetooth_service
 from video import VideoFeedService, set_video_feed_service
 from provisioning.auto_provisioning_service import initialize_auto_provisioning_service, shutdown_auto_provisioning_service
 
@@ -46,13 +46,13 @@ async def start_bluetooth_service(car_manager: CarManager):
         car_manager (CarManager): The car manager to associate discovered devices with
         
     Returns:
-        tuple: (BluetoothService, asyncio.Task) if successful, None if dependencies unavailable
+        tuple: (BLEService, asyncio.Task) if successful, None if dependencies unavailable
     """
     if not check_bluetooth_dependencies():
         logger.warning("Bluetooth dependencies not available. Bluetooth service will be disabled.")
         return None
     
-    bluetooth_service = BluetoothService(car_manager)
+    bluetooth_service = BLEService(car_manager)
     
     # Initialize auto provisioning service
     auto_provisioning = initialize_auto_provisioning_service(car_manager)

@@ -107,12 +107,12 @@ async def send_drive_command_to_car(car, move, x, boost):
             return False
         
         # Check if BLE service is in control phase
-        if not bluetooth_service.ble_service.is_in_control_phase():
+        if not bluetooth_service.is_in_control_phase():
             logger.warning("Cannot send drive command: BLE service is in scan phase")
             return False
         
         # Check if car device is discovered
-        ble_devices = bluetooth_service.ble_service.discovered_devices
+        ble_devices = bluetooth_service.discovered_devices
         if car.ble_address not in ble_devices:
             logger.warning(f"Car {car.car_id} BLE device not found in discovered devices")
             return False
@@ -124,7 +124,7 @@ async def send_drive_command_to_car(car, move, x, boost):
         logger.info(f"BLE drive params: X={drive_x}, Y={drive_y}, Speed={speed}, Decay={decay_mode}")
         
         # Send the drive command via BLE
-        success = await bluetooth_service.ble_service.set_drive_on_car(
+        success = await bluetooth_service.set_drive_on_car(
             car.ble_address, drive_x, drive_y, speed, decay_mode
         )
         
@@ -412,7 +412,7 @@ def handle_send_to_car(data, car_manager=None, websocket_id=None):
             }
         
         # Get the BLE device
-        ble_devices = bluetooth_service.ble_service.discovered_devices
+        ble_devices = bluetooth_service.discovered_devices
         ble_device = ble_devices.get(car.ble_address)
         
         if not ble_device:
@@ -528,7 +528,7 @@ def handle_get_phase_status(data, car_manager=None):
         }
     
     try:
-        ble_status = bluetooth_service.ble_service.get_status()
+        ble_status = bluetooth_service.get_status()
         return {
             "status": "success",
             "phase_status": ble_status

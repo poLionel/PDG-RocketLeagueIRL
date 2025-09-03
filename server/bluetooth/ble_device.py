@@ -2,16 +2,8 @@
 PDG Car BLE device representation and connection management.
 
 This module provides the PDGCarDevice class which handles all Bluetooth Low Energy
-communication with physical Rocket League cars. It manages connection lifecycle,
-characteristic read/write operations, and implements the protocol defined in the
-car's ESP32 firmware.
-
-Key Features:
-- Robust connection handling with retry logic optimized for Raspberry Pi
-- Type-safe characteristic read/write operations matching firmware data types
-- Motor control with bounds checking and safety limits
-- WiFi provisioning for initial car setup
-- Real-time status monitoring and battery level reporting
+communication with physical Rocket League cars, and a simple BluetoothDevice class
+for legacy compatibility.
 """
 
 import asyncio
@@ -602,3 +594,19 @@ class PDGCarDevice:
             "rssi": self.rssi,
             "is_connected": self.is_connected
         }
+
+
+class BluetoothDevice:
+    """
+    Legacy compatibility wrapper for simple Bluetooth device representation.
+    
+    Provides a basic interface for representing discovered Bluetooth devices
+    without the full BLE connection capabilities of PDGCarDevice.
+    """
+    def __init__(self, address: str, name: str = "Unknown", paired: bool = False):
+        self.address = address
+        self.name = name
+        self.paired = paired
+    
+    def __str__(self):
+        return f"BluetoothDevice({self.name}, {self.address}, paired={self.paired})"
