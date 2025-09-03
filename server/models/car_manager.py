@@ -294,3 +294,21 @@ class CarManager:
             list: List of Car objects with video feed URLs
         """
         return [car for car in self.cars.values() if car.video_feed_url is not None]
+    
+    def update_car_video_feed(self, car_id, ip_address, port=None):
+        """
+        Update the video feed configuration for a specific car.
+        
+        Args:
+            car_id (int): ID of the car to update
+            ip_address (str): IP address for the video feed
+            port (int, optional): Port for the video feed (defaults to car's default port)
+            
+        Returns:
+            bool: True if car was found and updated, False otherwise
+        """
+        car = self.get_car(car_id)
+        if car:
+            car.set_video_feed_url(ip_address, port)
+            return True
+        return False
