@@ -6,6 +6,8 @@ using RLIRL.Business.Abstractions.Models;
 using RLIRL.Business.Services;
 using RLIRL.Server.Abstractions.ClientCommands;
 using System.Diagnostics;
+using RLIRL.Server.Abstractions.ServerResponses;
+using Microsoft.Maui.Controls;
 
 namespace RLIRL.App.ViewModels
 {
@@ -13,15 +15,20 @@ namespace RLIRL.App.ViewModels
     {
         #region Constructor
 
-        public GameViewModel(ICarControlService carControlService, IGameService gameService, ITimerService timerService)
+        public GameViewModel(ICarControlService carControlService, IGameService gameService, ITimerService timerService, ICarService carService, ICameraFeedService cameraFeedService)
         {
             _carControlService = carControlService;
             _gameService = gameService;
             _timerService = timerService;
+            _carService = carService;
+            _cameraFeedService = cameraFeedService;
 
             _gameService.GameStatusChanged += OnGameStatusChanged;
             _timerService.TimeLeftChanged += OnTimerChanged;
-            
+            _carService.CurrentCarChanged += OnCurrentCarChanged;
+            _cameraFeedService.CameraFeedsChanged += OnCameraFeedsChanged;
+
+            cameraFeedService.Refresh();
         }
 
         #endregion
@@ -92,6 +99,74 @@ namespace RLIRL.App.ViewModels
             });
         }
 
+        private void UpdateCameraWebViewSource()
+        {
+            var carId = _carService.CurrentCar;
+            if (carId.HasValue)
+            {
+                var feed = _cameraFeedService.CameraFeeds.FirstOrDefault(f => f.CarId == carId.Value);
+                if (feed != null && !string.IsNullOrEmpty(feed.Url))
+                {
+                    CameraWebViewSource = CreateWebViewSource(feed.Url);
+                    return;
+                }
+            }
+            CameraWebViewSource = null;
+        }
+
+        private static WebViewSource CreateWebViewSource(string url)
+        {
+            return new HtmlWebViewSource
+            {
+                Html = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        html, body {{ 
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+        }}
+        .container {{ 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }}
+        img {{ 
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            background: #000;
+        }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <img src='{url}' alt='Camera Feed' />
+    </div>
+</body>
+</html>
+"
+            };
+        }
+
+        private void OnCurrentCarChanged(object? sender, int? carId)
+        {
+            MainThread.BeginInvokeOnMainThread(UpdateCameraWebViewSource);
+        }
+
+        private void OnCameraFeedsChanged(object? sender, IEnumerable<CameraFeed> feeds)
+        {
+            MainThread.BeginInvokeOnMainThread(UpdateCameraWebViewSource);
+        }
+
         #endregion
 
         #region Properties
@@ -114,6 +189,9 @@ namespace RLIRL.App.ViewModels
         [ObservableProperty]
         public partial bool IsClicked { get; set; } = false;
 
+        [ObservableProperty]
+        public partial WebViewSource? CameraWebViewSource { get; set; }
+
         #endregion
 
         #region Private Fields
@@ -123,6 +201,10 @@ namespace RLIRL.App.ViewModels
         private readonly IGameService _gameService;
 
         private readonly ITimerService _timerService;
+
+        private readonly ICarService _carService;
+
+        private readonly ICameraFeedService _cameraFeedService;
 
         #endregion
     }
