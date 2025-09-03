@@ -95,15 +95,62 @@ public partial class GamePage : ContentPage
     {
         if (BindingContext is not GameViewModel vm) return;
 
-        if (e.StatusType == GestureStatus.Running)
+        switch (e.StatusType)
         {
-            // Dragging upward sets positive values.
-            var dragUp = -e.TotalY;
-            //vm.SetBoost(dragUp > BoostThreshold);
-        }
-        else if (e.StatusType is GestureStatus.Completed or GestureStatus.Canceled)
-        {
-            //vm.SetBoost(false);
+            case GestureStatus.Started:
+                _boostActive = vm.IsBoosting;
+                break;
+
+            case GestureStatus.Running:
+                {
+                    double dragUp = Math.Max(0, -e.TotalY);
+
+                    // Prevent excessive movement of the button.
+                    double clamped = Math.Min(dragUp, BOOST_DRAG_MAX);
+
+                    SpeedButton.TranslationY = -clamped;
+
+                    // visual effect of the move
+                    double t = clamped / BOOST_DRAG_MAX;
+                    SpeedButton.Scale = 1 + 0.05 * t;
+                    SpeedButton.Shadow = new Shadow
+                    {
+                        Opacity = (float)(0.25 + 0.25 * t),
+                        Radius = (float)(10 + 6 * t),
+                        Offset = new Point(0, 6 - 3 * t)
+                    };
+
+                    bool shouldBoost = clamped >= BOOST_DRAG_THRESHOLD;
+
+                    if(shouldBoost != _boostActive)
+                    {
+                        _boostActive = shouldBoost;
+                        if(vm.SetBoostCommand.CanExecute(shouldBoost))
+                            vm.SetBoostCommand.Execute(shouldBoost);
+
+                        vm.IsBoosting = shouldBoost;
+                    }
+
+                    break;
+                }
+
+            case GestureStatus.Completed:
+            case GestureStatus.Canceled:
+                {
+                    _ = SpeedButton.TranslateTo(0,0,120, Easing.CubicOut);
+                    _ = SpeedButton.ScaleTo(1,120, Easing.CubicOut);
+                    SpeedButton.Shadow = new Shadow { Opacity = 0.35F, Radius = 12, Offset = new Point(0, 6) };
+
+                    if (_boostActive)
+                    {
+                        _boostActive = false;
+                        if (vm.SetBoostCommand.CanExecute(false))
+                            vm.SetBoostCommand.Execute(false);
+                        vm.IsBoosting = false;
+                    }
+                }
+
+                break;
         }
     }
 
@@ -230,14 +277,18 @@ public partial class GamePage : ContentPage
     private CancellationTokenSource? _steerCts;
 
     /// <summary>
-    /// Drag distance (px) above which boost could be considered active.
-    /// </summary>
-    const double BoostThreshold = 40;
-
-    /// <summary>
     /// Orientation service (Android): forces landscape / restores default.
     /// </summary>
     private readonly IOrientationService _orientation;
+
+
+    private bool _boostActive;
+    private const double BOOST_DRAG_MAX = 60;
+
+    /// <summary>
+    /// Drag distance (px) above which boost could be considered active.
+    /// </summary>
+    private const double BOOST_DRAG_THRESHOLD = 35;
 
     #endregion
 }
