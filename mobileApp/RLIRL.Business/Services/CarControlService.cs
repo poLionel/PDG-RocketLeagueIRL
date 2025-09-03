@@ -13,11 +13,6 @@ namespace RLIRL.Business.Services
         #region Private fields
 
         /// <summary>
-        /// Represents the ID of the car being controlled.
-        /// </summary>
-        private int _carId;
-
-        /// <summary>
         /// Represents the direction of the car.
         /// </summary>
         private Direction _direction;
@@ -52,11 +47,6 @@ namespace RLIRL.Business.Services
         {
             _steering = steering;
             SendUpdateCommand();
-        }
-
-        public void SetCar(int carId)
-        {
-            _carId = carId;
         }
 
         /// <summary>
