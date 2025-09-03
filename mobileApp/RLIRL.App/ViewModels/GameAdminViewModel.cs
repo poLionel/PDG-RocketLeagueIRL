@@ -132,6 +132,12 @@ namespace RLIRL.App.ViewModels
         [RelayCommand]
         private void SelectCameraFeed(CameraFeedItem? cameraFeed)
         {
+            // Update selection state for all camera feeds
+            foreach (var feed in AvailableCameraFeeds)
+            {
+                feed.IsSelected = feed == cameraFeed;
+            }
+
             SelectedCameraFeedId = cameraFeed?.CarId;
 
             // Validate the uri and create the MediaSource
@@ -170,7 +176,23 @@ namespace RLIRL.App.ViewModels
 
         private void CameraFeedsChanged(object? sender, IEnumerable<CameraFeed>? e)
         {
+            var previousSelectedId = SelectedCameraFeedId;
             AvailableCameraFeeds = mapper.Map<ObservableCollection<CameraFeedItem>>(e ?? []);
+
+            // Restore selection state if the previously selected feed is still available
+            if (previousSelectedId.HasValue)
+            {
+                var selectedFeed = AvailableCameraFeeds.FirstOrDefault(f => f.CarId == previousSelectedId.Value);
+                if (selectedFeed != null)
+                {
+                    selectedFeed.IsSelected = true;
+                }
+                else
+                {
+                    SelectedCameraFeedId = null;
+                    VideoStreamUrl = null;
+                }
+            }
         }
 
         private void TimeLeftChanged(object? sender, TimeSpan timeLeft)

@@ -13,15 +13,6 @@
 
     <ContentPage.Resources>
         <converters:EqualToParameterConverter x:Key="EqualToParameterConverter" />
-        <converters:EqualToParameterConverter x:Key="SelectedBackgroundConverter" 
-                                              TrueValue="{StaticResource DodgerBlue}" 
-                                              FalseValue="{StaticResource Gray200}" />
-        <converters:EqualToParameterConverter x:Key="SelectedStrokeConverter" 
-                                              TrueValue="{StaticResource DodgerBlue}" 
-                                              FalseValue="{StaticResource Gray300}" />
-        <converters:EqualToParameterConverter x:Key="SelectedTextColorConverter" 
-                                              TrueValue="{StaticResource White}" 
-                                              FalseValue="{StaticResource Gray600}" />
     </ContentPage.Resources>
 
     <ScrollView Style="{StaticResource AdminMainScrollView}">
@@ -327,12 +318,20 @@
                                                     HeightRequest="80"
                                                     StrokeShape="RoundRectangle 12,12,12,12"
                                                     StrokeThickness="2"
-                                                    BackgroundColor="{Binding CarId, Converter={StaticResource SelectedBackgroundConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}"
-                                                    Stroke="{Binding CarId, Converter={StaticResource SelectedStrokeConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}">
+                                                    BackgroundColor="{StaticResource Gray200}"
+                                                    Stroke="{StaticResource Gray300}">
                                                 <Border.GestureRecognizers>
                                                     <TapGestureRecognizer Command="{Binding BindingContext.SelectCameraFeedCommand, Source={x:Reference AdminPage}}"
-                                                                          CommandParameter="{Binding CarId}" />
+                                                                          CommandParameter="{Binding .}" />
                                                 </Border.GestureRecognizers>
+                                                
+                                                <!-- Selected state triggers -->
+                                                <Border.Triggers>
+                                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="BackgroundColor" Value="{StaticResource DodgerBlue}" />
+                                                        <Setter Property="Stroke" Value="{StaticResource DodgerBlue}" />
+                                                    </DataTrigger>
+                                                </Border.Triggers>
                                                 
                                                 <StackLayout HorizontalOptions="Center"
                                                              VerticalOptions="Center"
@@ -343,14 +342,37 @@
                                                             <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
                                                                              Glyph="{x:Static fonts:FluentUI.video_24_regular}"
                                                                              Size="24"
-                                                                             Color="{Binding CarId, Converter={StaticResource SelectedTextColorConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}" />
+                                                                             Color="{StaticResource Gray600}" />
                                                         </Image.Source>
+                                                        
+                                                        <!-- Image color triggers -->
+                                                        <Image.Triggers>
+                                                            <DataTrigger TargetType="Image" Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="Source">
+                                                                    <Setter.Value>
+                                                                        <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                                                         Glyph="{x:Static fonts:FluentUI.video_24_regular}"
+                                                                                         Size="24"
+                                                                                         Color="{StaticResource White}" />
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </DataTrigger>
+                                                        </Image.Triggers>
                                                     </Image>
+                                                    
                                                     <Label Text="{Binding CarId, StringFormat='#{0}'}"
                                                            FontSize="12"
                                                            FontAttributes="Bold"
                                                            HorizontalTextAlignment="Center"
-                                                           TextColor="{Binding CarId, Converter={StaticResource SelectedTextColorConverter}, ConverterParameter={Binding BindingContext.SelectedCameraFeedId, Source={x:Reference AdminPage}}}" />
+                                                           TextColor="{StaticResource Gray600}">
+                                                        
+                                                        <!-- Label color triggers -->
+                                                        <Label.Triggers>
+                                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="TextColor" Value="{StaticResource White}" />
+                                                            </DataTrigger>
+                                                        </Label.Triggers>
+                                                    </Label>
                                                 </StackLayout>
                                             </Border>
                                         </Grid>
