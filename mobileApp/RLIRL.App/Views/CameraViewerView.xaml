@@ -12,7 +12,7 @@
             Stroke="{StaticResource Gray300}"
             StrokeThickness="2"
             BackgroundColor="{StaticResource Black}"
-            HeightRequest="500"
+            HeightRequest="300"
             Margin="0,10">
         <Grid>
             <!-- Video Stream (when available) -->
