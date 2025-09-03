@@ -6,13 +6,10 @@ and client applications (mobile app, web interface) via WebSocket protocol.
 It handles client connections, message routing, and integration with the
 car management and Bluetooth systems.
 
-Main entry points:
+Main entry point:
 - start_server_with_managers: Primary server function with car and game management integration
-- start_server_with_cars: Server function with car management integration
-- start_server_async: Async server without car dependencies  
-- start_server: Legacy synchronous server interface
 """
 
-from .websocket import start_server, start_server_async, start_server_with_cars, start_server_with_managers
+from .websocket import start_server_with_managers
 
-__all__ = ['start_server', 'start_server_async', 'start_server_with_cars', 'start_server_with_managers']
+__all__ = ['start_server_with_managers']
