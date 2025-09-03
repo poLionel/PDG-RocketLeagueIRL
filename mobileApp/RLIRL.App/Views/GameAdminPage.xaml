@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:RLIRL.App.Views"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
+             xmlns:viewmodels="clr-namespace:RLIRL.App.ViewModels"
+             xmlns:models="clr-namespace:RLIRL.App.Models"
+             x:Class="RLIRL.App.Views.GameAdminPage"
+             x:DataType="viewmodels:GameAdminViewModel"
+             x:Name="AdminPage">
+
+    <ScrollView Style="{StaticResource AdminMainScrollView}">
+        <Grid Style="{StaticResource AdminMainGrid}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />  <!-- Game Status Header -->
+                <RowDefinition Height="auto" />  <!-- Game Controls -->
+                <RowDefinition Height="auto" />  <!-- Score and Timer -->
+                <RowDefinition Height="auto" />  <!-- Goal Scoring Controls -->
+                <RowDefinition Height="*" />     <!-- Player Management -->
+                <RowDefinition Height="auto" />  <!-- Car Management -->
+            </Grid.RowDefinitions>
+
+            <!-- Game Status Header -->
+            <Border Grid.Row="0" Style="{StaticResource AdminSectionContainer}">
+                <Grid Style="{StaticResource AdminSectionGrid}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Column="0">
+                        <Image.Source>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.apps_20_regular}"
+                                             Size="{StaticResource LargeIconSize}"
+                                             Color="{StaticResource DodgerBlue}" />
+                        </Image.Source>
+                    </Image>
+
+                    <StackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="Game Administration" Style="{StaticResource AdminPageTitle}" />
+                        <Label Text="{Binding Game.StateMessage}" Style="{StaticResource AdminSubtitle}" />
+                    </StackLayout>
+
+                    <Border Grid.Column="2" Style="{StaticResource AppRefreshButtonContainer}">
+                        <ImageButton Command="{Binding RefreshGameStatusCommand}"
+                                     Style="{StaticResource AdminLargeRefreshButton}">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.arrow_clockwise_12_regular}"
+                                                 Size="{StaticResource MediumIconSize}"
+                                                 Color="{StaticResource DodgerBlue}" />
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Game Controls -->
+            <Border Grid.Row="1" Style="{StaticResource AdminSectionContainer}">
+                <FlexLayout Direction="Row"
+                           Wrap="Wrap"
+                           JustifyContent="SpaceEvenly"
+                           AlignItems="Center"
+                           >
+
+                    <Button Text="Start Game"
+                            Command="{Binding StartGameCommand}"
+                            Style="{StaticResource AdminStartButton}"
+                            IsEnabled="{Binding CanStartGame}"
+                            Margin="5"
+                            FlexLayout.Basis="160"
+                            FlexLayout.Shrink="0"
+                            FlexLayout.Grow="1">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.play_12_regular}"
+                                             Size="{StaticResource SmallIconSize}"
+                                             Color="{StaticResource White}" />
+                        </Button.ImageSource>
+                    </Button>
+
+                    <Button Text="Pause Game"
+                            Command="{Binding StopGameCommand}"
+                            Style="{StaticResource AdminPauseButton}"
+                            IsEnabled="{Binding CanStopGame}"
+                            IsVisible="{Binding IsResumeShown, Converter={toolkit:InvertedBoolConverter}}"
+                            Margin="5"
+                            FlexLayout.Basis="160"
+                            FlexLayout.Shrink="0"
+                            FlexLayout.Grow="1">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.pause_12_regular}"
+                                             Size="{StaticResource SmallIconSize}"
+                                             Color="{StaticResource White}" />
+                        </Button.ImageSource>
+                    </Button>
+
+                    <Button Text="Resume Game"
+                            Command="{Binding ResumeGameCommand}"
+                            Style="{StaticResource AdminResumeButton}"
+                            IsEnabled="{Binding CanResumeGame}"
+                            IsVisible="{Binding IsResumeShown}"
+                            Margin="5"
+                            FlexLayout.Basis="160"
+                            FlexLayout.Shrink="0"
+                            FlexLayout.Grow="1">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.play_12_regular}"
+                                             Size="{StaticResource SmallIconSize}"
+                                             Color="{StaticResource White}" />
+                        </Button.ImageSource>
+                    </Button>
+
+                    <Button Text="Stop Game"
+                            Command="{Binding EndGameCommand}"
+                            Style="{StaticResource AdminStopButton}"
+                            IsEnabled="{Binding CanEndGame}"
+                            Margin="5"
+                            FlexLayout.Basis="160"
+                            FlexLayout.Shrink="0"
+                            FlexLayout.Grow="1">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.stop_16_regular}"
+                                             Size="{StaticResource SmallIconSize}"
+                                             Color="{StaticResource White}" />
+                        </Button.ImageSource>
+                    </Button>
+                </FlexLayout>
+            </Border>
+
+            <!-- Score and Timer Display -->
+            <Border Grid.Row="2" Style="{StaticResource AdminSectionContainer}">
+                <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="75" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Blue Team Score -->
+                    <Border Grid.Column="0" Style="{StaticResource AdminBlueTeamContainer}">
+                        <StackLayout HorizontalOptions="Center">
+                            <Label Text="BLUE TEAM" Style="{StaticResource AdminTeamLabel}" />
+                            <Label Text="{Binding Game.BlueScore}" Style="{StaticResource AdminTeamScore}" />
+                        </StackLayout>
+                    </Border>
+
+                    <!-- Timer -->
+                    <StackLayout Grid.Column="1" VerticalOptions="Center" HorizontalOptions="Center" Spacing="{StaticResource TinySpacing}">
+                        <Image MaximumWidthRequest="40">
+                            <Image.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.clock_24_regular}"
+                                                 Color="{StaticResource DodgerBlue}" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="{Binding TimeLeft}" Style="{StaticResource AdminTimerLabel}" />
+                        <Label Text="TIME LEFT" Style="{StaticResource AdminTimerSubtext}" />
+                    </StackLayout>
+
+                    <!-- Red Team Score -->
+                    <Border Grid.Column="2" Style="{StaticResource AdminRedTeamContainer}">
+                        <StackLayout HorizontalOptions="Center">
+                            <Label Text="RED TEAM" Style="{StaticResource AdminTeamLabel}" />
+                            <Label Text="{Binding Game.RedScore}" Style="{StaticResource AdminTeamScore}" />
+                        </StackLayout>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Goal Scoring Controls -->
+            <Border Grid.Row="3" Style="{StaticResource AdminSectionContainer}">
+                <StackLayout Spacing="{StaticResource ItemSpacing}">
+                    <Label Text="Goal Scoring" Style="{StaticResource AdminSectionTitle}" HorizontalTextAlignment="Center" />
+                    
+                    <Grid ColumnSpacing="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Button Grid.Column="0"
+                                Text="BLUE GOAL!"
+                                Command="{Binding ScoreGoalCommand}"
+                                CommandParameter="blue"
+                                Style="{StaticResource AdminBlueTeamButton}"
+                                IsEnabled="{Binding CanScoreGoal}">
+                            <Button.ImageSource>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.star_24_regular}"
+                                                 Size="{StaticResource MediumIconSize}"
+                                                 Color="{StaticResource White}" />
+                            </Button.ImageSource>
+                        </Button>
+
+                        <Button Grid.Column="1"
+                                Text="RED GOAL!"
+                                Command="{Binding ScoreGoalCommand}"
+                                CommandParameter="red"
+                                Style="{StaticResource AdminRedTeamButton}"
+                                IsEnabled="{Binding CanScoreGoal}">
+                            <Button.ImageSource>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.star_24_regular}"
+                                                 Size="{StaticResource MediumIconSize}"
+                                                 Color="{StaticResource White}" />
+                            </Button.ImageSource>
+                        </Button>
+                    </Grid>
+
+                    <!-- Undo Last Goal -->
+                    <Button Text="Undo Last Goal"
+                            Command="{Binding UndoGoalCommand}"
+                            Style="{StaticResource AdminSecondaryButton}"
+                            HorizontalOptions="Center"
+                            IsEnabled="{Binding CanScoreGoal}">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.arrow_undo_16_regular}"
+                                             Size="{StaticResource TinyIconSize}"
+                                             Color="{StaticResource White}" />
+                        </Button.ImageSource>
+                    </Button>
+                </StackLayout>
+            </Border>
+
+            <!-- Player Camera Views -->
+            <Border Grid.Row="4" Style="{StaticResource AdminSectionContainer}">
+                <StackLayout Spacing="{StaticResource ItemSpacing}">
+                    <Grid ColumnSpacing="{StaticResource ItemSpacing}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" Text="Player Camera Feeds" Style="{StaticResource AdminSectionTitle}" />
+                        
+                        <Border Grid.Column="1" Style="{StaticResource AppRefreshButtonContainer}">
+                            <ImageButton Command="{Binding RefreshCameraFeedsCommand}"
+                                         Style="{StaticResource AdminRefreshButton}">
+                                <ImageButton.Source>
+                                    <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                     Glyph="{x:Static fonts:FluentUI.camera_switch_20_regular}"
+                                                     Size="{StaticResource SmallIconSize}"
+                                                     Color="{StaticResource DodgerBlue}" />
+                                </ImageButton.Source>
+                            </ImageButton>
+                        </Border>
+                    </Grid>
+
+                    <!-- Camera Feed Grid -->
+                    <CollectionView ItemsSource="{Binding PlayerCameraFeeds}"
+                                    Style="{StaticResource AdminCameraGrid}"
+                                    IsVisible="{Binding Cars,Converter={toolkit:IsListNotNullOrEmptyConverter}}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:CarInfo">
+                                <Border Style="{StaticResource AdminCameraContainer}">
+                                    <Grid>
+                                        <!-- Camera feed placeholder -->
+                                        <Rectangle Style="{StaticResource AdminCameraPlaceholder}" />
+                                        
+                                        <!-- Player info overlay -->
+                                        <Grid Style="{StaticResource AdminCameraOverlay}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="auto" />
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <StackLayout Grid.Column="0">
+                                                <Label Text="{Binding PlayerName}" Style="{StaticResource AdminCameraPlayerName}" />
+                                                <Label Text="{Binding CarId, StringFormat='Car #{0}'}" Style="{StaticResource AdminCameraCarInfo}" />
+                                                <Label Text="{Binding Team}" 
+                                                       Style="{StaticResource AdminCameraTeamInfo}"
+                                                       TextColor="{Binding TeamColor}" />
+                                            </StackLayout>
+                                            
+                                            <Button Grid.Column="1"
+                                                    Text="Select"
+                                                    Command="{Binding Path=BindingContext.SelectPlayerCameraCommand, Source={x:Reference AdminPage}}"
+                                                    CommandParameter="{Binding .}"
+                                                    Style="{StaticResource AdminCompactButton}" />
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- No cameras message -->
+                    <StackLayout IsVisible="{Binding PlayerCameraFeeds, Converter={toolkit:IsListNullOrEmptyConverter}}"
+                                 Style="{StaticResource AdminEmptyStateContainer}"
+                                 Margin="0,0,0,25">
+                        <Image HorizontalOptions="Center" MaximumWidthRequest="50">
+                            <Image.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.camera_off_24_regular}"
+                                                 Size="{StaticResource EmptyStateIconSize}"
+                                                 Color="{StaticResource Gray500}" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="No camera feeds available" Style="{StaticResource AdminEmptyStateTitle}" />
+                        <Label Text="Camera feeds will appear here when players are connected" Style="{StaticResource AdminEmptyStateSubtext}" />
+                    </StackLayout>
+                </StackLayout>
+            </Border>
+
+            <!-- Car Management -->
+            <Border Grid.Row="5" Style="{StaticResource AdminSectionContainer}">
+                <StackLayout Spacing="{StaticResource ItemSpacing}">
+                    <Grid ColumnSpacing="{StaticResource ItemSpacing}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Label Grid.Column="0" Text="Car Management" Style="{StaticResource AdminSectionTitle}" />
+                        
+                        <Border Grid.Column="1" Style="{StaticResource AppRefreshButtonContainer}">
+                            <ImageButton Command="{Binding RefreshCarsCommand}"
+                                         Style="{StaticResource AdminRefreshButton}">
+                                <ImageButton.Source>
+                                    <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                     Glyph="{x:Static fonts:FluentUI.box_24_regular}"
+                                                     Size="{StaticResource SmallIconSize}"
+                                                     Color="{StaticResource DodgerBlue}" />
+                                </ImageButton.Source>
+                            </ImageButton>
+                        </Border>
+                    </Grid>
+
+                    <!-- Car List -->
+                    <CollectionView ItemsSource="{Binding Cars}"
+                                    Style="{StaticResource AdminCarList}"
+                                    IsVisible="{Binding Cars,Converter={toolkit:IsListNotNullOrEmptyConverter}}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:CarInfo">
+                                <Border Style="{StaticResource AdminItemContainer}">
+                                    <Grid Style="{StaticResource AdminItemGrid}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <Image Grid.Column="0">
+                                            <Image.Source>
+                                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                                 Glyph="{x:Static fonts:FluentUI.box_24_regular}"
+                                                                 Size="{StaticResource MediumIconSize}"
+                                                                 Color="{Binding IsConnected, Converter={toolkit:BoolToObjectConverter}, ConverterParameter='Green,Gray'}" />
+                                            </Image.Source>
+                                        </Image>
+
+                                        <StackLayout Grid.Column="1" VerticalOptions="Center">
+                                            <Label Text="{Binding CarId, StringFormat='Car #{0}'}" Style="{StaticResource AdminItemTitle}" />
+                                            <Label Text="{Binding Status}" Style="{StaticResource AdminItemSubtext}" />
+                                            <Label Text="{Binding AssignedPlayer}" 
+                                                   FontSize="12" 
+                                                   TextColor="{StaticResource DodgerBlue}" 
+                                                   IsVisible="{Binding AssignedPlayer, Converter={toolkit:IsStringNotNullOrWhiteSpaceConverter}}" />
+                                        </StackLayout>
+
+                                        <Label Grid.Column="2" 
+                                               Text="{Binding Team}" 
+                                               TextColor="{Binding TeamColor}"
+                                               FontSize="12" 
+                                               FontAttributes="Bold"
+                                               VerticalOptions="Center" />
+
+                                        <Button Grid.Column="3"
+                                                Text="{Binding IsAssigned, Converter={toolkit:BoolToObjectConverter}, ConverterParameter='Free,Assign'}"
+                                                Command="{Binding Path=BindingContext.ToggleCarAssignmentCommand, Source={x:Reference AdminPage}}"
+                                                CommandParameter="{Binding .}"
+                                                Style="{StaticResource AdminSmallButton}"
+                                                BackgroundColor="{Binding IsAssigned, Converter={toolkit:BoolToObjectConverter}, ConverterParameter='Orange,Green'}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- No cars message -->
+                    <StackLayout IsVisible="{Binding Cars, Converter={toolkit:IsListNullOrEmptyConverter}}"
+                                 Style="{StaticResource AdminEmptyStateContainer}"
+                                 Margin="0,0,0,25">
+                        <Image HorizontalOptions="Center" MaximumWidthRequest="50">
+                            <Image.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.box_24_regular}"
+                                                 Size="{StaticResource EmptyStateIconSize}"
+                                                 Color="{StaticResource Gray500}" />
+                            </Image.Source>
+                        </Image>
+                        <Label Text="No cars available" Style="{StaticResource AdminEmptyStateTitle}" />
+                    </StackLayout>
+                </StackLayout>
+            </Border>
+        </Grid>
+    </ScrollView>
+</ContentPage>

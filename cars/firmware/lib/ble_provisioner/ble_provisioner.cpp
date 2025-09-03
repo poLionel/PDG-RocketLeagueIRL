@@ -45,6 +45,14 @@ ble_provisioner::ble_provisioner() {
         new cb_write_direction(&speed_direction_, &status_));
     decay_mode_.set_callback(
         new cb_write_direction(&decay_mode_, &status_));
+    ip_addr_.set_callback(
+        nullptr);
+    mac_addr_.set_callback(
+        nullptr);
+    netmask_.set_callback(
+        nullptr);
+    gateway_.set_callback(
+        nullptr);
 }
 
 
@@ -64,13 +72,20 @@ void ble_provisioner::init(String device_id) {
     service_ = server_->createService(SERVICE_UUID);
 
     // Caractéristiques (creéation)
+    device_id_.create(service_, NIMBLE_PROPERTY::READ, true);
+
     ssid_.create(service_, NIMBLE_PROPERTY::WRITE, true);
     pass_.create(service_, NIMBLE_PROPERTY::WRITE, true);
     apply_wifi_credentials_.create(service_, NIMBLE_PROPERTY::WRITE, true);
 
-    device_id_.create(service_, NIMBLE_PROPERTY::READ, true);
+    ip_addr_.create(service_, NIMBLE_PROPERTY::READ, true);
+    mac_addr_.create(service_, NIMBLE_PROPERTY::READ, true);
+    netmask_.create(service_, NIMBLE_PROPERTY::READ, true);
+    gateway_.create(service_, NIMBLE_PROPERTY::READ, true);
+
     status_.create(service_, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY, true);
     battery_.create(service_, NIMBLE_PROPERTY::READ, true);
+
     x_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
     y_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);
     speed_direction_.create(service_, NIMBLE_PROPERTY::WRITE, true);

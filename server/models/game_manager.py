@@ -93,7 +93,16 @@ class GameManager:
             bool: True if goal was recorded, False if invalid team
         """
         return self.current_game.score_goal(team_color, player_id, car_id)
-    
+
+    def undo_goal(self) -> bool:
+        """
+        Undo the last goal in the current game.
+        
+        Returns:
+            bool: True if goal was undone, False if no goals to undo
+        """
+        return self.current_game.undo_goal()
+
     def add_car_to_team(self, car_id: int, team_color: str) -> bool:
         """
         Add a car to a team in the current game.

@@ -88,6 +88,10 @@ static void connector_loop(void* ) {
 
   // d) Succès → lever états, autoriser RUN, baisser CONNEXION (réveil monitor/hard/video)
   Serial.printf("[TASK_CON] Wi-Fi OK → IP=%s RSSI=%d dBm\n", g_wifi->ip().c_str(), g_wifi->rssi());
+  g_ble->set_ip(g_wifi->ip());
+  g_ble->set_netmask(g_wifi->netmask());
+  g_ble->set_gateway(g_wifi->gateway());
+  g_ble->set_mac(g_wifi->mac());
   xEventGroupSetBits(g_evt, BIT_WIFI);
   xEventGroupSetBits(g_evt, BIT_RUN);
   xEventGroupClearBits(g_evt, BIT_CONNEXION); // force sortie de la boucle générique
@@ -105,9 +109,16 @@ static void monitor_loop(void* ) {
   bool wifi_ok = g_wifi->is_connected();
   if (!ble_ok || !wifi_ok) {
     Serial.printf("[TASK_MON] perte détectée: BLE=%d WIFI=%d\n", ble_ok, wifi_ok);
-    if (!ble_ok)  xEventGroupClearBits(g_evt, BIT_BLE);
-    if (!wifi_ok) xEventGroupClearBits(g_evt, BIT_WIFI);
-
+    if (!ble_ok)  {
+      xEventGroupClearBits(g_evt, BIT_BLE);
+    }
+    if (!wifi_ok) {
+        g_ble->set_ip("");
+        g_ble->set_netmask("");
+        g_ble->set_gateway("");
+        g_ble->set_mac("");
+      xEventGroupClearBits(g_evt, BIT_WIFI);
+    }
     // stoppe les workers, relance le connecteur
     xEventGroupClearBits(g_evt, BIT_RUN);
     xEventGroupSetBits  (g_evt, BIT_CONNEXION);

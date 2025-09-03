@@ -177,6 +177,11 @@ static const NimBLEUUID CHAR_SSID_UUID          ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0
 static const NimBLEUUID CHAR_PASS_UUID          ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f2");
 static const NimBLEUUID CHAR_APPLY_UUID         ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f3");
 
+static const NimBLEUUID CHAR_IP_UUID            ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fb");
+static const NimBLEUUID CHAR_MAC_UUID           ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fc");
+static const NimBLEUUID CHAR_NETMASK_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fd");
+static const NimBLEUUID CHAR_GATEWAY_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fe");
+
 static const NimBLEUUID CHAR_STATUS_UUID        ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f4");
 static const NimBLEUUID CHAR_BATTERY_UUID       ("7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f5");
 
