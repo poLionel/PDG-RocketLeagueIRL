@@ -121,8 +121,8 @@ namespace RLIRL.Server.Services
                     var responseHandler = serviceProvider.GetService(responseHandlerType) as IServerResponseProcessor
                         ?? throw new InvalidOperationException($"No response handler found for response type '{responseType.Name}'");
 
-                    // Process the response using the response handler
-                    await responseHandler.ProcessResponseAsync(response);
+                    // Process the response using fire-and-forget pattern to avoid blocking the WebSocket receive loop
+                    _ = ProcessResponseWithErrorHandlingAsync(responseHandler, response, responseAction);
                 }
                 catch (OperationCanceledException)
                 {
@@ -133,6 +133,19 @@ namespace RLIRL.Server.Services
                     // Log any exceptions that occur during response processing
                     logger.LogError(ex, "Error processing response");
                 }
+            }
+        }
+
+        private async Task ProcessResponseWithErrorHandlingAsync(IServerResponseProcessor responseHandler, object response, string responseAction)
+        {
+            try
+            {
+                await responseHandler.ProcessResponseAsync(response);
+            }
+            catch (Exception ex)
+            {
+                // Log any exceptions that occur during individual response processing
+                logger.LogError(ex, "Error processing {ResponseAction} response", responseAction);
             }
         }
 

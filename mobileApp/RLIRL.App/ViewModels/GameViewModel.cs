@@ -73,15 +73,23 @@ namespace RLIRL.App.ViewModels
 
         private void OnGameStatusChanged(object? sender, GameStatus? e)
         {
-            if (e != null)
-                Game ??= new();
-            else
-                Game = new GameInfo();
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (e != null)
+                    Game ??= new();
+                else
+                    Game = new GameInfo();
+            });
         }
 
         private void OnTimerChanged(object? sender, TimeSpan e)
         {
-            Timer = e.ToString(@"m\:ss");
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                Timer = e.ToString(@"m\:ss");
+            });
         }
 
         #endregion

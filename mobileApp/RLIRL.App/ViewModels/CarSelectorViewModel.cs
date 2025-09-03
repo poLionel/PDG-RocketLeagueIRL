@@ -118,21 +118,26 @@ namespace RLIRL.App.ViewModels
 
         private void OnFreeCarsChanged(object? sender, IEnumerable<int> freeCars)
         {
-            UpdateAvailableCars();
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                UpdateAvailableCars();
+            });
         }
 
         private void OnCurrentCarChanged(object? sender, int? currentCar)
         {
-            SetNotLoading();
-            
-            if (currentCar.HasValue)
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                // Car was assigned, navigate to game page
-                MainThread.BeginInvokeOnMainThread(async () =>
+                SetNotLoading();
+                
+                if (currentCar.HasValue)
                 {
-                    await Shell.Current.GoToAsync("//game");
-                });
-            }
+                    // Car was assigned, navigate to game page
+                    Shell.Current.GoToAsync("//game");
+                }
+            });
         }
 
         private void UpdateAvailableCars()

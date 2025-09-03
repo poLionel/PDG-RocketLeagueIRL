@@ -153,51 +153,63 @@ namespace RLIRL.App.ViewModels
 
         private void OnGameStatusChanged(object? sender, GameStatus? e)
         {
-            if (e != null)
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                // Map the GameStatus to GameInfo
-                Game = mapper.Map<GameInfo>(e);
+                if (e != null)
+                {
+                    // Map the GameStatus to GameInfo
+                    Game = mapper.Map<GameInfo>(e);
 
-                // Update the button states
-                CanStartGame = e.State == GameState.Ended || e.State == GameState.NotStarted;
-                CanStopGame = e.State == GameState.Active;
-                CanEndGame = e.State == GameState.Active || e.State == GameState.Paused;
-                CanScoreGoal = e.State == GameState.Active || e.State == GameState.Paused;
-                CanResumeGame = e.State == GameState.Paused;
-                IsResumeShown = e.State == GameState.Paused;
-            }
-            else
-            {
-                // Game status is null, reset to default
-                Game = new GameInfo();
-                GameStatus = "Game Stopped";
-            }
+                    // Update the button states
+                    CanStartGame = e.State == GameState.Ended || e.State == GameState.NotStarted;
+                    CanStopGame = e.State == GameState.Active;
+                    CanEndGame = e.State == GameState.Active || e.State == GameState.Paused;
+                    CanScoreGoal = e.State == GameState.Active || e.State == GameState.Paused;
+                    CanResumeGame = e.State == GameState.Paused;
+                    IsResumeShown = e.State == GameState.Paused;
+                }
+                else
+                {
+                    // Game status is null, reset to default
+                    Game = new GameInfo();
+                    GameStatus = "Game Stopped";
+                }
+            });
         }
 
         private void CameraFeedsChanged(object? sender, IEnumerable<CameraFeed>? e)
         {
-            var previousSelectedId = SelectedCameraFeedId;
-            AvailableCameraFeeds = mapper.Map<ObservableCollection<CameraFeedItem>>(e ?? []);
-
-            // Restore selection state if the previously selected feed is still available
-            if (previousSelectedId.HasValue)
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                var selectedFeed = AvailableCameraFeeds.FirstOrDefault(f => f.CarId == previousSelectedId.Value);
-                if (selectedFeed != null)
+                var previousSelectedId = SelectedCameraFeedId;
+                AvailableCameraFeeds = mapper.Map<ObservableCollection<CameraFeedItem>>(e ?? []);
+
+                // Restore selection state if the previously selected feed is still available
+                if (previousSelectedId.HasValue)
                 {
-                    selectedFeed.IsSelected = true;
+                    var selectedFeed = AvailableCameraFeeds.FirstOrDefault(f => f.CarId == previousSelectedId.Value);
+                    if (selectedFeed != null)
+                    {
+                        selectedFeed.IsSelected = true;
+                    }
+                    else
+                    {
+                        SelectedCameraFeedId = null;
+                        VideoStreamUrl = null;
+                    }
                 }
-                else
-                {
-                    SelectedCameraFeedId = null;
-                    VideoStreamUrl = null;
-                }
-            }
+            });
         }
 
         private void TimeLeftChanged(object? sender, TimeSpan timeLeft)
         {
-            TimeLeft = timeLeft.ToString(@"mm\:ss");
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                TimeLeft = timeLeft.ToString(@"mm\:ss");
+            });
         }
 
         public void Dispose()
