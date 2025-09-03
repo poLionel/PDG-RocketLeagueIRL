@@ -86,11 +86,13 @@ public partial class GamePage : ContentPage
     }
 
     /// <summary>
-    /// Optional speed button pan (currently unused).
-    /// Example idea: if the user drags upward beyond a threshold, enable boost.
+    /// Handles the vertical pan gesture on the accelerate button.
+    /// - Translates the button upward visually to simulate a joystick effect.
+    /// - Activates boost when the drag distance exceeds the threshold.
+    /// - Deactivates boost when drag returns below the threshold or gesture ends.
     /// </summary>
-    /// <param name="sender">The gesture source (the speed button).</param>
-    /// <param name="e">Pan gesture data.</param>
+    /// <param name="sender">The control (accelerate button) raising the event.</param>
+    /// <param name="e">Pan gesture event data (total drag offset, status, etc.).</param>
     public void OnSpeedPanUpdated(object? sender, PanUpdatedEventArgs e)
     {
         if (BindingContext is not GameViewModel vm) return;
@@ -281,12 +283,20 @@ public partial class GamePage : ContentPage
     /// </summary>
     private readonly IOrientationService _orientation;
 
-
+    /// <summary>
+    /// Local flag to avoid redundant boost activation/deactivation calls.
+    /// </summary>
     private bool _boostActive;
+
+    /// <summary>
+    /// Maximum drag distance in pixels allowed for the vertical translation
+    /// effect of the accelerate button.
+    /// </summary>
     private const double BOOST_DRAG_MAX = 60;
 
     /// <summary>
-    /// Drag distance (px) above which boost could be considered active.
+    /// Drag distance threshold (in pixels) above which the boost becomes active.
+    /// If the drag is less than this, boost is disabled.
     /// </summary>
     private const double BOOST_DRAG_THRESHOLD = 35;
 
