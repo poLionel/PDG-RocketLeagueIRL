@@ -44,7 +44,7 @@ bool camera_controller::init() {
     c.jpeg_quality = cfg_.settings.jpeg_quality;
     c.fb_count     = cfg_.settings.fb_count;
 
-    c.grab_mode    = CAMERA_GRAB_WHEN_EMPTY; // bon défaut
+    c.grab_mode    = CAMERA_GRAB_LATEST; // bon défaut
 
     esp_err_t err = esp_camera_init(&c);
     if (err != ESP_OK) return false;

@@ -11,6 +11,7 @@ void wifi_provisioner::init(String device_id){
     WiFi.mode(WIFI_STA);
     WiFi.persistent(false); // évite d’écrire en flash par défaut
     WiFi.setHostname(device_id_.c_str()); // à faire avant WiFi.begin()
+    WiFi.setSleep(false);
 }
 bool wifi_provisioner::connect(const String& ssid, const String& pass, uint32_t timeout_ms){
     if (ssid.isEmpty()) return false;   

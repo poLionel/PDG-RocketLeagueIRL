@@ -58,7 +58,7 @@ camera_controller           camera_ctrl({
       GPIO_CAM_VSYNC, GPIO_CAM_HREF, GPIO_CAM_PCLK
   }, 
   {
-      PIXFORMAT_JPEG, FRAMESIZE_QVGA, 12, 2, 20000000,
+      PIXFORMAT_JPEG, FRAMESIZE_QVGA, 28, 2, 20000000,
   },
   camera_comp
 });

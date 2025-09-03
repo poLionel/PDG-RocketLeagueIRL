@@ -244,7 +244,7 @@ void core_start() {
   static task_component cmp_haw { hardware_setup, hardware_loop, hardware_teardown, nullptr };
   static core_task      t_haw   ( core_task_config{ set_haw, cmp_haw } );
 
-  static task_settings  set_vid { "TASK_VID", 2, 6144, 1, g_evt, BIT_RUN, 66 }; // ~15fps
+  static task_settings  set_vid { "TASK_VID", 2, 6144, 0, g_evt, BIT_RUN, 66 }; // ~15fps
   static task_component cmp_vid { video_setup, video_loop, video_teardown, &g_video_ctx };
   static core_task      t_vid   ( core_task_config{ set_vid, cmp_vid } );
 
