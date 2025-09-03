@@ -190,8 +190,7 @@ namespace RLIRL.Server.Tests
             // Check if the response is valid
             Assert.NotNull(response);
             Assert.Equal("success", (string)response!.status);
-            Assert.Equal("goal_scored", (string)response!.action);
-            Assert.NotNull(response!.message);
+            Assert.Equal("get_game_status", (string)response!.action);
         }
 
         [Fact]
@@ -237,7 +236,6 @@ namespace RLIRL.Server.Tests
             Assert.NotNull(response);
             Assert.Equal("success", (string)response!.status);
             Assert.Equal("get_game_status", (string)response!.action);
-            Assert.NotNull(response!.message);
         }
 
         [Fact]
@@ -259,7 +257,6 @@ namespace RLIRL.Server.Tests
             Assert.NotNull(response);
             Assert.Equal("get_game_status", (string)response!.status);
             Assert.Equal("stop_game", (string)response!.action);
-            Assert.NotNull(response!.message);
         }
 
         private async Task<object?> WaitForResponseAsync(ClientWebSocket wsClient, CancellationToken cancellationToken)

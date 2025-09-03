@@ -35,7 +35,6 @@ namespace RLIRL.Server
                 .AddSingleton<IServerResponseProcessor<GetCarStatusResponse>, GetCarStatusResponseProcessor>()
                 .AddSingleton<IServerResponseProcessor<GetFreeCarsResponse>, GetFreeCarsResponseProcessor>()
                 .AddSingleton<IServerResponseProcessor<GetGameStatusResponse>, GetGameStatusResponseProcessor>()
-                .AddSingleton<IServerResponseProcessor<GoalScoredResponse>, GoalScoredResponseProcessor>()
                 .AddSingleton<IServerResponseProcessor<MoveCarResponse>, MoveCarResponseProcessor>()
                 .AddSingleton<IServerResponseProcessor<SelectCarResponse>, SelectCarResponseProcessor>();
 
