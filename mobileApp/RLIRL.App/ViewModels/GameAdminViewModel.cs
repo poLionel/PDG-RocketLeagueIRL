@@ -59,6 +59,10 @@ namespace RLIRL.App.ViewModels
         [ObservableProperty]
         public partial bool IsResumeShown { get; set; }
 
+        // Camera Viewer ViewModel
+        [ObservableProperty]
+        public partial CameraViewerViewModel CameraViewer { get; set; } = new();
+
         public void Initialize()
         {
             gameService.GameStatusChanged += OnGameStatusChanged;
@@ -144,10 +148,14 @@ namespace RLIRL.App.ViewModels
             if (cameraFeed != null && Uri.TryCreate(cameraFeed.Url, UriKind.Absolute, out var uri))
             {
                 VideoStreamUrl = uri;
+                // Update the camera viewer
+                CameraViewer.UpdateCamera(uri, cameraFeed.CarId);
             }
             else
             {
                 VideoStreamUrl = null;
+                // Clear the camera viewer
+                CameraViewer.ClearCamera();
             }
         }
 
@@ -187,18 +195,24 @@ namespace RLIRL.App.ViewModels
                 AvailableCameraFeeds = mapper.Map<ObservableCollection<CameraFeedItem>>(e ?? []);
 
                 // Restore selection state if the previously selected feed is still available
-                if (previousSelectedId.HasValue)
+                if (!previousSelectedId.HasValue) return;
+
+                var selectedFeed = AvailableCameraFeeds.FirstOrDefault(f => f.CarId == previousSelectedId.Value);
+                if (selectedFeed != null)
                 {
-                    var selectedFeed = AvailableCameraFeeds.FirstOrDefault(f => f.CarId == previousSelectedId.Value);
-                    if (selectedFeed != null)
+                    selectedFeed.IsSelected = true;
+
+                    // Update camera viewer with the restored selection
+                    if (Uri.TryCreate(selectedFeed.Url, UriKind.Absolute, out var uri))
                     {
-                        selectedFeed.IsSelected = true;
+                        CameraViewer.UpdateCamera(uri, selectedFeed.CarId);
                     }
-                    else
-                    {
-                        SelectedCameraFeedId = null;
-                        VideoStreamUrl = null;
-                    }
+                }
+                else
+                {
+                    SelectedCameraFeedId = null;
+                    VideoStreamUrl = null;
+                    CameraViewer.ClearCamera();
                 }
             });
         }

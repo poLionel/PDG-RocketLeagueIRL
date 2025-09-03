@@ -259,45 +259,8 @@
                         </Border>
                     </Grid>
 
-                    <!-- Camera View Display -->
-                    <Border StrokeShape="RoundRectangle 8,8,8,8"
-                            Stroke="{StaticResource Gray300}"
-                            StrokeThickness="2"
-                            BackgroundColor="{StaticResource Black}"
-                            HeightRequest="500"
-                            Margin="0,10">
-                        <Grid>
-                            <!-- Video Stream (when available) -->
-                            <WebView IsVisible="{Binding VideoStreamUrl, Converter={toolkit:IsNotNullConverter}}" 
-                                     BackgroundColor="Transparent"
-                                     x:Name="feedWebView" />
-
-                            <!-- Placeholder when no stream is selected or available -->
-                            <StackLayout IsVisible="{Binding VideoStreamUrl, Converter={toolkit:IsNullConverter}}"
-                                         HorizontalOptions="Center"
-                                         VerticalOptions="Center"
-                                         Spacing="10">
-                                <Image MaximumWidthRequest="60">
-                                    <Image.Source>
-                                        <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
-                                                         Glyph="{x:Static fonts:FluentUI.video_off_24_regular}"
-                                                         Size="60"
-                                                         Color="{StaticResource Gray500}" />
-                                    </Image.Source>
-                                </Image>
-                                <Label Text="{Binding SelectedCameraFeedId, StringFormat='Camera Feed {0}', TargetNullValue='No Camera Selected'}"
-                                       TextColor="{StaticResource Gray500}"
-                                       FontSize="16"
-                                       FontAttributes="Bold"
-                                       HorizontalTextAlignment="Center" />
-                                <Label Text="Select a camera source below to view feed"
-                                       TextColor="{StaticResource Gray400}"
-                                       FontSize="12"
-                                       HorizontalTextAlignment="Center"
-                                       IsVisible="{Binding SelectedCameraFeedId, Converter={toolkit:IsNullConverter}}" />
-                            </StackLayout>
-                        </Grid>
-                    </Border>
+                    <!-- Camera Viewer -->
+                    <local:CameraViewerView BindingContext="{Binding CameraViewer}" />
 
                     <!-- Available Camera Sources -->
                     <StackLayout IsVisible="{Binding AvailableCameraFeeds, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
