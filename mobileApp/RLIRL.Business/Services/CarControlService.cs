@@ -8,7 +8,7 @@ namespace RLIRL.Business.Services
     /// Implementation of the <see cref="ICarControlService"/> interface.
     /// </summary>
     /// <param name="commandQueue">The command queue used to send car control commands to the server.</param>
-    public class CarControlService(IClientCommandQueue commandQueue) : ICarControlService
+    public class CarControlService(IClientCommandQueue commandQueue, ICarService carService) : ICarControlService
     {
         #region Private fields
 
@@ -54,11 +54,16 @@ namespace RLIRL.Business.Services
         /// </summary>
         private void SendUpdateCommand()
         {
+            // If there is no current car, do not send any command
+            var car = carService.CurrentCar;
+            if (car == null) return;
+
             var command = new MoveCarCommand()
             {
                 Direction = _direction,
                 Boost = _boost,
-                Steering = _steering
+                Steering = _steering,
+                Car = car.Value,
             };
 
             commandQueue.EnqueueCommand(command);
