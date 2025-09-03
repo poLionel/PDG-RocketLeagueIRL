@@ -72,15 +72,10 @@ class Car:
             "has_video_feed": self.video_feed_url is not None,
         }
     
-    def set_video_feed_url(self, ip_address, port=None):
+    def set_video_feed_url(self, url):
         """Set the video feed URL for this car."""
-        if port is None:
-            port = self.video_feed_port
-        if ip_address:
-            self.video_feed_url = f"{ip_address}:{port}"
-        else:
-            self.video_feed_url = None
-    
+        self.video_feed_url = url
+
     def __str__(self):
         selected_status = f" [Selected by {self.websocket_id}]" if self.websocket_id else " [Available]"
         return f"Car {self.car_id} ({self.name}) - BLE: {self.ble_name} - Battery: {self.battery_level}%, Move: {self.move}, Boost: {self.boost}{selected_status}"

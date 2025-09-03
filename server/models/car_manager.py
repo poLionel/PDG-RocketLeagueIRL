@@ -21,8 +21,8 @@ class CarManager:
         self.add_car(Car(car_id=1, ble_name="RL-CAR-1", ble_address="cc:ba:97:0d:8c:b5"))
         self.add_car(Car(car_id=2, ble_name="RL-CAR-2", ble_address="cc:ba:97:0d:8c:b6"))
         # Set feed
-        self.cars[1].set_video_feed_url("192.168.0.20")
-        self.cars[2].set_video_feed_url("192.168.0.21")
+        self.cars[1].set_video_feed_url("http://183.177.169.221:80/-wvhttp-01-/GetOneShot?image_size=640x480&frame_count=1000000000")
+        self.cars[2].set_video_feed_url("http://195.223.180.50/cam_1.cgi")
 
     def set_game_manager(self, game_manager: 'GameManager'):
         """Set the game manager reference."""
