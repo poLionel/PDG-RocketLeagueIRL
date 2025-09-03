@@ -34,6 +34,15 @@ bool wifi_provisioner::is_connected() const{
 String wifi_provisioner::ip() const{
     return is_connected() ? WiFi.localIP().toString() : String("");
 }
+String wifi_provisioner::mac() const{
+    return WiFi.macAddress();
+}
+String wifi_provisioner::netmask() const{
+    return is_connected() ? WiFi.subnetMask().toString() : String("");
+}
+String wifi_provisioner::gateway() const{
+    return is_connected() ? WiFi.gatewayIP().toString() : String("");
+}
 int32_t wifi_provisioner::rssi() const{
     return is_connected() ? WiFi.RSSI() : 0;
 }
