@@ -29,6 +29,9 @@ namespace RLIRL.App.ViewModels
         public partial ObservableCollection<CarInfo> Cars { get; set; } = new();
 
         [ObservableProperty]
+        public partial ObservableCollection<int> AvailableCameraFeeds { get; set; } = new();
+
+        [ObservableProperty]
         public partial string TimeLeft { get; set; } = "00:00";
 
         [ObservableProperty]
@@ -151,9 +154,9 @@ namespace RLIRL.App.ViewModels
             }
         }
 
-        private void CameraFeedsChanged(object? sender, IEnumerable<CameraFeed>? e)
+        private void CameraFeedsChanged(object? sender, IEnumerable<int>? e)
         {
-            // TODO: Handle null case if needed
+            this.AvailableCameraFeeds = new(e ?? []);
         }
 
         private void TimeLeftChanged(object? sender, TimeSpan timeLeft)

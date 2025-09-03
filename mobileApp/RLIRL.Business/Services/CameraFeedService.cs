@@ -1,43 +1,23 @@
 ﻿using RLIRL.Business.Abstractions.Abstractions;
-using RLIRL.Business.Abstractions.Models;
 using RLIRL.Server.Abstractions.Abstractions;
 using RLIRL.Server.Abstractions.ClientCommands;
+using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.Business.Services
 {
-    internal class CameraFeedService(IClientCommandQueue clientCommandQueue, IServerCameraFeedEncoder serverCameraFeedService) : ICameraFeedService
+    internal class CameraFeedService(IClientCommandQueue clientCommandQueue, IServerCameraFeedService serverCameraFeedService) : ICameraFeedService
     {
-        public IEnumerable<CameraFeed> CameraFeeds { get; private set; } = [];
-        public int? ActiveCameraFeed { get; private set; }
+        public IEnumerable<int> CameraFeeds { get; private set; } = [];
 
-        public event EventHandler<IEnumerable<CameraFeed>>? CameraFeedsChanged;
+        public event EventHandler<IEnumerable<int>>? CameraFeedsChanged;
 
-        public event EventHandler<int>? ActiveCameraFeedChanged;
-
-        private IEnumerable<int> availableCameraFeeds = [];
-
-        public void UpdateAvailableFeeds(IEnumerable<int> availableFeeds)
+        public void UpdateAvailableFeeds(IEnumerable<CameraFeed> availableFeeds)
         {
-            if (availableCameraFeeds != availableFeeds)
+            if (CameraFeeds != availableFeeds)
             {
-                availableCameraFeeds = availableFeeds;
+                CameraFeeds = availableFeeds.Select(f => f.CarId);
+                CameraFeedsChanged?.Invoke(this, CameraFeeds);
             }
-        }
-
-        public void UpdateActiveCameraFeed(int? feed)
-        {
-            if (ActiveCameraFeed != feed)
-            {
-                ActiveCameraFeed = feed;
-            }
-
-            CameraFeedsChanged?.Invoke(this, CameraFeeds);
-        }
-
-        public Stream GetActiveCameraFeed()
-        {
-            // Now returns the singleton stream - all consumers share the same data
-            return serverCameraFeedService.GetCurrentCameraFeed();
         }
 
         public void Refresh()

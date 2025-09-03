@@ -170,29 +170,6 @@ namespace RLIRL.Server.Tests
         }
 
         [Fact]
-        public async Task TestGetCarVideoFeedCommand()
-        {
-            // Prepare the command
-            var command = new GetCarVideoFeedCommand
-            {
-                Car = 1
-            };
-            var data = CommandSerializer.SerializeCommand(command);
-
-            // Send the command
-            using var wsClient = await GetWebSocketClientAsync();
-            await wsClient.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
-
-            // Listen for the response (this should return raw JPEG data, not JSON)
-            var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
-            var buffer = new byte[serverConfiguration.MaxPacketSize];
-            var result = await wsClient.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
-            
-            // Check if we received some data (should be JPEG)
-            Assert.True(result.Count > 0);
-        }
-
-        [Fact]
         public async Task TestGoalScoredCommand()
         {
             // Prepare the command

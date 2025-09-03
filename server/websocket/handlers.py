@@ -163,8 +163,6 @@ __all__ = [
     'handle_add_team',
     # Video feed handlers (streamlined)
     'handle_get_accessible_car_feeds',
-    'handle_get_car_video_feed',
-    'handle_send_video_feed',
     'handle_set_car_video_ip',
     'handle_get_car_ip_address',
     'handle_auto_configure_video_feed',
@@ -937,131 +935,17 @@ def handle_get_accessible_car_feeds(data, car_manager=None):
     
     # Get all cars (for now, all cars are accessible)
     all_cars = car_manager.get_all_cars()
-    accessible_car_ids = [car.car_id for car in all_cars]
-    
+
+    # Map the car id, the url of the feed and the port
+    accessible_feeds = [
+        {"car_id": car.car_id, "url": car.video_feed_url, "port": car.video_feed_port}
+        for car in all_cars if car.video_feed_url
+    ]
+
     return {
         "status": "success",
         "action": "get_accessible_car_feeds",
-        "accessible_feeds": accessible_car_ids
-    }
-
-def handle_get_car_video_feed(data, car_manager=None, websocket_id=None):
-    """Handle get car video feed requests."""
-    car_id = data.get("car")
-    
-    if not car_manager:
-        return {
-            "status": "error",
-            "action": "get_car_video_feed",
-            "message": "Car manager not available"
-        }
-    
-    if not websocket_id:
-        return {
-            "status": "error",
-            "action": "get_car_video_feed",
-            "message": "WebSocket ID not available"
-        }
-    
-    # If car_id is None or empty, unsubscribe from all feeds
-    if car_id is None or car_id == "":
-        unsubscribed_cars = car_manager.unsubscribe_websocket_from_all_feeds(websocket_id)
-        
-        # Update video feed service
-        try:
-            from video import get_video_feed_service
-            video_service = get_video_feed_service()
-            if video_service:
-                asyncio.create_task(video_service.update_car_feeds())
-        except:
-            pass
-        
-        return {
-            "status": "success",
-            "action": "get_car_video_feed",
-            "message": f"Unsubscribed from all video feeds",
-            "unsubscribed_from": unsubscribed_cars,
-            "following_car": None
-        }
-    
-    # Subscribe to specific car's video feed
-    success, message, car = car_manager.subscribe_to_video_feed(car_id, websocket_id)
-    
-    if success:
-        # First unsubscribe from any other feeds
-        car_manager.unsubscribe_websocket_from_all_feeds(websocket_id)
-        # Then subscribe to the requested car
-        car_manager.subscribe_to_video_feed(car_id, websocket_id)
-        
-        # Update video feed service
-        try:
-            from video import get_video_feed_service
-            video_service = get_video_feed_service()
-            if video_service:
-                asyncio.create_task(video_service.update_car_feeds())
-        except:
-            pass
-        
-        return {
-            "status": "success",
-            "action": "get_car_video_feed",
-            "message": f"Subscribed to video feed for car {car_id}",
-            "following_car": car_id,
-            "video_feed_url": car.video_feed_url if car else None
-        }
-    else:
-        return {
-            "status": "error",
-            "action": "get_car_video_feed",
-            "message": message,
-            "following_car": None
-        }
-
-def handle_send_video_feed(data, car_manager=None):
-    """Handle video feed data from cars."""
-    car_id = data.get("car")
-    video_frame = data.get("video_frame")
-    
-    if not car_manager:
-        return {
-            "status": "error",
-            "action": "send_video_feed",
-            "message": "Car manager not available"
-        }
-    
-    if car_id is None:
-        return {
-            "status": "error",
-            "action": "send_video_feed",
-            "message": "Car ID is required"
-        }
-    
-    if not video_frame:
-        return {
-            "status": "error",
-            "action": "send_video_feed",
-            "message": "Video frame data is required"
-        }
-    
-    car = car_manager.get_car(car_id)
-    if not car:
-        return {
-            "status": "error",
-            "action": "send_video_feed",
-            "message": f"Car {car_id} not found"
-        }
-    
-    # Update the car's last video frame
-    car.update_video_frame(video_frame)
-    
-    # Note: The actual broadcasting to subscribers will be handled
-    # by the websocket module when it processes this response
-    return {
-        "status": "success",
-        "action": "send_video_feed",
-        "car_id": car_id,
-        "subscribers": list(car.video_subscribers),
-        "video_frame": video_frame  # This will be broadcast to subscribers
+        "accessible_feeds": accessible_feeds
     }
 
 def handle_set_car_video_ip(data, car_manager=None):
@@ -1249,8 +1133,6 @@ ACTION_HANDLERS = {
     "add_team": handle_add_team,
     # Video feed actions (streamlined to essential functions)
     "get_accessible_car_feeds": handle_get_accessible_car_feeds,
-    "get_car_video_feed": handle_get_car_video_feed,
-    "send_video_feed": handle_send_video_feed,
     "set_car_video_ip": handle_set_car_video_ip,
     "get_car_ip_address": handle_get_car_ip_address,
     "auto_configure_video_feed": handle_auto_configure_video_feed,

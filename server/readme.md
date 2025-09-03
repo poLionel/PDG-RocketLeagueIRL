@@ -9,7 +9,6 @@
   - [App communication](#app-communication-1)
   - [Car communication](#car-communication-1)
     - [Bluetooth Low Energy (BLE)](#bluetooth-low-energy-ble-1)
-    - [Websocket send video feed](#websocket-send-video-feed)
   - [Server game management](#server-game-management)
 
 # v0.2
@@ -59,6 +58,33 @@ We will also use BLE to send the commands (move, boost) from the server to the c
 We will use a websocket to communicate with the app.
 
 Use JSONs to send data.
+
+### Get accessible car feeds <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "get_accessible_car_feeds"
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "get_accessible_car_feeds",
+  "accessible_feeds": [
+    {
+      "car_id": 1,
+      "url": "192.168.1.100",
+      "port": 8080
+    },
+    ...
+  ]
+}
+```
 
 ### Get free cars <!-- omit from toc -->
 
@@ -473,29 +499,6 @@ Server responds:
 We will use BLE to automatically pair the car with the server.
 
 We will also use BLE to send the commands (move, boost) from the server to the car.
-
-### Websocket send video feed
-
-The car will send the video feed to the server using a websocket.
-
-Car sends:
-
-```
-{
-  "action": "send_video_feed",
-  "car": 1,
-  "video_frame": "<base64_encoded_jpeg>"
-}
-```
-
-Server responds:
-
-```
-{
-  "status": "success",
-  "action": "send_video_feed"
-}
-```
 
 ## Server game management
 
