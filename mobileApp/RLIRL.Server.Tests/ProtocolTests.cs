@@ -236,7 +236,7 @@ namespace RLIRL.Server.Tests
             // Check if the response is valid
             Assert.NotNull(response);
             Assert.Equal("success", (string)response!.status);
-            Assert.Equal("start_game", (string)response!.action);
+            Assert.Equal("get_game_status", (string)response!.action);
             Assert.NotNull(response!.message);
         }
 
@@ -257,7 +257,7 @@ namespace RLIRL.Server.Tests
 
             // Check if the response is valid
             Assert.NotNull(response);
-            Assert.Equal("success", (string)response!.status);
+            Assert.Equal("get_game_status", (string)response!.status);
             Assert.Equal("stop_game", (string)response!.action);
             Assert.NotNull(response!.message);
         }
