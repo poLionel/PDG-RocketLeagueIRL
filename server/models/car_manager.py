@@ -20,9 +20,6 @@ class CarManager:
         # Add test cars
         self.add_car(Car(car_id=1, ble_name="RL-CAR-1", ble_address="cc:ba:97:0d:8c:b5"))
         self.add_car(Car(car_id=2, ble_name="RL-CAR-2", ble_address="cc:ba:97:0d:8c:b6"))
-        # Set feed
-        self.cars[1].set_video_feed_url("192.168.0.20")
-        self.cars[2].set_video_feed_url("192.168.0.21")
 
     def set_game_manager(self, game_manager: 'GameManager'):
         """Set the game manager reference."""
