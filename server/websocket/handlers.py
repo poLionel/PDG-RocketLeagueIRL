@@ -15,7 +15,6 @@ Handler categories:
 
 import asyncio
 import logging
-from datetime import datetime
 
 # Auto provisioning integration
 try:
@@ -152,16 +151,13 @@ __all__ = [
     'handle_connect_to_car',
     'handle_unknown_action', 
     'handle_invalid_json',
-    # Game management handlers (sync versions only)
     'handle_stop_game',
     'handle_resume_game',
     'handle_get_game_status',
-    'handle_goal_scored',
     'handle_score_goal',
     'handle_add_car_to_team',
     'handle_remove_car_from_teams',
     'handle_add_team',
-    # Video feed handlers (streamlined)
     'handle_get_accessible_car_feeds',
     'handle_set_car_video_ip',
     'handle_get_car_ip_address',
@@ -885,41 +881,6 @@ def handle_stop_game(data, game_manager=None):
             "message": "No active game to stop"
         }
 
-def handle_goal_scored(data, game_manager=None):
-    """Handle goal scored requests (maps to score_goal functionality)."""
-    if not game_manager:
-        return {
-            "status": "error",
-            "action": "goal_scored",
-            "message": "Game manager not available"
-        }
-    
-    team_color = data.get("team")
-    player_id = data.get("player_id")
-    car_id = data.get("car_id")
-    
-    if not team_color:
-        return {
-            "status": "error",
-            "action": "goal_scored",
-            "message": "Team color is required"
-        }
-    
-    success = game_manager.score_goal(team_color, player_id, car_id)
-    
-    if success:
-        return {
-            "status": "success",
-            "action": "goal_scored",
-            "message": f"Goal scored by {team_color} team!"
-        }
-    else:
-        return {
-            "status": "error",
-            "action": "goal_scored",
-            "message": f"Failed to score goal. Invalid team '{team_color}' or no active game."
-        }
-
 # ============================================================================
 # Video Feed Handlers
 # ============================================================================
@@ -1126,7 +1087,6 @@ ACTION_HANDLERS = {
     "stop_game": handle_stop_game,
     "resume_game": handle_resume_game,
     "get_game_status": handle_get_game_status,
-    "goal_scored": handle_goal_scored,
     "score_goal": handle_score_goal,
     "add_car_to_team": handle_add_car_to_team,
     "remove_car_from_teams": handle_remove_car_from_teams,

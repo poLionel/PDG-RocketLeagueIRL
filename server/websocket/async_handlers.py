@@ -8,63 +8,13 @@ operations which can take significant time to complete.
 
 Key functions:
 - Car command transmission via BLE
-- WiFi provisioning for car     if success:
-        # Get the updated game status
-        cur    if success:
-        response = {
-            "status": "success",
-            "action": "resume_game",
-            "message": "Game resumed!"
-        }
-        
-        # Broadcast game status update to all clients
-        current_game = game_manager.get_current_game()
-        game_status_broadcast = {
-            "status": "success",
-            "action": "get_game_status",
-            "game_status": current_game.to_dict()
-        }
-        await broadcast_response(game_status_broadcast)
-        
-        return responsee_manage    if success:
-        response = {
-            "status": "success",
-            "action": "goal_scored",
-            "message": f"Goal scored by {team_color} team!",
-            "team": team_color,
-            "player_id": player_id,
-            "car_id": car_id
-        }
-        
-        # Broadcast game status update to all clients
-        current_game = game_manager.get_current_game()
-        game_status_broadcast = {
-            "status": "success",
-            "action": "get_game_status",
-            "game_status": current_game.to_dict()
-        }
-        await broadcast_response(game_status_broadcast)
-        
-        return response()
-        
-        response = {
-            "status": "success",
-            "action": "resume_game",
-            "message": "Game resumed!",
-            "game_status": current_game.to_dict()
-        }
-        
-        # Broadcast the response with game status to all clients
-        await broadcast_response(response)
-        
-        return responseime motor control with feedback
+- WiFi provisioning for cars with real-time motor control and feedback
 - Asynchronous device discovery and pairing
 - Game management with broadcasting
 """
 
 import asyncio
 import logging
-from datetime import datetime
 from bluetooth.handlers import get_bluetooth_service
 
 logger = logging.getLogger(__name__)
