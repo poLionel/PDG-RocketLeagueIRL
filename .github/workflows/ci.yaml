@@ -23,11 +23,6 @@ jobs:
           docker compose up -d
           docker ps
 
-      - name: Restore solution workloads
-        run: |
-          cd mobileApp
-          dotnet workload restore
-
       - name: Build & test mobile app
         run: |
           cd mobileApp
