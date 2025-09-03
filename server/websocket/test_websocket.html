@@ -1897,17 +1897,20 @@
             const videoDisplay = document.getElementById('videoDisplay');
             const videoStatus = document.getElementById('videoStatus');
             
-            if (data.video_frame && data.car_id) {
+            // Check for both 'car' and 'car_id' field names for compatibility
+            const carId = data.car || data.car_id;
+            
+            if (data.video_frame && carId) {
                 // Only display if we're subscribed to this car's feed
-                if (currentVideoFeed === data.car_id || currentVideoFeed === null) {
+                if (currentVideoFeed === carId || currentVideoFeed === null) {
                     const timestamp = new Date().toLocaleTimeString();
                     
                     videoDisplay.innerHTML = `
                         <div style="text-align: center;">
-                            <h4>Live Feed - Car ${data.car_id}</h4>
+                            <h4>Live Feed - Car ${carId}</h4>
                             <img src="data:image/jpeg;base64,${data.video_frame}" 
                                  style="max-width: 100%; max-height: 300px; border: 2px solid #007bff; border-radius: 5px;"
-                                 alt="Video Frame from Car ${data.car_id}">
+                                 alt="Video Frame from Car ${carId}">
                             <div style="margin-top: 10px; font-size: 0.8em; color: #666;">
                                 Last frame: ${timestamp}
                                 ${data.subscribers ? ` | Subscribers: ${data.subscribers.length}` : ''}
@@ -1915,8 +1918,10 @@
                         </div>
                     `;
                     
-                    videoStatus.textContent = `Status: Receiving frames from car ${data.car_id}`;
+                    videoStatus.textContent = `Status: Receiving frames from car ${carId}`;
                     videoStatus.style.color = 'green';
+                    
+                    addMessage(`Received video frame from car ${carId} (${timestamp})`, 'success');
                 }
             }
         }
