@@ -266,7 +266,7 @@
                             BackgroundColor="{StaticResource Black}"
                             HeightRequest="500"
                             Margin="0,10">
-                        <VerticalStackLayout>
+                        <Grid>
                             <!-- Video Stream (when available) -->
                             <WebView Source="{Binding VideoStreamUrl}"
                                      IsVisible="{Binding VideoStreamUrl, Converter={toolkit:IsNotNullConverter}}"
@@ -296,7 +296,7 @@
                                        HorizontalTextAlignment="Center"
                                        IsVisible="{Binding SelectedCameraFeedId, Converter={toolkit:IsNullConverter}}" />
                             </StackLayout>
-                        </VerticalStackLayout>
+                        </Grid>
                     </Border>
 
                     <!-- Available Camera Sources -->
