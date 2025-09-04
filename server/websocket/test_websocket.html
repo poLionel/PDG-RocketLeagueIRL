@@ -435,7 +435,7 @@
             <ul>
                 <li><strong>Forward/Backward/Stop:</strong> Use the direction buttons</li>
                 <li><strong>Steering:</strong> Use the slider or steering buttons</li>
-                <li><strong>Boost:</strong> Toggle boost on/off while moving</li>
+                <li><strong>Boost:</strong> Increases speed to 100 (normal speed is 50) while keeping current movement and steering</li>
                 <li><strong>Car Selection:</strong> Select a car to control it exclusively</li>
             </ul>
             
@@ -490,7 +490,7 @@
                 <li><strong>A / ←:</strong> Steer left (incremental)</li>
                 <li><strong>D / →:</strong> Steer right (incremental)</li>
                 <li><strong>Space / Esc:</strong> Emergency stop</li>
-                <li><strong>Shift:</strong> Activate boost</li>
+                <li><strong>Shift:</strong> Hold for boost (increases speed to 100, releases to 50)</li>
             </ul>
             
             <h4>Test Scenarios:</h4>
@@ -515,6 +515,7 @@
     <script>
         let socket = null;
         let cars = {};
+        let lastCarCommands = {}; // Track last movement command for each car
 
         function addMessage(message, type = 'info') {
             const messagesDiv = document.getElementById('messages');
@@ -1050,6 +1051,13 @@
             cars = {};
             carsData.forEach(car => {
                 cars[car.car] = car;
+                // Initialize last command for each car based on current state
+                if (!lastCarCommands[car.car]) {
+                    lastCarCommands[car.car] = {
+                        move: car.move || 'stopped',
+                        x: car.x || 0
+                    };
+                }
             });
 
             const controlsDiv = document.getElementById('carControls');
@@ -1081,9 +1089,9 @@
                         <button onclick="setKeyboardControlCar(${car.car})" style="background-color: #2196f3;">Keyboard Control</button>
                     </div>
                     <div class="controls">
-                        <button onclick="moveCar(${car.car}, 'forward', ${car.x || 0})">↑ Forward</button>
-                        <button onclick="moveCar(${car.car}, 'stopped', 0)">⬜ Stop</button>
-                        <button onclick="moveCar(${car.car}, 'backward', ${car.x || 0})">↓ Backward</button>
+                        <button onclick="moveCar(${car.car}, 'forward')">↑ Forward</button>
+                        <button onclick="moveCar(${car.car}, 'stopped')">⬜ Stop</button>
+                        <button onclick="moveCar(${car.car}, 'backward')">↓ Backward</button>
                         <button onclick="steerCar(${car.car}, -100)">← Full Left</button>
                         <button onclick="getCarStatus(${car.car})">⟲ Refresh</button>
                         <button onclick="steerCar(${car.car}, 100)">→ Full Right</button>
@@ -1102,8 +1110,8 @@
                     </div>
                     <div class="boost-controls">
                         <label>Boost:</label>
-                        <button onclick="moveCar(${car.car}, '${car.move}', ${car.x || 0}, true)">⚡ On</button>
-                        <button onclick="moveCar(${car.car}, '${car.move}', ${car.x || 0}, false)">⚪ Off</button>
+                        <button onclick="toggleBoost(${car.car}, true)">⚡ On</button>
+                        <button onclick="toggleBoost(${car.car}, false)">⚪ Off</button>
                     </div>
                     <div class="boost-controls" style="margin-top: 10px;">
                         <label>BLE Commands:</label>
@@ -1145,32 +1153,58 @@
             });
         }
 
-        function moveCar(carId, move, x = 0, boost = false) {
+        function moveCar(carId, move, x = null, boost = null) {
+            // Get current car state
+            const currentCar = cars[carId];
+            
+            // Preserve current values if not explicitly provided
+            const finalX = x !== null ? x : (currentCar ? currentCar.x || 0 : 0);
+            const finalBoost = boost !== null ? boost : (currentCar ? currentCar.boost || false : false);
+            
             // Convert boost parameter to string if it's boolean
-            const boostStr = typeof boost === 'boolean' ? boost.toString() : boost;
+            const boostStr = typeof finalBoost === 'boolean' ? finalBoost.toString() : finalBoost;
+            
+            // Store the last command for this car (without boost info)
+            lastCarCommands[carId] = {
+                move: move,
+                x: finalX
+            };
             
             // Update local display immediately for responsiveness
             updateCarStatusDisplay(carId, {
                 move: move,
-                x: x,
-                boost: boost
+                x: finalX,
+                boost: finalBoost
             });
             
             sendMessage({
                 "action": "move_car",
                 "car": carId,
                 "move": move,
-                "x": x,
+                "x": finalX,
                 "boost": boostStr
             });
+        }
+
+        function toggleBoost(carId, boostOn) {
+            // Get the last command for this car
+            const lastCommand = lastCarCommands[carId];
+            if (!lastCommand) {
+                // If no last command, default to stopped
+                lastCommand = { move: 'stopped', x: 0 };
+            }
+            
+            // Send the last movement command with the new boost state
+            moveCar(carId, lastCommand.move, lastCommand.x, boostOn);
         }
 
         function steerCar(carId, x) {
             const currentCar = cars[carId];
             const currentMove = currentCar ? currentCar.move : 'stopped';
+            const currentBoost = currentCar ? currentCar.boost : false;
             
-            // Send the movement command with new steering
-            moveCar(carId, currentMove, parseInt(x));
+            // Send the movement command with new steering but preserve boost
+            moveCar(carId, currentMove, parseInt(x), currentBoost);
             
             // Update the slider if it exists
             const slider = document.getElementById(`steering_${carId}`);
@@ -1727,13 +1761,13 @@
                     case 'w':
                     case 'arrowup':
                         event.preventDefault();
-                        moveCar(selectedCarForKeyboard, 'forward', cars[selectedCarForKeyboard]?.x || 0);
+                        moveCar(selectedCarForKeyboard, 'forward');
                         addMessage(`Keyboard: Car ${selectedCarForKeyboard} moving forward`);
                         break;
                     case 's':
                     case 'arrowdown':
                         event.preventDefault();
-                        moveCar(selectedCarForKeyboard, 'backward', cars[selectedCarForKeyboard]?.x || 0);
+                        moveCar(selectedCarForKeyboard, 'backward');
                         addMessage(`Keyboard: Car ${selectedCarForKeyboard} moving backward`);
                         break;
                     case 'a':
@@ -1755,16 +1789,42 @@
                     case ' ':
                     case 'escape':
                         event.preventDefault();
-                        moveCar(selectedCarForKeyboard, 'stopped', 0);
+                        moveCar(selectedCarForKeyboard, 'stopped');
                         addMessage(`Keyboard: Car ${selectedCarForKeyboard} STOPPED`, 'error');
                         break;
                     case 'shift':
                         event.preventDefault();
-                        const currentMove = cars[selectedCarForKeyboard]?.move || 'stopped';
-                        const currentXBoost = cars[selectedCarForKeyboard]?.x || 0;
-                        moveCar(selectedCarForKeyboard, currentMove, currentXBoost, true);
+                        toggleBoost(selectedCarForKeyboard, true);
                         addMessage(`Keyboard: Car ${selectedCarForKeyboard} BOOST ON`);
                         break;
+                }
+            });
+            
+            // Handle key release for boost
+            document.addEventListener('keyup', function(event) {
+                if (!selectedCarForKeyboard || document.activeElement.tagName === 'INPUT' || 
+                    document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                if (event.key.toLowerCase() === 'shift') {
+                    event.preventDefault();
+                    toggleBoost(selectedCarForKeyboard, false);
+                    addMessage(`Keyboard: Car ${selectedCarForKeyboard} BOOST OFF`);
+                }
+            });
+            
+            // Handle key releases for boost
+            document.addEventListener('keyup', function(event) {
+                if (!selectedCarForKeyboard || document.activeElement.tagName === 'INPUT' || 
+                    document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                if (event.key === 'Shift') {
+                    event.preventDefault();
+                    toggleBoost(selectedCarForKeyboard, false);
+                    addMessage(`Keyboard: Car ${selectedCarForKeyboard} BOOST OFF`);
                 }
             });
             
