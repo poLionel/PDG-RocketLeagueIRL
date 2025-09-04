@@ -5,7 +5,6 @@ from models.car import Car
 from models.car_manager import CarManager
 from models.game_manager import GameManager
 from bluetooth import BLEService, check_bluetooth_dependencies, set_bluetooth_service
-from video import VideoFeedService, set_video_feed_service
 from provisioning.auto_provisioning_service import initialize_auto_provisioning_service, shutdown_auto_provisioning_service
 
 # Configure application-wide logging for debugging and monitoring
@@ -96,9 +95,8 @@ async def main():
     1. Car management system initialization
     2. Game management system initialization
     3. Bluetooth service startup (if available)
-    4. Video feed service startup
-    5. WebSocket server launch
-    6. Graceful shutdown handling
+    4. WebSocket server launch
+    5. Graceful shutdown handling
     """
     logger.info("Starting Rocket League IRL Server")
     
@@ -120,12 +118,6 @@ async def main():
         bluetooth_service = None
         discovery_task = None
     
-    # Initialize video feed service
-    import websocket
-    video_service = VideoFeedService(car_manager, websocket)
-    set_video_feed_service(video_service)
-    await video_service.start()
-    
     try:
         # Start WebSocket server with both managers - this blocks until server stops
         await start_server_with_managers(car_manager, game_manager)
@@ -135,8 +127,6 @@ async def main():
     finally:
         # Ensure clean shutdown of all async resources
         await shutdown_auto_provisioning_service()
-        if video_service:
-            await video_service.stop()
         if bluetooth_service:
             await bluetooth_service.stop_auto_discovery()
         if discovery_task:

@@ -897,11 +897,15 @@ def handle_get_accessible_car_feeds(data, car_manager=None):
     # Get all cars (for now, all cars are accessible)
     all_cars = car_manager.get_all_cars()
 
-    # Map the car id, the url of the feed and the port
-    accessible_feeds = [
-        {"car_id": car.car_id, "url": car.video_feed_url }
-        for car in all_cars if car.video_feed_url
-    ]
+    # Map the car id and construct the proper video feed URL
+    accessible_feeds = []
+    for car in all_cars:
+        if car.video_feed_url:
+            # Extract IP from the stored video_feed_url (format: "IP:PORT")
+            ip_address = car.video_feed_url.split(':')[0]
+            # Construct the proper URL with port 81 and /stream endpoint
+            feed_url = f"http://{ip_address}:81/stream"
+            accessible_feeds.append({"car_id": car.car_id, "url": feed_url})
 
     return {
         "status": "success",
@@ -939,15 +943,6 @@ def handle_set_car_video_ip(data, car_manager=None):
     success = car_manager.update_car_video_feed(car_id, ip_address, port)
     
     if success:
-        # Update video feed service
-        try:
-            from video import get_video_feed_service
-            video_service = get_video_feed_service()
-            if video_service:
-                asyncio.create_task(video_service.update_car_feeds())
-        except:
-            pass
-        
         return {
             "status": "success",
             "action": "set_car_video_ip",

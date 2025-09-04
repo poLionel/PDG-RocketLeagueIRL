@@ -501,6 +501,15 @@ async def handle_undo_goal_async(data, game_manager=None):
 
         # Broadcast the same response to all clients
         await broadcast_response(response)
+        
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
 
         return response
     else:

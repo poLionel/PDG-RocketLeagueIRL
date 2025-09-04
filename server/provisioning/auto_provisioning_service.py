@@ -245,15 +245,6 @@ class AutoProvisioningService:
                 
                 if success:
                     logger.info(f"Configured video feed for {car.name}: http://{ip_address}:{port}/stream")
-                    
-                    # Update video feed service
-                    try:
-                        from video import get_video_feed_service
-                        video_service = get_video_feed_service()
-                        if video_service:
-                            await video_service.update_car_feeds()
-                    except ImportError:
-                        logger.debug("Video feed service not available")
                         
                 # Update car connection status
                 self.car_manager.update_car_status(car.car_id, connected=True)

@@ -34,7 +34,7 @@ class Car:
         
         # Video feed properties
         self.video_feed_url = None  # IP:PORT URL for video feed (e.g., "192.168.1.100:8080")
-        self.video_feed_port = 8080  # Default port for video feed
+        self.video_feed_port = 81  # Default port for video feed
         self.video_subscribers = set()  # Set of websocket IDs subscribed to this car's video feed
         
     def update_status(self, **kwargs):
