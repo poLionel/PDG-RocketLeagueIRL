@@ -72,7 +72,7 @@ jobs:
         run: |
           cd server
           python -c "import models; print('Models import successful')"
-          python -c "from websocket.websocket import start_server_with_cars; print('WebSocket import successful')"
+          python -c "from websocket.websocket import start_server_with_managers; print('WebSocket import successful')"
 
       - name: Build Docker image
         run: |
