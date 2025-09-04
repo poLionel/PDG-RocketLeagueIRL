@@ -943,15 +943,6 @@ def handle_set_car_video_ip(data, car_manager=None):
     success = car_manager.update_car_video_feed(car_id, ip_address, port)
     
     if success:
-        # Update video feed service
-        try:
-            from video import get_video_feed_service
-            video_service = get_video_feed_service()
-            if video_service:
-                asyncio.create_task(video_service.update_car_feeds())
-        except:
-            pass
-        
         return {
             "status": "success",
             "action": "set_car_video_ip",
