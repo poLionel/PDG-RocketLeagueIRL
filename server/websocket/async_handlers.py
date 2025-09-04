@@ -8,15 +8,13 @@ operations which can take significant time to complete.
 
 Key functions:
 - Car command transmission via BLE
-- WiFi provisioning for car setup
-- Real-time motor control with feedback
+- WiFi provisioning for cars with real-time motor control and feedback
 - Asynchronous device discovery and pairing
 - Game management with broadcasting
 """
 
 import asyncio
 import logging
-from datetime import datetime
 from bluetooth.handlers import get_bluetooth_service
 
 logger = logging.getLogger(__name__)
@@ -82,7 +80,7 @@ async def handle_send_to_car_async(data, car_manager=None):
             }
         
         # Locate the BLE device in the discovered devices registry
-        ble_devices = bluetooth_service.ble_service.discovered_devices
+        ble_devices = bluetooth_service.discovered_devices
         ble_device = ble_devices.get(car.ble_address)
         
         if not ble_device:
@@ -137,90 +135,7 @@ async def handle_send_to_car_async(data, car_manager=None):
             "message": f"Error sending to car: {str(e)}"
         }
 
-async def handle_set_wifi_credentials_async(data, car_manager=None):
-    """Handle setting WiFi credentials on a car via Bluetooth (async version)."""
-    car_id = data.get("car")
-    ssid = data.get("ssid", "TestWiFi")
-    password = data.get("password", "TestPassword123")
-    
-    logger.info(f"Setting WiFi credentials on car {car_id}: SSID={ssid}")
-    
-    try:
-        # Find the car
-        car = None
-        if car_manager and car_id is not None:
-            car = car_manager.get_car(car_id)
-        
-        if not car:
-            return {
-                "status": "error",
-                "message": f"Car {car_id} not found"
-            }
-        
-        if not car.ble_address:
-            return {
-                "status": "error",
-                "message": f"Car {car_id} has no BLE address"
-            }
-        
-        # Get the Bluetooth service
-        bluetooth_service = get_bluetooth_service()
-        if not bluetooth_service:
-            return {
-                "status": "error",
-                "message": "Bluetooth service not initialized"
-            }
-        
-        # Get the BLE device
-        ble_devices = bluetooth_service.ble_service.discovered_devices
-        ble_device = ble_devices.get(car.ble_address)
-        
-        if not ble_device:
-            return {
-                "status": "error",
-                "message": f"Car {car_id} BLE device not found. Try discovering cars first."
-            }
-        
-        # Connect to the device if not already connected
-        if not ble_device.is_connected:
-            logger.info(f"Connecting to {ble_device.name} to set WiFi credentials...")
-            connected_device = await bluetooth_service.ble_service.connect_to_device(car.ble_address)
-            if not connected_device:
-                return {
-                    "status": "error",
-                    "message": f"Failed to connect to car {car.name} via BLE"
-                }
-        
-        # Set WiFi credentials using the new BLE service method
-        success = await bluetooth_service.ble_service.set_wifi_on_car(car.ble_address, ssid, password)
-        
-        if success:
-            # Update car status to show communication
-            if car_manager:
-                car_manager.update_car_status(car_id, connected=True)
-            
-            return {
-                "status": "success",
-                "message": f"WiFi credentials set on car {car.name}",
-                "wifi_data": {
-                    "ssid": ssid,
-                    "car_id": car_id,
-                    "ble_address": car.ble_address
-                },
-                "car": car.get_status()
-            }
-        else:
-            return {
-                "status": "error",
-                "message": f"Failed to set WiFi credentials on car {car.name}"
-            }
-        
-    except Exception as e:
-        logger.error(f"Error in handle_set_wifi_credentials_async: {e}")
-        return {
-            "status": "error",
-            "message": f"Error setting WiFi credentials: {str(e)}"
-        }
+
 
 async def handle_connect_to_car_async(data, car_manager=None):
     """Handle connecting to a car via Bluetooth (async version)."""
@@ -255,7 +170,7 @@ async def handle_connect_to_car_async(data, car_manager=None):
             }
         
         # Get the BLE device
-        ble_devices = bluetooth_service.ble_service.discovered_devices
+        ble_devices = bluetooth_service.discovered_devices
         ble_device = ble_devices.get(car.ble_address)
         
         if not ble_device:
@@ -273,7 +188,7 @@ async def handle_connect_to_car_async(data, car_manager=None):
             }
         
         logger.info(f"Connecting to {ble_device.name}...")
-        connected_device = await bluetooth_service.ble_service.connect_to_device(car.ble_address)
+        connected_device = await bluetooth_service.connect_to_device(car.ble_address)
         
         if connected_device:
             # Update car status
@@ -312,7 +227,7 @@ async def handle_switch_to_scan_phase_async(data, car_manager=None):
             }
         
         # Switch to scan phase and discover cars
-        discovered_cars = await bluetooth_service.ble_service.start_scan_phase()
+        discovered_cars = await bluetooth_service.start_scan_phase()
         
         return {
             "status": "success",
@@ -342,13 +257,13 @@ async def handle_switch_to_control_phase_async(data, car_manager=None):
             }
         
         # Switch to control phase
-        await bluetooth_service.ble_service.switch_to_control_phase()
+        await bluetooth_service.switch_to_control_phase()
         
         return {
             "status": "success",
             "message": "Switched to control phase. You can now send commands to cars.",
             "phase": "control",
-            "discovered_cars": [car.to_dict() for car in bluetooth_service.ble_service.discovered_devices.values()]
+            "discovered_cars": [car.to_dict() for car in bluetooth_service.discovered_devices.values()]
         }
         
     except Exception as e:
@@ -395,8 +310,14 @@ async def handle_start_game_async(data, game_manager=None):
             "message": "Game started!"
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
@@ -424,8 +345,14 @@ async def handle_stop_game_async(data, game_manager=None):
             "message": "Game stopped!"
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
@@ -453,8 +380,14 @@ async def handle_resume_game_async(data, game_manager=None):
             "message": "Game resumed!"
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
@@ -473,10 +406,6 @@ async def handle_end_game_async(data, game_manager=None):
             "message": "Game manager not available"
         }
     
-    # Get game status before ending for broadcast
-    current_game = game_manager.get_current_game()
-    pre_end_status = current_game.to_dict()
-    
     success = game_manager.end_game()
     
     if success:
@@ -486,8 +415,14 @@ async def handle_end_game_async(data, game_manager=None):
             "message": "Game ended!"
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
@@ -523,11 +458,20 @@ async def handle_goal_scored_async(data, game_manager=None):
         response = {
             "status": "success",
             "action": "goal_scored",
-            "message": f"Goal scored by {team_color} team!"
+            "message": f"Goal scored by {team_color} team!",
+            "team": team_color,
+            "player_id": player_id,
+            "car_id": car_id
         }
         
-        # Broadcast the same response to all clients
-        await broadcast_response(response)
+        # Broadcast game status update to all clients
+        current_game = game_manager.get_current_game()
+        game_status_broadcast = {
+            "status": "success",
+            "action": "get_game_status",
+            "game_status": current_game.to_dict()
+        }
+        await broadcast_response(game_status_broadcast)
         
         return response
     else:
@@ -566,10 +510,15 @@ async def handle_undo_goal_async(data, game_manager=None):
             "message": "Failed to undo goal. No active game or goal to undo."
         }
 
+# ============================================================================
+# ASYNC CAR NETWORK AND VIDEO FEED HANDLERS
+# ============================================================================
+
+
+
 # Export the async handler
 ASYNC_HANDLERS = {
     "send_to_car": handle_send_to_car_async,
-    "set_wifi_credentials": handle_set_wifi_credentials_async,
     "connect_to_car": handle_connect_to_car_async,
     "switch_to_scan_phase": handle_switch_to_scan_phase_async,
     "switch_to_control_phase": handle_switch_to_control_phase_async,

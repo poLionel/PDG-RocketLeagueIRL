@@ -17,7 +17,7 @@ class CarManager:
         """Initialize the car manager with an empty list of cars."""
         self.cars = {}  # Dictionary mapping car_id to Car objects
         self.game_manager: Optional['GameManager'] = None
-    
+
     def set_game_manager(self, game_manager: 'GameManager'):
         """Set the game manager reference."""
         self.game_manager = game_manager
@@ -285,3 +285,30 @@ class CarManager:
             list: List of Car objects assigned to the websocket
         """
         return [car for car in self.cars.values() if car.websocket_id == websocket_id]
+    
+    def get_cars_with_video_feeds(self):
+        """
+        Get all cars that have available video feeds.
+        
+        Returns:
+            list: List of Car objects with video feed URLs
+        """
+        return [car for car in self.cars.values() if car.video_feed_url is not None]
+    
+    def update_car_video_feed(self, car_id, ip_address, port=None):
+        """
+        Update the video feed configuration for a specific car.
+        
+        Args:
+            car_id (int): ID of the car to update
+            ip_address (str): IP address for the video feed
+            port (int, optional): Port for the video feed (defaults to car's default port)
+            
+        Returns:
+            bool: True if car was found and updated, False otherwise
+        """
+        car = self.get_car(car_id)
+        if car:
+            car.set_video_feed_url(ip_address, port)
+            return True
+        return False

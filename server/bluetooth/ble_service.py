@@ -4,12 +4,15 @@ BLE service for managing car device discovery and communication.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Callable
+from typing import Dict, List, Optional, Callable, TYPE_CHECKING
 from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
 
 from .ble_constants import SERVICE_UUID, CAR_DEVICE_PREFIX
 from .ble_device import PDGCarDevice
+
+if TYPE_CHECKING:
+    from .ble_device import BluetoothDevice
 
 logger = logging.getLogger(__name__)
 
@@ -620,3 +623,124 @@ class BLEService:
         except Exception as e:
             logger.error(f"Error reading motor control state from {device.name}: {e}")
             return None
+
+    async def read_network_config(self, ble_address: str) -> Optional[dict]:
+        """Read network configuration from a car."""
+        if ble_address not in self.discovered_devices:
+            logger.error(f"Car with address {ble_address} not found in discovered devices")
+            return None
+        
+        # Verify we're in control phase
+        if not self.is_in_control_phase():
+            logger.warning("Network config read blocked: currently in scan phase. Switch to control phase first.")
+            return None
+        
+        device = self.discovered_devices[ble_address]
+        
+        try:
+            if not device.is_connected:
+                logger.info(f"Connecting to {device.name} to read network config...")
+                if not await self.connect_to_device(ble_address):
+                    logger.error(f"Failed to connect to {device.name}")
+                    return None
+            
+            network_config = {
+                "ip_address": await device.read_ip_address(),
+                "mac_address": await device.read_mac_address(),
+                "netmask": await device.read_netmask(),
+                "gateway": await device.read_gateway()
+            }
+            
+            logger.info(f"Read network config from {device.name}: {network_config}")
+            return network_config
+            
+        except Exception as e:
+            logger.error(f"Error reading network config from {device.name}: {e}")
+            return None
+
+    async def get_car_ip_address(self, ble_address: str) -> Optional[str]:
+        """Get the IP address of a specific car."""
+        if ble_address not in self.discovered_devices:
+            logger.error(f"Car with address {ble_address} not found in discovered devices")
+            return None
+        
+        # Verify we're in control phase
+        if not self.is_in_control_phase():
+            logger.warning("IP address read blocked: currently in scan phase. Switch to control phase first.")
+            return None
+        
+        device = self.discovered_devices[ble_address]
+        
+        try:
+            if not device.is_connected:
+                logger.info(f"Connecting to {device.name} to read IP address...")
+                if not await self.connect_to_device(ble_address):
+                    logger.error(f"Failed to connect to {device.name}")
+                    return None
+            
+            ip_address = await device.read_ip_address()
+            logger.info(f"IP address for {device.name}: {ip_address}")
+            return ip_address
+            
+        except Exception as e:
+            logger.error(f"Error reading IP address from {device.name}: {e}")
+            return None
+
+    async def get_car_video_feed_url(self, ble_address: str) -> Optional[str]:
+        """Get the video feed URL for a specific car."""
+        if ble_address not in self.discovered_devices:
+            logger.error(f"Car with address {ble_address} not found in discovered devices")
+            return None
+        
+        # Verify we're in control phase
+        if not self.is_in_control_phase():
+            logger.warning("Video feed URL blocked: currently in scan phase. Switch to control phase first.")
+            return None
+        
+        device = self.discovered_devices[ble_address]
+        
+        try:
+            if not device.is_connected:
+                logger.info(f"Connecting to {device.name} to get video feed URL...")
+                if not await self.connect_to_device(ble_address):
+                    logger.error(f"Failed to connect to {device.name}")
+                    return None
+            
+            video_url = await device.get_video_feed_url()
+            if video_url:
+                logger.info(f"Video feed URL for {device.name}: {video_url}")
+            return video_url
+            
+        except Exception as e:
+            logger.error(f"Error getting video feed URL from {device.name}: {e}")
+            return None
+
+    def get_paired_devices(self) -> List['BluetoothDevice']:
+        """Get currently paired/connected devices."""
+        from .ble_device import BluetoothDevice
+        paired_devices = []
+        for device in self.discovered_devices.values():
+            if device.is_connected:
+                bt_device = BluetoothDevice(
+                    address=device.address,
+                    name=device.name,
+                    paired=True
+                )
+                paired_devices.append(bt_device)
+        return paired_devices
+
+    async def start_auto_discovery(self):
+        """Start automatic device discovery using scan phase."""
+        await self.start_scan_phase()
+
+
+# Global service instance for easy access
+_bluetooth_service = None
+
+
+def get_bluetooth_service(car_manager=None) -> 'BLEService':
+    """Get global BLE service instance."""
+    global _bluetooth_service
+    if _bluetooth_service is None:
+        _bluetooth_service = BLEService(car_manager)
+    return _bluetooth_service

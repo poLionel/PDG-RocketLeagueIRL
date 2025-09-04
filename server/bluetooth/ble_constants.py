@@ -22,6 +22,12 @@ CHAR_STATUS = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f4"   # Real-time device status
 CHAR_DEVID = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f9"    # Unique device identifier
 CHAR_BATTERY = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f5"  # Battery level (0-100%)
 
+# Network configuration characteristics - for IP configuration and connectivity
+CHAR_IP = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fb"       # IP address assigned to car
+CHAR_MAC = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fc"      # MAC address of car
+CHAR_NETMASK = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fd"  # Network subnet mask
+CHAR_GATEWAY = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1fe"  # Network gateway address
+
 # Motor control characteristics - primary vehicle movement commands
 CHAR_DIR_X = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f6"    # Steering (-100 to +100)
 CHAR_DIR_Y = "7f1f9b2a-6a43-4f62-8c2a-b9d3c0e4a1f7"    # Throttle (-100 to +100)

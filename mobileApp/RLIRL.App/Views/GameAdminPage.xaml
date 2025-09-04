@@ -6,9 +6,14 @@
              xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
              xmlns:viewmodels="clr-namespace:RLIRL.App.ViewModels"
              xmlns:models="clr-namespace:RLIRL.App.Models"
+             xmlns:converters="clr-namespace:RLIRL.App.Converters"
              x:Class="RLIRL.App.Views.GameAdminPage"
              x:DataType="viewmodels:GameAdminViewModel"
              x:Name="AdminPage">
+
+    <ContentPage.Resources>
+        <converters:EqualToParameterConverter x:Key="EqualToParameterConverter" />
+    </ContentPage.Resources>
 
     <ScrollView Style="{StaticResource AdminMainScrollView}">
         <Grid Style="{StaticResource AdminMainGrid}">
@@ -17,7 +22,7 @@
                 <RowDefinition Height="auto" />  <!-- Game Controls -->
                 <RowDefinition Height="auto" />  <!-- Score and Timer -->
                 <RowDefinition Height="auto" />  <!-- Goal Scoring Controls -->
-                <RowDefinition Height="*" />     <!-- Player Management -->
+                <RowDefinition Height="auto" />  <!-- Video Management -->
                 <RowDefinition Height="auto" />  <!-- Car Management -->
             </Grid.RowDefinitions>
 
@@ -230,7 +235,7 @@
                 </StackLayout>
             </Border>
 
-            <!-- Player Camera Views -->
+            <!-- Camera Feed Management -->
             <Border Grid.Row="4" Style="{StaticResource AdminSectionContainer}">
                 <StackLayout Spacing="{StaticResource ItemSpacing}">
                     <Grid ColumnSpacing="{StaticResource ItemSpacing}">
@@ -239,7 +244,7 @@
                             <ColumnDefinition Width="auto" />
                         </Grid.ColumnDefinitions>
 
-                        <Label Grid.Column="0" Text="Player Camera Feeds" Style="{StaticResource AdminSectionTitle}" />
+                        <Label Grid.Column="0" Text="Camera Feed Sources" Style="{StaticResource AdminSectionTitle}" />
                         
                         <Border Grid.Column="1" Style="{StaticResource AppRefreshButtonContainer}">
                             <ImageButton Command="{Binding RefreshCameraFeedsCommand}"
@@ -254,58 +259,87 @@
                         </Border>
                     </Grid>
 
-                    <!-- Camera Feed Grid -->
-                    <CollectionView ItemsSource="{Binding PlayerCameraFeeds}"
-                                    Style="{StaticResource AdminCameraGrid}"
-                                    IsVisible="{Binding Cars,Converter={toolkit:IsListNotNullOrEmptyConverter}}">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate x:DataType="models:CarInfo">
-                                <Border Style="{StaticResource AdminCameraContainer}">
-                                    <Grid>
-                                        <!-- Camera feed placeholder -->
-                                        <Rectangle Style="{StaticResource AdminCameraPlaceholder}" />
-                                        
-                                        <!-- Player info overlay -->
-                                        <Grid Style="{StaticResource AdminCameraOverlay}">
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="auto" />
-                                            </Grid.ColumnDefinitions>
-                                            
-                                            <StackLayout Grid.Column="0">
-                                                <Label Text="{Binding PlayerName}" Style="{StaticResource AdminCameraPlayerName}" />
-                                                <Label Text="{Binding CarId, StringFormat='Car #{0}'}" Style="{StaticResource AdminCameraCarInfo}" />
-                                                <Label Text="{Binding Team}" 
-                                                       Style="{StaticResource AdminCameraTeamInfo}"
-                                                       TextColor="{Binding TeamColor}" />
-                                            </StackLayout>
-                                            
-                                            <Button Grid.Column="1"
-                                                    Text="Select"
-                                                    Command="{Binding Path=BindingContext.SelectPlayerCameraCommand, Source={x:Reference AdminPage}}"
-                                                    CommandParameter="{Binding .}"
-                                                    Style="{StaticResource AdminCompactButton}" />
-                                        </Grid>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    <!-- Camera Viewer -->
+                    <local:CameraViewerView BindingContext="{Binding CameraViewer}" />
 
-                    <!-- No cameras message -->
-                    <StackLayout IsVisible="{Binding PlayerCameraFeeds, Converter={toolkit:IsListNullOrEmptyConverter}}"
-                                 Style="{StaticResource AdminEmptyStateContainer}"
-                                 Margin="0,0,0,25">
-                        <Image HorizontalOptions="Center" MaximumWidthRequest="50">
-                            <Image.Source>
-                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
-                                                 Glyph="{x:Static fonts:FluentUI.camera_off_24_regular}"
-                                                 Size="{StaticResource EmptyStateIconSize}"
-                                                 Color="{StaticResource Gray500}" />
-                            </Image.Source>
-                        </Image>
-                        <Label Text="No camera feeds available" Style="{StaticResource AdminEmptyStateTitle}" />
-                        <Label Text="Camera feeds will appear here when players are connected" Style="{StaticResource AdminEmptyStateSubtext}" />
+                    <!-- Available Camera Sources -->
+                    <StackLayout IsVisible="{Binding AvailableCameraFeeds, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
+                                 Spacing="{StaticResource TinySpacing}">
+                        <Label Text="Available Sources:" Style="{StaticResource AdminItemSubtext}" />
+                        
+                        <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Always">
+                            <CollectionView ItemsSource="{Binding AvailableCameraFeeds}"
+                                            SelectionMode="Single"
+                                            SelectionChanged="FeedCollectionViewSelectionChanged"                                           
+                                            ItemsLayout="HorizontalList"
+                                            x:Name="FeedCollectionView">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:CameraFeedItem">
+                                        <Grid Padding="5">
+                                            <Border Padding="0"
+                                                    WidthRequest="80"
+                                                    HeightRequest="80"
+                                                    StrokeShape="RoundRectangle 12,12,12,12"
+                                                    StrokeThickness="2"
+                                                    BackgroundColor="{StaticResource Gray200}"
+                                                    Stroke="{StaticResource Gray300}">
+                                                
+                                                <!-- Selected state triggers -->
+                                                <Border.Triggers>
+                                                    <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="BackgroundColor" Value="{StaticResource DodgerBlue}" />
+                                                        <Setter Property="Stroke" Value="{StaticResource DodgerBlue}" />
+                                                    </DataTrigger>
+                                                </Border.Triggers>
+                                                
+                                                <StackLayout HorizontalOptions="Center"
+                                                             VerticalOptions="Center"
+                                                             Spacing="8">
+                                                    <Image WidthRequest="24"
+                                                           HeightRequest="24">
+                                                        <Image.Source>
+                                                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                                             Glyph="{x:Static fonts:FluentUI.video_24_regular}"
+                                                                             Size="24"
+                                                                             Color="{StaticResource Gray600}" />
+                                                        </Image.Source>
+                                                        
+                                                        <!-- Image color triggers -->
+                                                        <Image.Triggers>
+                                                            <DataTrigger TargetType="Image" Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="Source">
+                                                                    <Setter.Value>
+                                                                        <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                                                         Glyph="{x:Static fonts:FluentUI.video_24_regular}"
+                                                                                         Size="24"
+                                                                                         Color="{StaticResource White}" />
+                                                                    </Setter.Value>
+                                                                </Setter>
+                                                            </DataTrigger>
+                                                        </Image.Triggers>
+                                                    </Image>
+                                                    
+                                                    <Label Text="{Binding CarId, StringFormat='#{0}'}"
+                                                           FontSize="12"
+                                                           
+                                                           FontAttributes="Bold"
+                                                           HorizontalTextAlignment="Center"
+                                                           TextColor="{StaticResource Gray600}">
+                                                        
+                                                        <!-- Label color triggers -->
+                                                        <Label.Triggers>
+                                                            <DataTrigger TargetType="Label" Binding="{Binding IsSelected}" Value="True">
+                                                                <Setter Property="TextColor" Value="{StaticResource White}" />
+                                                            </DataTrigger>
+                                                        </Label.Triggers>
+                                                    </Label>
+                                                </StackLayout>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+                        </ScrollView>
                     </StackLayout>
                 </StackLayout>
             </Border>
@@ -371,8 +405,7 @@
                                                Text="{Binding Team}" 
                                                TextColor="{Binding TeamColor}"
                                                FontSize="12" 
-                                               FontAttributes="Bold"
-                                               VerticalOptions="Center" />
+                                               FontAttributes="Bold" />
 
                                         <Button Grid.Column="3"
                                                 Text="{Binding IsAssigned, Converter={toolkit:BoolToObjectConverter}, ConverterParameter='Free,Assign'}"

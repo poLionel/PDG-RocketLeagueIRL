@@ -1,4 +1,4 @@
-﻿using RLIRL.Business.Abstractions.Models;
+﻿using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.Business.Abstractions.Abstractions
 {
@@ -18,10 +18,10 @@ namespace RLIRL.Business.Abstractions.Abstractions
         /// Updates the available camera feeds
         /// </summary>
         /// <param name="availableFeeds">Available feeds to set</param>
-        void UpdateAvailableFeeds(IEnumerable<int> availableFeeds);
+        void UpdateAvailableFeeds(IEnumerable<CameraFeed> availableFeeds);
 
         /// <summary>
-        /// Request refres camera feed data
+        /// Request refresh camera feed data
         /// </summary>
         void Refresh();
     }

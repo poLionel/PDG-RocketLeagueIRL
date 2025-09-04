@@ -195,8 +195,6 @@
 
     <Style x:Key="AdminCameraPlaceholder" TargetType="Rectangle">
         <Setter Property="Fill" Value="{StaticResource Black}" />
-        <Setter Property="HeightRequest" Value="180" />
-        <Setter Property="WidthRequest" Value="320" />
     </Style>
 
     <Style x:Key="AdminCameraOverlay" TargetType="Grid">

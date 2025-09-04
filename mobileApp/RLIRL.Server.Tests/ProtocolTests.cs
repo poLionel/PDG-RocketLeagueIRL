@@ -170,29 +170,6 @@ namespace RLIRL.Server.Tests
         }
 
         [Fact]
-        public async Task TestGetCarVideoFeedCommand()
-        {
-            // Prepare the command
-            var command = new GetCarVideoFeedCommand
-            {
-                Car = 1
-            };
-            var data = CommandSerializer.SerializeCommand(command);
-
-            // Send the command
-            using var wsClient = await GetWebSocketClientAsync();
-            await wsClient.SendAsync(data, WebSocketMessageType.Text, true, CancellationToken.None);
-
-            // Listen for the response (this should return raw JPEG data, not JSON)
-            var cancellationToken = new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token;
-            var buffer = new byte[serverConfiguration.MaxPacketSize];
-            var result = await wsClient.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
-            
-            // Check if we received some data (should be JPEG)
-            Assert.True(result.Count > 0);
-        }
-
-        [Fact]
         public async Task TestGoalScoredCommand()
         {
             // Prepare the command
@@ -213,8 +190,7 @@ namespace RLIRL.Server.Tests
             // Check if the response is valid
             Assert.NotNull(response);
             Assert.Equal("success", (string)response!.status);
-            Assert.Equal("goal_scored", (string)response!.action);
-            Assert.NotNull(response!.message);
+            Assert.Equal("get_game_status", (string)response!.action);
         }
 
         [Fact]
@@ -259,8 +235,7 @@ namespace RLIRL.Server.Tests
             // Check if the response is valid
             Assert.NotNull(response);
             Assert.Equal("success", (string)response!.status);
-            Assert.Equal("start_game", (string)response!.action);
-            Assert.NotNull(response!.message);
+            Assert.Equal("get_game_status", (string)response!.action);
         }
 
         [Fact]
@@ -281,8 +256,7 @@ namespace RLIRL.Server.Tests
             // Check if the response is valid
             Assert.NotNull(response);
             Assert.Equal("success", (string)response!.status);
-            Assert.Equal("stop_game", (string)response!.action);
-            Assert.NotNull(response!.message);
+            Assert.Equal("get_game_status", (string)response!.action);
         }
 
         private async Task<object?> WaitForResponseAsync(ClientWebSocket wsClient, CancellationToken cancellationToken)

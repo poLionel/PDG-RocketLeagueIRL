@@ -32,6 +32,11 @@ class Car:
         self.last_seen = None     # Timestamp of last BLE discovery
         self.websocket_id = None  # WebSocket connection identifier that controls this car
         
+        # Video feed properties
+        self.video_feed_url = None  # IP:PORT URL for video feed (e.g., "192.168.1.100:8080")
+        self.video_feed_port = 8080  # Default port for video feed
+        self.video_subscribers = set()  # Set of websocket IDs subscribed to this car's video feed
+        
     def update_status(self, **kwargs):
         """
         Update car status with provided parameters.
@@ -63,8 +68,32 @@ class Car:
             "connected": self.connected,
             "last_seen": self.last_seen.isoformat() if self.last_seen else None,
             "websocket_id": self.websocket_id,
-            "selected": self.websocket_id is not None
+            "selected": self.websocket_id is not None,
+            "video_feed_url": self.video_feed_url,
+            "has_video_feed": self.video_feed_url is not None,
+            "video_subscribers_count": len(self.video_subscribers),
         }
+    
+    def set_video_feed_url(self, ip_address, port=None):
+        """Set the video feed URL for this car."""
+        if port is None:
+            port = self.video_feed_port
+        if ip_address:
+            self.video_feed_url = f"{ip_address}:{port}"
+        else:
+            self.video_feed_url = None
+    
+    def add_video_subscriber(self, websocket_id):
+        """Add a websocket as a subscriber to this car's video feed."""
+        self.video_subscribers.add(websocket_id)
+    
+    def remove_video_subscriber(self, websocket_id):
+        """Remove a websocket from this car's video feed subscribers."""
+        self.video_subscribers.discard(websocket_id)
+    
+    def has_video_subscribers(self):
+        """Check if this car has any video feed subscribers."""
+        return len(self.video_subscribers) > 0
     
     def __str__(self):
         selected_status = f" [Selected by {self.websocket_id}]" if self.websocket_id else " [Available]"

@@ -9,7 +9,6 @@
   - [App communication](#app-communication-1)
   - [Car communication](#car-communication-1)
     - [Bluetooth Low Energy (BLE)](#bluetooth-low-energy-ble-1)
-    - [Websocket send video feed](#websocket-send-video-feed)
   - [Server game management](#server-game-management)
 
 # v0.2
@@ -59,6 +58,32 @@ We will also use BLE to send the commands (move, boost) from the server to the c
 We will use a websocket to communicate with the app.
 
 Use JSONs to send data.
+
+### Get accessible car feeds <!-- omit from toc -->
+
+App sends:
+
+```
+{
+  "action": "get_accessible_car_feeds"
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "get_accessible_car_feeds",
+  "accessible_feeds": [
+    {
+      "car_id": 1,
+      "url": "192.168.1.100:8080",
+    },
+    ...
+  ]
+}
+```
 
 ### Get free cars <!-- omit from toc -->
 
@@ -205,7 +230,37 @@ App sends:
 }
 ```
 
-Server responds with a jpeg of the last frame.
+To unsubscribe from all video feeds, send an empty car ID:
+
+```
+{
+  "action": "get_car_video_feed",
+  "car": ""
+}
+```
+
+Server responds:
+
+```
+{
+  "status": "success",
+  "action": "get_car_video_feed",
+  "message": "Subscribed to video feed for car 1",
+  "following_car": 1,
+  "video_feed_url": "192.168.1.100:8080"
+}
+```
+
+The server will then periodically fetch video frames from the car's IP camera and broadcast them to subscribed clients as:
+
+```
+{
+  "action": "video_frame_update",
+  "car": 1,
+  "video_frame": "<base64_encoded_jpeg>",
+  "timestamp": "1693123456.789"
+}
+```
 
 ### A goal is scored <!-- omit from toc -->
 
@@ -411,25 +466,16 @@ Server responds:
 }
 ```
 
-## Car communication
+### Set car video IP <!-- omit from toc -->
 
-### Bluetooth Low Energy (BLE)
-
-We will use BLE to automatically pair the car with the server.
-
-We will also use BLE to send the commands (move, boost) from the server to the car.
-
-### Websocket send video feed
-
-The car will send the video feed to the server using a websocket.
-
-Car sends:
+App sends:
 
 ```
 {
-  "action": "send_video_feed",
+  "action": "set_car_video_ip",
   "car": 1,
-  "video_frame": "<base64_encoded_jpeg>"
+  "ip_address": "192.168.1.100",
+  "port": 8080
 }
 ```
 
@@ -438,9 +484,20 @@ Server responds:
 ```
 {
   "status": "success",
-  "action": "send_video_feed"
+  "action": "set_car_video_ip",
+  "message": "Video feed URL set for car 1",
+  "car": 1,
+  "video_feed_url": "192.168.1.100:8080"
 }
 ```
+
+## Car communication
+
+### Bluetooth Low Energy (BLE)
+
+We will use BLE to automatically pair the car with the server.
+
+We will also use BLE to send the commands (move, boost) from the server to the car.
 
 ## Server game management
 

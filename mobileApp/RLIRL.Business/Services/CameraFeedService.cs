@@ -1,7 +1,7 @@
 ﻿using RLIRL.Business.Abstractions.Abstractions;
-using RLIRL.Business.Abstractions.Models;
 using RLIRL.Server.Abstractions.Abstractions;
 using RLIRL.Server.Abstractions.ClientCommands;
+using RLIRL.Server.Abstractions.ServerResponses;
 
 namespace RLIRL.Business.Services
 {
@@ -11,13 +11,12 @@ namespace RLIRL.Business.Services
 
         public event EventHandler<IEnumerable<CameraFeed>>? CameraFeedsChanged;
 
-        private IEnumerable<int> availableCameraFeeds= [];
-
-        public void UpdateAvailableFeeds(IEnumerable<int> availableFeeds)
+        public void UpdateAvailableFeeds(IEnumerable<CameraFeed> availableFeeds)
         {
-            if (availableCameraFeeds != availableFeeds)
+            if (CameraFeeds != availableFeeds)
             {
-                availableCameraFeeds = availableFeeds;
+                CameraFeeds = availableFeeds;
+                CameraFeedsChanged?.Invoke(this, CameraFeeds);
             }
         }
 

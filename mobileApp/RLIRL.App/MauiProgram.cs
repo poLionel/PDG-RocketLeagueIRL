@@ -51,6 +51,7 @@ namespace RLIRL.App
             builder.Services.AddTransient<MenuViewModel>();
             builder.Services.AddTransient<GameViewModel>();
             builder.Services.AddTransient<GameAdminViewModel>();
+            builder.Services.AddTransient<CameraViewerViewModel>();
             builder.Services.AddTransient<CarSelectorViewModel>();
 
             // Android specific services

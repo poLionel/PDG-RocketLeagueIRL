@@ -2,15 +2,7 @@
 Bluetooth WebSocket handlers for the Rocket League IRL server.
 
 This module provides WebSocket endpoint handlers specifically for Bluetooth
-device management operations. It acts as a bridge between WebSocket clients
-and the BluetoothService, enabling remote control of device discovery,
-pairing, and status monitoring.
-
-Key handler functions:
-- Bluetooth adapter status monitoring
-- Device discovery and scanning control
-- Device pairing and connection management
-- Service availability checking with graceful degradation
+device management operations.
 """
 
 # Global Bluetooth service instance (injected by main application)
@@ -21,7 +13,7 @@ def set_bluetooth_service(service):
     Configure the global Bluetooth service for handler access.
     
     Args:
-        service: BluetoothService instance for device operations
+        service: BLEService instance for device operations
     """
     global bluetooth_service
     bluetooth_service = service
@@ -31,7 +23,7 @@ def get_bluetooth_service():
     Retrieve the global Bluetooth service instance.
     
     Returns:
-        BluetoothService: Active service instance or None if unavailable
+        BLEService: Active service instance or None if unavailable
     """
     return bluetooth_service
 
@@ -152,7 +144,7 @@ def handle_pair_bluetooth_device(data, car_manager=None):
     
     if bluetooth_service:
         try:
-            from .bluetooth_service import BluetoothDevice
+            from .ble_device import BluetoothDevice
             device = BluetoothDevice(device_address, device_name)
             success = bluetooth_service.pair_device(device)
             

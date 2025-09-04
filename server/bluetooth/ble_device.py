@@ -2,16 +2,8 @@
 PDG Car BLE device representation and connection management.
 
 This module provides the PDGCarDevice class which handles all Bluetooth Low Energy
-communication with physical Rocket League cars. It manages connection lifecycle,
-characteristic read/write operations, and implements the protocol defined in the
-car's ESP32 firmware.
-
-Key Features:
-- Robust connection handling with retry logic optimized for Raspberry Pi
-- Type-safe characteristic read/write operations matching firmware data types
-- Motor control with bounds checking and safety limits
-- WiFi provisioning for initial car setup
-- Real-time status monitoring and battery level reporting
+communication with physical Rocket League cars, and a simple BluetoothDevice class
+for legacy compatibility.
 """
 
 import asyncio
@@ -24,6 +16,7 @@ from bleak.backends.device import BLEDevice
 from .ble_constants import (
     CHAR_SSID, CHAR_PASS, CHAR_APPLY, CHAR_STATUS, CHAR_DEVID, CHAR_BATTERY,
     CHAR_DIR_X, CHAR_DIR_Y, CHAR_DIR_SPEED, CHAR_DECAY_MODE,
+    CHAR_IP, CHAR_MAC, CHAR_NETMASK, CHAR_GATEWAY,
     clamp, dump
 )
 
@@ -368,6 +361,39 @@ class PDGCarDevice:
             logger.warning(f"WiFi apply status read error from {self.name}: {e}")
         return None
 
+    # Network configuration characteristic read functions
+    async def read_ip_address(self) -> Optional[str]:
+        """Read the IP address assigned to the device."""
+        try:
+            return await self.read_string(CHAR_IP)
+        except Exception as e:
+            logger.warning(f"IP address read error from {self.name}: {e}")
+        return None
+
+    async def read_mac_address(self) -> Optional[str]:
+        """Read the MAC address of the device."""
+        try:
+            return await self.read_string(CHAR_MAC)
+        except Exception as e:
+            logger.warning(f"MAC address read error from {self.name}: {e}")
+        return None
+
+    async def read_netmask(self) -> Optional[str]:
+        """Read the network subnet mask."""
+        try:
+            return await self.read_string(CHAR_NETMASK)
+        except Exception as e:
+            logger.warning(f"Netmask read error from {self.name}: {e}")
+        return None
+
+    async def read_gateway(self) -> Optional[str]:
+        """Read the network gateway address."""
+        try:
+            return await self.read_string(CHAR_GATEWAY)
+        except Exception as e:
+            logger.warning(f"Gateway read error from {self.name}: {e}")
+        return None
+
     # Motor control characteristic read functions
     async def read_x_direction(self) -> Optional[int]:
         """Read X direction (steering) value (-100 to 100)."""
@@ -490,6 +516,14 @@ class PDGCarDevice:
                 "apply_pending": await self.read_wifi_apply_status()
             }
             
+            # Read network configuration
+            state["network"] = {
+                "ip_address": await self.read_ip_address(),
+                "mac_address": await self.read_mac_address(),
+                "netmask": await self.read_netmask(),
+                "gateway": await self.read_gateway()
+            }
+            
             # Read motor control state
             state["motor_control"] = {
                 "x_direction": await self.read_x_direction(),
@@ -535,6 +569,21 @@ class PDGCarDevice:
         except Exception as e:
             logger.error(f"Failed to set WiFi credentials on {self.name}: {e}")
             return False
+
+    async def get_video_feed_url(self) -> Optional[str]:
+        """Get the video feed URL for this car based on its IP address."""
+        try:
+            ip_address = await self.read_ip_address()
+            if ip_address and ip_address.strip():
+                video_url = f"http://{ip_address.strip()}:81/stream"
+                logger.info(f"Video feed URL for {self.name}: {video_url}")
+                return video_url
+            else:
+                logger.warning(f"No IP address available for {self.name}")
+                return None
+        except Exception as e:
+            logger.error(f"Error getting video feed URL for {self.name}: {e}")
+            return None
     
     def to_dict(self) -> dict:
         """Convert device to dictionary representation."""
@@ -545,3 +594,19 @@ class PDGCarDevice:
             "rssi": self.rssi,
             "is_connected": self.is_connected
         }
+
+
+class BluetoothDevice:
+    """
+    Legacy compatibility wrapper for simple Bluetooth device representation.
+    
+    Provides a basic interface for representing discovered Bluetooth devices
+    without the full BLE connection capabilities of PDGCarDevice.
+    """
+    def __init__(self, address: str, name: str = "Unknown", paired: bool = False):
+        self.address = address
+        self.name = name
+        self.paired = paired
+    
+    def __str__(self):
+        return f"BluetoothDevice({self.name}, {self.address}, paired={self.paired})"

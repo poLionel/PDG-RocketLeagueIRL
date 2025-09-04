@@ -102,14 +102,14 @@ async def handle_message(websocket, path=None):
                     # Synchronous game management actions
                     if action in ["get_game_status", "add_car_to_team", "remove_car_from_teams", "add_team"]:
                         response = ACTION_HANDLERS[action](data, game_manager=game_manager)
-                    # Pass websocket_id for car assignment and ownership tracking
-                    elif action in ["select_car", "free_car", "move_car", "send_to_car", "connect_to_car"]:
+                    # Pass websocket_id for car assignment, ownership tracking, and video feed subscriptions
+                    elif action in ["select_car", "free_car", "move_car", "send_to_car", "connect_to_car", "get_car_video_feed"]:
                         response = ACTION_HANDLERS[action](data, car_manager, websocket_id)
                     else:
                         response = ACTION_HANDLERS[action](data, car_manager)
                 else:
                     response = handle_unknown_action(data)
-                    
+                
                 await websocket.send(json.dumps(response))
                 
             except json.JSONDecodeError:
@@ -140,6 +140,7 @@ async def cleanup_websocket_connection(websocket_id):
         del active_connections[websocket_id]
     
     if car_manager:
+        # Free all cars assigned to this websocket
         freed_cars = car_manager.free_cars_by_websocket(websocket_id)
         if freed_cars:
             logger.info(f"Freed cars {freed_cars} from disconnected websocket {websocket_id}")
@@ -193,13 +194,12 @@ async def game_time_monitor():
                     current_game = game_manager.get_current_game()
                     final_status = current_game.to_dict()
                     
-                    # Import broadcast function from async_handlers
-                    from .async_handlers import broadcast_game_event
-                    await broadcast_game_event(
-                        "game_ended",
-                        "⏰ Game ended - Time expired!",
-                        final_status
-                    )
+                    # Broadcast game end event to all clients
+                    await broadcast_to_all_clients({
+                        "action": "game_ended",
+                        "message": "Game ended - Time expired!",
+                        "game_status": final_status
+                    })
                     
                     logger.info("Game ended due to time expiration - broadcast sent")
             
@@ -209,21 +209,6 @@ async def game_time_monitor():
         except Exception as e:
             logger.error(f"Error in game time monitor: {e}")
             await asyncio.sleep(5)  # Wait longer if there's an error
-
-async def start_server_async(port=8000):
-    print(f"Serveur WebSocket en écoute sur le port {port}...")
-    async with websockets.serve(handle_message, "0.0.0.0", port):
-        await asyncio.Future()  # Run forever
-
-def start_server(port=8000):
-    asyncio.run(start_server_async(port))
-
-async def start_server_with_cars(manager, port=8000):
-    """Start the WebSocket server with a car manager (async version)."""
-    set_car_manager(manager)
-    print(f"Serveur WebSocket en écoute sur le port {port}...")
-    async with websockets.serve(handle_message, "0.0.0.0", port):
-        await asyncio.Future()  # Run forever
 
 async def start_server_with_managers(car_mgr, game_mgr, port=8000):
     """Start the WebSocket server with both car and game managers (async version)."""
@@ -239,4 +224,5 @@ async def start_server_with_managers(car_mgr, game_mgr, port=8000):
         await asyncio.Future()  # Run forever
 
 if __name__ == "__main__":
-    start_server()
+    # For development/testing only - run basic server without managers
+    asyncio.run(start_server_with_managers(None, None))

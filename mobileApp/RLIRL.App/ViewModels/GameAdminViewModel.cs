@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CommunityToolkit.Maui.Views;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RLIRL.App.Models;
@@ -23,10 +24,16 @@ namespace RLIRL.App.ViewModels
         public partial GameInfo Game { get; set; } = new();
 
         [ObservableProperty]
-        public partial ObservableCollection<PlayerCameraFeedInfo> PlayerCameraFeeds { get; set; } = new();
+        public partial ObservableCollection<CarInfo> Cars { get; set; } = new();
 
         [ObservableProperty]
-        public partial ObservableCollection<CarInfo> Cars { get; set; } = new();
+        public partial ObservableCollection<CameraFeedItem> AvailableCameraFeeds { get; set; } = new();
+
+        [ObservableProperty]
+        public partial int? SelectedCameraFeedId { get; set; }
+
+        [ObservableProperty]
+        public partial Uri? VideoStreamUrl { get; set; }
 
         [ObservableProperty]
         public partial string TimeLeft { get; set; } = "00:00";
@@ -51,6 +58,10 @@ namespace RLIRL.App.ViewModels
 
         [ObservableProperty]
         public partial bool IsResumeShown { get; set; }
+
+        // Camera Viewer ViewModel
+        [ObservableProperty]
+        public partial CameraViewerViewModel CameraViewer { get; set; } = new();
 
         public void Initialize()
         {
@@ -111,12 +122,6 @@ namespace RLIRL.App.ViewModels
         }
 
         [RelayCommand]
-        private void SelectPlayerCamera(PlayerCameraFeedInfo cameraFeed)
-        {
-            // TODO: Implement select player camera logic
-        }
-
-        [RelayCommand]
         private void RefreshCars()
         {
             // TODO: Implement refresh cars logic
@@ -128,37 +133,97 @@ namespace RLIRL.App.ViewModels
             // TODO: Implement toggle car assignment logic
         }
 
-        private void OnGameStatusChanged(object? sender, GameStatus? e)
+        [RelayCommand]
+        private void SelectCameraFeed(CameraFeedItem? cameraFeed)
         {
-            if (e != null)
+            // Update selection state for all camera feeds
+            foreach (var feed in AvailableCameraFeeds)
             {
-                // Map the GameStatus to GameInfo
-                Game = mapper.Map<GameInfo>(e);
+                feed.IsSelected = feed == cameraFeed;
+            }
 
-                // Update the button states
-                CanStartGame = e.State == GameState.Ended || e.State == GameState.NotStarted;
-                CanStopGame = e.State == GameState.Active;
-                CanEndGame = e.State == GameState.Active || e.State == GameState.Paused;
-                CanScoreGoal = e.State == GameState.Active || e.State == GameState.Paused;
-                CanResumeGame = e.State == GameState.Paused;
-                IsResumeShown = e.State == GameState.Paused;
+            SelectedCameraFeedId = cameraFeed?.CarId;
+
+            // Validate the uri and create the MediaSource
+            if (cameraFeed != null && Uri.TryCreate(cameraFeed.Url, UriKind.Absolute, out var uri))
+            {
+                VideoStreamUrl = uri;
+                // Update the camera viewer
+                CameraViewer.UpdateCamera(uri, cameraFeed.CarId);
             }
             else
             {
-                // Game status is null, reset to default
-                Game = new GameInfo();
-                GameStatus = "Game Stopped";
+                VideoStreamUrl = null;
+                // Clear the camera viewer
+                CameraViewer.ClearCamera();
             }
+        }
+
+        private void OnGameStatusChanged(object? sender, GameStatus? e)
+        {
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                if (e != null)
+                {
+                    // Map the GameStatus to GameInfo
+                    Game = mapper.Map<GameInfo>(e);
+
+                    // Update the button states
+                    CanStartGame = e.State == GameState.Ended || e.State == GameState.NotStarted;
+                    CanStopGame = e.State == GameState.Active;
+                    CanEndGame = e.State == GameState.Active || e.State == GameState.Paused;
+                    CanScoreGoal = e.State == GameState.Active || e.State == GameState.Paused;
+                    CanResumeGame = e.State == GameState.Paused;
+                    IsResumeShown = e.State == GameState.Paused;
+                }
+                else
+                {
+                    // Game status is null, reset to default
+                    Game = new GameInfo();
+                    GameStatus = "Game Stopped";
+                }
+            });
         }
 
         private void CameraFeedsChanged(object? sender, IEnumerable<CameraFeed>? e)
         {
-            // TODO: Handle null case if needed
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                var previousSelectedId = SelectedCameraFeedId;
+                AvailableCameraFeeds = mapper.Map<ObservableCollection<CameraFeedItem>>(e ?? []);
+
+                // Restore selection state if the previously selected feed is still available
+                if (!previousSelectedId.HasValue) return;
+
+                var selectedFeed = AvailableCameraFeeds.FirstOrDefault(f => f.CarId == previousSelectedId.Value);
+                if (selectedFeed != null)
+                {
+                    selectedFeed.IsSelected = true;
+
+                    // Update camera viewer with the restored selection
+                    if (Uri.TryCreate(selectedFeed.Url, UriKind.Absolute, out var uri))
+                    {
+                        CameraViewer.UpdateCamera(uri, selectedFeed.CarId);
+                    }
+                }
+                else
+                {
+                    SelectedCameraFeedId = null;
+                    VideoStreamUrl = null;
+                    CameraViewer.ClearCamera();
+                }
+            });
         }
 
         private void TimeLeftChanged(object? sender, TimeSpan timeLeft)
         {
-            TimeLeft = timeLeft.ToString(@"mm\:ss");
+            // Ensure UI updates happen on the main thread
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                TimeLeft = timeLeft.ToString(@"mm\:ss");
+            });
         }
 
         public void Dispose()
