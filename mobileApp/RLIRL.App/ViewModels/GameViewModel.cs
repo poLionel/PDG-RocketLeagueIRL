@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using AutoMapper;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RLIRL.App.Models;
 using RLIRL.Business.Abstractions.Abstractions;
@@ -14,13 +15,14 @@ namespace RLIRL.App.ViewModels
     {
         #region Constructor
 
-        public GameViewModel(ICarControlService carControlService, IGameService gameService, ITimerService timerService, ICarService carService, ICameraFeedService cameraFeedService)
+        public GameViewModel(ICarControlService carControlService, IGameService gameService, ITimerService timerService, ICarService carService, ICameraFeedService cameraFeedService, IMapper mapper)
         {
             _carControlService = carControlService;
             _gameService = gameService;
             _timerService = timerService;
             _carService = carService;
             _cameraFeedService = cameraFeedService;
+            _mapper = mapper;
 
             _gameService.GameStatusChanged += OnGameStatusChanged;
             _timerService.TimeLeftChanged += OnTimerChanged;
@@ -83,9 +85,13 @@ namespace RLIRL.App.ViewModels
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 if (e != null)
-                    Game ??= new();
+                {
+                    Game = _mapper.Map<GameInfo>(e);
+                }
                 else
+                {
                     Game = new GameInfo();
+                }
             });
         }
 
@@ -204,6 +210,8 @@ namespace RLIRL.App.ViewModels
         private readonly ICarService _carService;
 
         private readonly ICameraFeedService _cameraFeedService;
+
+        private readonly IMapper _mapper;
 
         #endregion
     }
