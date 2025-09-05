@@ -65,13 +65,13 @@ def translate_move_to_drive_params(move, x, boost):
     decay_mode = 0  # Normal braking behavior
     
     # Map movement commands to motor directions
-    if move == "forward":
+    if move == "forward" or move == "0" or move == 0:
         drive_y = 50   # Positive Y-axis for forward motion
         speed = 50     # Moderate base speed for control
-    elif move == "backward":
+    elif move == "backward" or move == "1" or move == 1:
         drive_y = -50  # Negative Y-axis for reverse motion
         speed = 50     # Same speed for consistent feel
-    elif move == "stopped":
+    elif move == "stopped" or move == "2" or move == 2:
         drive_y = 0    # No directional movement
         speed = 0      # Complete stop
     
