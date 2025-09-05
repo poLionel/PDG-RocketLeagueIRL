@@ -162,7 +162,7 @@ App sends:
 ```
 
 - `move`: Movement direction - "forward", "backward", or "stopped"
-- `x`: Steering value from -100 (full left) to 100 (full right), 0 is straight
+- `x`: Steering value from -100 (full right) to 100 (full left), 0 is straight
 
 Server responds:
 
