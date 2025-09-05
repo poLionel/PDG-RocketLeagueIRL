@@ -1,0 +1,14 @@
+using RLIRL.Server.Abstractions;
+using RLIRL.Server.Abstractions.ServerCommands;
+
+namespace RLIRL.Server.Services.CommandProcessors
+{
+    internal class GetCarStatusResponseProcessor : ServerResponseProcessorBase<GetCarStatusResponse>
+    {
+        public override Task ProcessResponseAsync(GetCarStatusResponse response)
+        {
+            // Ignore
+            return Task.CompletedTask;
+        }
+    }
+}

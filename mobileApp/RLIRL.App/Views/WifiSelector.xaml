@@ -1,0 +1,153 @@
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:RLIRL.App.Views"
+             xmlns:vm="clr-namespace:RLIRL.App.ViewModels"
+             xmlns:models="clr-namespace:RLIRL.App.Models"
+             xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:DataType="vm:WifiSelectorViewModel"
+             x:Class="RLIRL.App.Views.WifiSelector"
+             x:Name="ContentView">
+    
+    <!-- Load data -->
+    <ContentView.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Loaded"
+            BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentView}, x:DataType=ContentView}"
+            Command="{Binding LoadNetworksCommand}" />
+    </ContentView.Behaviors>
+
+    <Border Style="{StaticResource AppContainerBorder}">
+        <Grid>
+            <Grid Padding="{StaticResource SmallPadding}">
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="*"></RowDefinition>
+                </Grid.RowDefinitions>
+
+                <!-- Header and Refresh Button -->
+                <Grid Grid.Row="0" 
+                      Padding="{StaticResource SmallPadding}" 
+                      ColumnSpacing="{StaticResource SmallSpacing}" 
+                      Margin="0,0,0,10" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Label Grid.Column="0" 
+                           Text="WiFi Networks" 
+                           Style="{StaticResource AppSectionTitle}" />
+
+                    <Border Grid.Column="1" Style="{StaticResource AppRefreshButtonContainer}">
+                        <ImageButton Command="{Binding LoadNetworksCommand}"
+                                     Style="{StaticResource AppRefreshButton}"
+                                     Padding="0,3,3,0"
+                                     IsEnabled="{Binding Loading, Converter={toolkit:InvertedBoolConverter}}">
+                            <ImageButton.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.arrow_clockwise_12_regular}"
+                                                 Size="{StaticResource LargeIconSize}"
+                                                 Color="{StaticResource DodgerBlue}" />
+                            </ImageButton.Source>
+                        </ImageButton>
+                    </Border>
+                </Grid>
+
+                <!-- Network List -->
+                <ListView Grid.Row="1"
+                          ItemsSource="{Binding WifiNetworks}" 
+                          SelectionMode="Single" 
+                          IsVisible="{Binding WifiNetworks, Converter={toolkit:IsListNotNullOrEmptyConverter}}"
+                          x:Name="ContentViewListView">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="models:NetworkListItem">
+                            <ViewCell>
+                                <Border Style="{StaticResource NetworkListContainer}">
+                                    <Grid Style="{StaticResource NetworkItemGrid}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Wifi Icon -->
+                                        <Image Grid.Column="0" 
+                                               IsVisible="{Binding Icon, Converter={toolkit:IsStringNotNullOrWhiteSpaceConverter}}" >
+                                            <Image.Source>
+                                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                                 Glyph="{Binding Icon}"
+                                                                 Size="{StaticResource NetworkIconSize}" />
+                                            </Image.Source>
+                                        </Image>
+
+                                        <!-- Network Name -->
+                                        <Label Grid.Column="1" 
+                                               Text="{Binding Ssid}" 
+                                               Style="{StaticResource NetworkNameLabel}" />
+
+                                        <!-- Connected Text -->
+                                        <Label Grid.Column="2" 
+                                               IsVisible="{Binding Connected}" 
+                                               Text="(Connected)" 
+                                               Style="{StaticResource ConnectedLabel}" />
+
+                                        <!-- Connected background trigger -->
+                                        <Grid.Triggers>
+                                            <DataTrigger TargetType="Grid" Binding="{Binding Connected}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="#40ADD8E6" />
+                                            </DataTrigger>
+                                        </Grid.Triggers>
+                                    </Grid>
+                                </Border>
+                            </ViewCell>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+
+                    <!-- Item Click -->
+                    <ListView.Behaviors>
+                        <toolkit:EventToCommandBehavior EventName="ItemSelected"
+                                                        x:DataType="vm:WifiSelectorViewModel"
+                                                        BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentView}}"
+                                                        Command="{Binding ConnectToNetworkCommand}"
+                                                        CommandParameter="{Binding SelectedItem, Source={x:Reference ContentViewListView}}" />
+                    </ListView.Behaviors>
+                </ListView>
+
+                <!-- No Networks Available Message and Settings Button -->
+                <Grid Grid.Row="2"
+                      IsVisible="{Binding WifiNetworks, Converter={toolkit:IsListNullOrEmptyConverter}}"
+                      Style="{StaticResource AppEmptyStateContainer}">
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                    </Grid.RowDefinitions>
+                
+                    <Label Grid.Row="0"
+                           Text="No WiFi networks found" 
+                           Style="{StaticResource AppEmptyStateTitle}" />
+
+                    <Label Grid.Row="1"
+                           Text="You can open WiFi settings to manually connect to a network" 
+                           Style="{StaticResource AppEmptyStateSubtext}" />
+
+                    <Button Grid.Row="2"
+                            Text="Open WiFi Settings" 
+                            Command="{Binding NavigateToSettingsCommand}"
+                            Style="{StaticResource AppEmptyStateButton}" />
+                </Grid>
+            </Grid>
+
+            <!-- Loading Overlay -->
+            <Grid IsVisible="{Binding Loading}" Style="{StaticResource AppLoadingOverlay}">
+                <ActivityIndicator 
+                    IsRunning="{Binding Loading}" 
+                    Style="{StaticResource AppLoadingIndicator}" />
+            </Grid>
+        </Grid>
+    </Border>
+</ContentView>

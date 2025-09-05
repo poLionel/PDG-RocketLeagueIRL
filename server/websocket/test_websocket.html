@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket League IRL WebSocket API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .connected { background-color: #d4edda; color: #155724; }
+        .disconnected { background-color: #f8d7da; color: #721c24; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .success { background-color: #d4edda; color: #155724; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #0056b3; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .car-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .car-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+        .car-card h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .boost-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .steering-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .steering-controls input[type="range"] {
+            flex: 1;
+        }
+        .steering-controls span {
+            min-width: 30px;
+            font-weight: bold;
+            text-align: center;
+        }
+        #messages {
+            height: 200px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #f8f9fa;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .command-section {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .command-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin: 10px 0;
+        }
+        .command-inputs label {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        .command-inputs input, .command-inputs select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .quick-commands {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+        .controls-header {
+            margin-bottom: 15px;
+        }
+        .phase-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .phase-scan {
+            background-color: #ffeaa7;
+            color: #2d3436;
+        }
+        .phase-control {
+            background-color: #55a3ff;
+            color: white;
+        }
+        .phase-unknown {
+            background-color: #ddd;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rocket League IRL WebSocket API Tester</h1>
+    
+    <div class="container">
+        <h2>Connection Status</h2>
+        <p><strong>Workflow:</strong> Connect → Scan Phase → Control Phase → Send Commands</p>
+        <div id="connectionStatus" class="status disconnected">Disconnected</div>
+        <button onclick="connectWebSocket()">Connect</button>
+        <button onclick="disconnectWebSocket()">Disconnect</button>
+    </div>
+
+    <div class="container">
+        <h2>🤖 Auto Provisioning Service</h2>
+        <p>Monitor automatic WiFi provisioning and IP address retrieval:</p>
+        <div class="command-section">
+            <h4>� Service Status</h4>
+            <div class="command-inputs">
+                <button onclick="getAutoProvisioningStatus()">Get Status</button>
+                <button onclick="startAutoStatusMonitoring()">Start Auto-Refresh</button>
+                <button onclick="stopAutoStatusMonitoring()">Stop Auto-Refresh</button>
+            </div>
+            
+            <div id="autoProvisioningStatus" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+                <h4>Auto Provisioning Status</h4>
+                <div id="autoProvisioningContent">Click "Get Status" to check service status</div>
+            </div>
+            
+            <div style="margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
+                <h4>How Auto Provisioning Works:</h4>
+                <ol style="margin: 5px 0 5px 20px; font-size: 0.9em;">
+                    <li><strong>Discovery:</strong> When a car is discovered via BLE, it's automatically added to the provisioning queue</li>
+                    <li><strong>WiFi Setup:</strong> Server sends RL-Hotspot credentials to the car via BLE</li>
+                    <li><strong>Connection Wait:</strong> Waits 10 seconds for car to connect to WiFi</li>
+                    <li><strong>IP Retrieval:</strong> Reads car's IP address via BLE characteristic (up to 3 minutes)</li>
+                    <li><strong>Video Config:</strong> Automatically configures video feed URL (http://IP:81/stream)</li>
+                    <li><strong>Retry Logic:</strong> If any step fails, retries after 1 minute</li>
+                </ol>
+                <p style="margin: 10px 0 5px 0; font-size: 0.9em;"><strong>No manual intervention required!</strong> Cars are automatically configured when discovered.</p>
+            </div>
+        </div>
+    </div>
+        <p>Essential video feed functionality for car streaming:</p>
+        <div class="command-section">
+            <h4>Quick Video Setup</h4>
+            <div class="command-inputs">
+                <button onclick="getAccessibleCarFeeds()">🎥 Show Available Feeds</button>
+            </div>
+            
+            <div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+                <h4>Video Display</h4>
+                <div id="videoDisplay" style="text-align: center; min-height: 200px; border: 2px dashed #ccc; padding: 20px;">
+                    <p>No video feed active. Click "Show Available Feeds" to see available car video streams.</p>
+                </div>
+                <div id="videoStatus" style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                    Status: Not connected
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px; padding: 10px; background: #e8f5e8; border-radius: 5px;">
+                <h5>Streamlined Workflow:</h5>
+                <ol style="margin: 5px 0 5px 20px; font-size: 0.9em;">
+                    <li><strong>Show Available Feeds:</strong> Click "Show Available Feeds" to see all configured car video streams</li>
+                    <li><strong>Direct Streaming:</strong> Click "Show Feed" for any car to view its live video stream directly</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Car Controls</h2>
+        <div class="controls-header">
+            <button onclick="getAllCars()">Refresh Cars</button>
+            <button onclick="getFreeCars()">🆓 Get Free Cars</button>
+            <button onclick="getPhaseStatus()">Get Phase Status</button>
+        </div>
+        <div id="carControls" class="car-controls">
+            <!-- Car controls will be populated here -->
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Bluetooth Management</h2>
+        <p>Manage Bluetooth discovery and connections:</p>
+        <div class="command-section">
+            <div class="controls-header">
+                <button onclick="switchToScanPhase()">Switch to Scan Phase</button>
+                <button onclick="switchToControlPhase()">Switch to Control Phase</button>
+                <button onclick="getBluetoothStatus()">Get Bluetooth Status</button>
+            </div>
+            <div class="controls-header" style="margin-top: 10px;">
+                <button onclick="startBluetoothScan()">🔎 Start BLE Scan</button>
+                <button onclick="stopBluetoothScan()">Stop BLE Scan</button>
+            </div>
+            <div id="bluetoothStatus" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+                <h4>Bluetooth Status</h4>
+                <div id="bluetoothStatusContent">Click "Get Bluetooth Status" to check device status</div>
+            </div>
+            
+            <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 5px;">
+                <h4>Pair Device</h4>
+                <div class="command-inputs">
+                    <label for="pairDeviceAddress">Device Address:</label>
+                    <input type="text" id="pairDeviceAddress" placeholder="XX:XX:XX:XX:XX:XX">
+                    
+                    <label for="pairDeviceName">Device Name:</label>
+                    <input type="text" id="pairDeviceName" placeholder="Device Name">
+                    
+                    <button onclick="pairBluetoothDevice()">Pair Device</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Game Management</h2>
+        <p>Manage game state, teams, scoring, and match flow:</p>
+        <div class="command-section">
+            <h4>🏁 Game Controls</h4>
+            <div class="command-inputs">
+                <label for="matchLength">Match Length (seconds):</label>
+                <input type="number" id="matchLength" placeholder="300" value="300" min="60" max="3600">
+                
+                <button onclick="startGame()">Start/Reset Game</button>
+                <button onclick="stopGame()">Pause Game</button>
+                <button onclick="resumeGame()">Resume Game</button>
+                <button onclick="endGame()">🏁 End Game</button>
+                <button onclick="getGameStatus()">Get Game Status</button>
+            </div>
+            
+            <div style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <h5>Game Flow Explanation:</h5>
+                <ul style="margin: 5px 0 5px 20px; font-size: 0.9em;">
+                    <li><strong>Start/Reset Game:</strong> Creates a new game and starts it immediately</li>
+                    <li><strong>Pause Game:</strong> Stops the timer but keeps game state</li>
+                    <li><strong>Resume Game:</strong> Continues from where paused</li>
+                    <li><strong>End Game:</strong> Permanently ends the current game</li>
+                    <li><strong>Auto-End:</strong> Game ends automatically when time runs out</li>
+                </ul>
+            </div>
+            
+            <div id="gameStatusDisplay" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+                <h4>Game Status</h4>
+                <div id="gameStatusContent">A game is always available. Click "Get Game Status" to check current state</div>
+            </div>
+        </div>
+
+        <div class="command-section" style="margin-top: 20px;">
+            <h4>Scoring</h4>
+            <div class="command-inputs">
+                <label for="goalTeam">Team:</label>
+                <select id="goalTeam">
+                    <option value="red">Red Team</option>
+                    <option value="blue">Blue Team</option>
+                    <option value="green">Green Team</option>
+                    <option value="yellow">Yellow Team</option>
+                </select>
+                
+                <label for="goalPlayer">Player ID (optional):</label>
+                <input type="text" id="goalPlayer" placeholder="player123">
+                
+                <label for="goalCar">Car ID (optional):</label>
+                <input type="number" id="goalCar" placeholder="1">
+                
+                <button onclick="scoreGoal()">Score Goal</button>
+            </div>
+
+            <div class="quick-commands" style="margin-top: 10px;">
+                <h4>Quick Scoring:</h4>
+                <button onclick="quickScoreGoal('red')">🔴 Red Goal</button>
+                <button onclick="quickScoreGoal('blue')">🔵 Blue Goal</button>
+                <button onclick="quickScoreGoal('green')">🟢 Green Goal</button>
+                <button onclick="quickScoreGoal('yellow')">� Yellow Goal</button>
+                <button onclick="undoGoal()">Undo Last Goal</button>
+            </div>
+        </div>
+
+        <div class="command-section" style="margin-top: 20px;">
+            <h4>👥 Team Management</h4>
+            <div class="command-inputs">
+                <label for="teamColor">Team Color:</label>
+                <input type="text" id="teamColor" placeholder="red" value="red">
+                
+                <label for="teamName">Team Name (optional):</label>
+                <input type="text" id="teamName" placeholder="Team Red">
+                
+                <button onclick="addTeam()">➕ Add Team</button>
+            </div>
+
+            <div class="command-inputs" style="margin-top: 10px;">
+                <label for="carTeamId">Car ID:</label>
+                <input type="number" id="carTeamId" placeholder="1">
+                
+                <label for="carTeamColor">Team:</label>
+                <select id="carTeamColor">
+                    <option value="red">Red Team</option>
+                    <option value="blue">Blue Team</option>
+                    <option value="green">Green Team</option>
+                    <option value="yellow">Yellow Team</option>
+                </select>
+                
+                <button onclick="addCarToTeam()">➕ Add Car to Team</button>
+                <button onclick="removeCarFromTeams()">➖ Remove Car from Teams</button>
+            </div>
+
+            <div class="quick-commands" style="margin-top: 10px;">
+                <h4>Quick Team Setup:</h4>
+                <button onclick="setupDefaultTeams()">⚡ Setup Red vs Blue</button>
+                <button onclick="clearAllTeams()">Clear All Teams</button>
+                <button onclick="assignAvailableCars()">🎲 Auto-assign Cars</button>
+            </div>
+        </div>
+
+        <div class="command-section" style="margin-top: 20px;">
+            <h4>Game Scenarios</h4>
+            <div class="quick-commands">
+                <button onclick="simulateMatch()">Simulate Full Match</button>
+                <button onclick="simulateQuickGoals()">⚡ Quick Goal Test</button>
+                <button onclick="testGameFlow()">Test Game Flow</button>
+                <button onclick="emergencyStopGame()">🚨 Emergency Stop</button>
+            </div>
+        </div>
+    </div>
+        <p>Send commands directly to cars via Bluetooth Low Energy:</p>
+        <div class="command-section">
+            <div class="command-inputs">
+                <label for="commandCarId">Car ID:</label>
+                <input type="number" id="commandCarId" placeholder="Enter car ID">
+                
+                <label for="commandType">Command:</label>
+                <select id="commandType" onchange="updateCommandFields()">
+                    <option value="test">Test Command</option>
+                    <option value="wifi">WiFi Credentials</option>
+                    <option value="move">Move Command (forward/backward/stopped)</option>
+                    <option value="status">Status Request</option>
+                    <option value="ping">Ping</option>
+                    <option value="custom">Custom</option>
+                </select>
+                
+                <label for="commandMessage">Message:</label>
+                <input type="text" id="commandMessage" placeholder="Enter message" value="Hello from WebSocket!">
+                
+                <label for="commandX">X (Steering):</label>
+                <input type="number" id="commandX" placeholder="Steering (-100 to 100)" value="0" min="-100" max="100">
+                
+                <button onclick="sendCustomCommand()">Send Command</button>
+            </div>
+            
+            <div class="wifi-section" style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px;">
+                <h4>WiFi Credentials</h4>
+                <div class="command-inputs">
+                    <label for="wifiSSID">SSID:</label>
+                    <input type="text" id="wifiSSID" placeholder="WiFi Network Name" value="RL-Hotspot">
+                    
+                    <label for="wifiPassword">Password:</label>
+                    <input type="password" id="wifiPassword" placeholder="WiFi Password" value="rocketleague">
+                    
+                    <button onclick="sendWiFiToAllCars()">Set WiFi on All Cars</button>
+                </div>
+            </div>
+            
+            <div class="quick-commands">
+                <h4>Quick Commands:</h4>
+                <button onclick="sendQuickCommand('ping', 'Are you there?')">🏓 Ping All Cars</button>
+                <button onclick="sendQuickCommand('status', 'Send status update')">Request Status</button>
+                <button onclick="sendQuickCommand('test', 'Test from HTML interface')">🧪 Test Message</button>
+                <button onclick="sendQuickMoveCommand('forward', 0)">All Forward</button>
+                <button onclick="sendQuickMoveCommand('stopped', 0)">All Stop</button>
+                
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;">
+                    <h4>Movement Test Patterns:</h4>
+                    <button onclick="testCircularMovement()">Circular Movement Test</button>
+                    <button onclick="testFigureEight()">∞ Figure-8 Test</button>
+                    <button onclick="testPrecisionSteering()">Precision Steering Test</button>
+                    <button onclick="stopAllMovement()">🛑 Emergency Stop All</button>
+                </div>
+                
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ccc;">
+                    <h4>Phase Management:</h4>
+                    <button onclick="switchToScanPhase()">Scan Phase</button>
+                    <button onclick="switchToControlPhase()">Control Phase</button>
+                    <button onclick="getPhaseStatus()">Phase Status</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Controls Help</h2>
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px;">
+            <h4>Car Controls:</h4>
+            <ul>
+                <li><strong>Forward/Backward/Stop:</strong> Use the direction buttons</li>
+                <li><strong>Steering:</strong> Use the slider or steering buttons</li>
+                <li><strong>Boost:</strong> Increases speed to 100 (normal speed is 50) while keeping current movement and steering</li>
+                <li><strong>Car Selection:</strong> Select a car to control it exclusively</li>
+            </ul>
+            
+            <h4>🤖 Auto Provisioning Service:</h4>
+            <ul>
+                <li><strong>Automatic Operation:</strong> No manual WiFi setup needed - cars are configured automatically</li>
+                <li><strong>Discovery Integration:</strong> Works with BLE discovery to provision new cars</li>
+                <li><strong>WiFi Credentials:</strong> Automatically sends RL-Hotspot credentials via BLE</li>
+                <li><strong>IP Retrieval:</strong> Reads car's IP address once connected to WiFi</li>
+                <li><strong>Video Configuration:</strong> Auto-configures video feed URLs</li>
+                <li><strong>Retry Logic:</strong> Failed attempts are retried after 1 minute</li>
+                <li><strong>Status Monitoring:</strong> Real-time status updates for all cars in the queue</li>
+            </ul>
+            
+            <h4>Video Feed Testing (Streamlined):</h4>
+            <ul>
+                <li><strong>Show Available Feeds:</strong> Get all accessible car video feeds and display them with direct stream links</li>
+            </ul>
+            
+            <h4>Core Video API Actions:</h4>
+            <ul>
+                <li><strong>get_accessible_car_feeds:</strong> Get all available video feed URLs from configured cars</li>
+            </ul>
+            
+            <h4>Game Management:</h4>
+            <ul>
+                <li><strong>Always Available:</strong> A game is always ready - no need to create one</li>
+                <li><strong>Start/Reset Game:</strong> Begins a new match and resets all scores/time</li>
+                <li><strong>Pause Game:</strong> Stops the timer but preserves game state</li>
+                <li><strong>Resume Game:</strong> Continues from where the game was paused</li>
+                <li><strong>End Game:</strong> Permanently finishes the current match</li>
+                <li><strong>Auto-End:</strong> Game automatically ends when time expires</li>
+                <li><strong>Team Management:</strong> Add teams and assign cars to teams</li>
+                <li><strong>Scoring:</strong> Record goals for teams (red, blue, green, yellow)</li>
+            </ul>
+            
+            <h4>API Testing Features:</h4>
+            <ul>
+                <li><strong>Always-Available Game:</strong> No create_game needed - game is always ready</li>
+                <li><strong>start_game:</strong> Resets and starts a new match (with optional match length)</li>
+                <li><strong>stop_game:</strong> Pauses the game (preserves state and time)</li>
+                <li><strong>resume_game:</strong> New action to continue paused games</li>
+                <li><strong>end_game:</strong> Permanently ends the current match</li>
+                <li><strong>goal_scored:</strong> Action that matches documentation</li>
+                <li><strong>Auto-Timer:</strong> Game automatically ends when time expires</li>
+            </ul>
+            
+            <h4>Keyboard Controls:</h4>
+            <ul>
+                <li><strong>W / ↑:</strong> Move forward</li>
+                <li><strong>S / ↓:</strong> Move backward</li>
+                <li><strong>A / ←:</strong> Steer left (incremental)</li>
+                <li><strong>D / →:</strong> Steer right (incremental)</li>
+                <li><strong>Space / Esc:</strong> Emergency stop</li>
+                <li><strong>Shift:</strong> Hold for boost (increases speed to 100, releases to 50)</li>
+            </ul>
+            
+            <h4>Test Scenarios:</h4>
+            <ul>
+                <li><strong>Simulate Full Match:</strong> Complete game flow with pause/resume testing</li>
+                <li><strong>Quick Goal Test:</strong> Rapid goal scoring simulation</li>
+                <li><strong>Game Flow Test:</strong> Tests start/pause/resume/end cycle</li>
+                <li><strong>Emergency Stop:</strong> Stops both game and all car movement</li>
+                <li><strong>Video Stream Test:</strong> Simulates continuous video streaming from a car</li>
+            </ul>
+            
+            <p><em>Note: Select "Keyboard Control" on a car to enable keyboard controls for that specific car.</em></p>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Messages</h2>
+        <button onclick="clearMessages()">Clear Messages</button>
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        let socket = null;
+        let cars = {};
+        let lastCarCommands = {}; // Track last movement command for each car
+
+        function addMessage(message, type = 'info') {
+            const messagesDiv = document.getElementById('messages');
+            const timestamp = new Date().toLocaleTimeString();
+            const messageDiv = document.createElement('div');
+            messageDiv.innerHTML = `<span style="color: #666;">[${timestamp}]</span> <span style="color: ${type === 'error' ? 'red' : type === 'success' ? 'green' : 'black'};">${message}</span>`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusDiv = document.getElementById('connectionStatus');
+            if (connected) {
+                statusDiv.textContent = 'Connected to WebSocket server';
+                statusDiv.className = 'status connected';
+            } else {
+                statusDiv.textContent = 'Disconnected from WebSocket server';
+                statusDiv.className = 'status disconnected';
+            }
+        }
+
+        function connectWebSocket() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                addMessage('Already connected', 'error');
+                return;
+            }
+
+            const wsUrl = 'ws://localhost:8000';
+            addMessage(`Connecting to ${wsUrl}...`);
+            
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = function(event) {
+                addMessage('Connected to WebSocket server', 'success');
+                updateConnectionStatus(true);
+                getAllCars(); // Load cars when connected
+                getPhaseStatus(); // Get current phase status
+                getBluetoothStatus(); // Get Bluetooth status
+            };
+
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                addMessage(`Received: ${JSON.stringify(data, null, 2)}`);
+                handleServerResponse(data);
+            };
+
+            socket.onclose = function(event) {
+                addMessage('WebSocket connection closed');
+                updateConnectionStatus(false);
+            };
+
+            socket.onerror = function(error) {
+                addMessage(`WebSocket error: ${error}`, 'error');
+                updateConnectionStatus(false);
+            };
+        }
+
+        function disconnectWebSocket() {
+            if (socket) {
+                socket.close();
+                socket = null;
+                updateConnectionStatus(false);
+                addMessage('Disconnected from server');
+            }
+        }
+
+        function sendMessage(message) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify(message));
+                addMessage(`Sent: ${JSON.stringify(message, null, 2)}`);
+            } else {
+                addMessage('Not connected to server', 'error');
+            }
+        }
+
+        function handleServerResponse(data) {
+            if (data.cars) {
+                // Handle get_all_cars response
+                updateCarControls(data.cars);
+            }
+            
+            if (data.free_cars) {
+                // Handle get_free_cars response
+                addMessage(`Free cars: [${data.free_cars.join(', ')}]`, 'success');
+            }
+            
+            if (data.game_status) {
+                // Handle game status response
+                updateGameStatus(data.game_status);
+            }
+            
+            if (data.bluetooth_status) {
+                // Handle Bluetooth status response
+                updateBluetoothStatus(data.bluetooth_status);
+            }
+            
+            if (data.phase_status) {
+                // Handle phase status response
+                updatePhaseStatus(data.phase_status);
+            }
+            
+            if (data.discovered_devices) {
+                // Handle discovered devices from Bluetooth scan
+                updateDiscoveredDevices(data.discovered_devices);
+            }
+            
+            if (data.discovered_cars) {
+                // Handle discovered cars from phase switching
+                updateDiscoveredCars(data.discovered_cars);
+            }
+            
+            // Handle video feed responses
+            if (data.action === "get_accessible_car_feeds") {
+                if (data.status === 'success' && data.accessible_feeds) {
+                    showAccessibleFeeds(data.accessible_feeds);
+                } else {
+                    addMessage(`Failed to get accessible feeds: ${data.message || 'Unknown error'}`, 'error');
+                }
+            }
+            
+            if (data.action === "video_frame_update" || data.action === "send_video_feed") {
+                updateVideoDisplay(data);
+            }
+            
+            // Handle auto provisioning responses
+            if (data.action === "get_auto_provisioning_status") {
+                updateAutoProvisioningStatus(data);
+            }
+            
+            // Handle general status messages
+            if (data.status && data.message) {
+                const messageType = data.status === 'success' ? 'success' : 
+                                  data.status === 'error' ? 'error' : 'info';
+                addMessage(`${data.action || 'Response'}: ${data.message}`, messageType);
+            }
+        }
+
+        function updateGameStatus(gameStatus) {
+            const statusContent = document.getElementById('gameStatusContent');
+            if (statusContent) {
+                if (gameStatus) {
+                    const teams = gameStatus.teams || {};
+                    let teamsHtml = '<h5>Teams:</h5>';
+                    
+                    for (const [teamColor, teamData] of Object.entries(teams)) {
+                        const score = teamData.score || 0;
+                        const cars = teamData.cars || [];
+                        teamsHtml += `
+                            <div style="margin: 5px 0; padding: 8px; background: ${teamColor === 'red' ? '#ffebee' : teamColor === 'blue' ? '#e3f2fd' : teamColor === 'green' ? '#e8f5e8' : '#fff9c4'}; border-radius: 5px;">
+                                <strong>${teamColor.toUpperCase()} Team:</strong> Score: ${score}, Cars: [${cars.join(', ')}]
+                            </div>
+                        `;
+                    }
+                    
+                    const timeRemaining = gameStatus.time_remaining !== undefined ? 
+                        `${Math.floor(gameStatus.time_remaining / 60)}:${(gameStatus.time_remaining % 60).toString().padStart(2, '0')}` : 
+                        'Unknown';
+                    
+                    const gameState = gameStatus.state || 'Unknown';
+                    const matchLength = gameStatus.match_length_seconds || 'Unknown';
+                    const elapsedTime = gameStatus.elapsed_time !== undefined ? 
+                        `${Math.floor(gameStatus.elapsed_time / 60)}:${(gameStatus.elapsed_time % 60).toString().padStart(2, '0')}` : 
+                        'Unknown';
+                    const pausedTime = gameStatus.total_paused_time || 0;
+                    
+                    // State color coding
+                    const stateColors = {
+                        'active': 'green',
+                        'paused': 'orange', 
+                        'ended': 'red',
+                        'not_started': 'blue'
+                    };
+                    
+                    statusContent.innerHTML = `
+                        <div style="margin-bottom: 10px;">
+                            <strong>Game State:</strong> <span style="font-weight: bold; color: ${stateColors[gameState] || 'gray'};">${gameState.toUpperCase().replace('_', ' ')}</span><br>
+                            <strong>Time Remaining:</strong> ${timeRemaining}<br>
+                            <strong>Elapsed Time:</strong> ${elapsedTime}<br>
+                            <strong>Match Length:</strong> ${matchLength}s<br>
+                            ${pausedTime > 0 ? `<strong>Total Paused Time:</strong> ${pausedTime}s<br>` : ''}
+                        </div>
+                        ${teamsHtml}
+                        <div style="margin-top: 10px; padding: 8px; background: #f8f9fa; border-radius: 5px; font-size: 0.9em;">
+                            <strong>Controls:</strong> 
+                            ${gameState === 'not_started' ? 'Click "Start/Reset Game" to begin' : ''}
+                            ${gameState === 'active' ? 'Game is running - you can pause or end it' : ''}
+                            ${gameState === 'paused' ? 'Game is paused - you can resume or end it' : ''}
+                            ${gameState === 'ended' ? 'Game has ended - click "Start/Reset Game" for a new game' : ''}
+                        </div>
+                    `;
+                } else {
+                    statusContent.innerHTML = '<em>No game status available</em>';
+                }
+            }
+        }
+
+        // Game Management Functions
+        function startGame() {
+            const matchLength = document.getElementById('matchLength').value || null;
+            const message = {
+                "action": "start_game"
+            };
+            
+            if (matchLength) {
+                message.match_length_seconds = parseInt(matchLength);
+                addMessage(`Starting new game with ${matchLength} seconds...`);
+            } else {
+                addMessage("Starting game with default length...");
+            }
+            
+            sendMessage(message);
+        }
+
+        function stopGame() {
+            addMessage("Pausing game...");
+            sendMessage({
+                "action": "stop_game"
+            });
+        }
+
+        function resumeGame() {
+            addMessage("Resuming game...");
+            sendMessage({
+                "action": "resume_game"
+            });
+        }
+
+        function endGame() {
+            addMessage("Ending game...");
+            sendMessage({
+                "action": "end_game"
+            });
+        }
+
+        function getGameStatus() {
+            addMessage("Getting game status...");
+            sendMessage({
+                "action": "get_game_status"
+            });
+        }
+
+        function scoreGoal() {
+            const team = document.getElementById('goalTeam').value;
+            const player = document.getElementById('goalPlayer').value;
+            const car = document.getElementById('goalCar').value;
+            
+            const message = {
+                "action": "goal_scored",
+                "team": team
+            };
+            
+            if (player) message.player_id = player;
+            if (car) message.car_id = parseInt(car);
+            
+            addMessage(`Scoring goal for ${team} team...`);
+            sendMessage(message);
+        }
+        
+        function undoGoal() {
+            addMessage('Undoing last goal...');
+            sendMessage({ "action": "undo_goal" });
+        }
+
+        function quickScoreGoal(team) {
+            addMessage(`Quick goal for ${team} team...`);
+            sendMessage({
+                "action": "goal_scored",
+                "team": team
+            });
+        }
+
+        function addTeam() {
+            const color = document.getElementById('teamColor').value;
+            const name = document.getElementById('teamName').value;
+            
+            if (!color) {
+                addMessage('Please enter a team color', 'error');
+                return;
+            }
+            
+            const message = {
+                "action": "add_team",
+                "color": color
+            };
+            
+            if (name) message.name = name;
+            
+            addMessage(`Adding ${color} team...`);
+            sendMessage(message);
+        }
+
+        function addCarToTeam() {
+            const carId = document.getElementById('carTeamId').value;
+            const teamColor = document.getElementById('carTeamColor').value;
+            
+            if (!carId) {
+                addMessage('Please enter a car ID', 'error');
+                return;
+            }
+            
+            addMessage(`Adding car ${carId} to ${teamColor} team...`);
+            sendMessage({
+                "action": "add_car_to_team",
+                "car_id": parseInt(carId),
+                "team": teamColor
+            });
+        }
+
+        function removeCarFromTeams() {
+            const carId = document.getElementById('carTeamId').value;
+            
+            if (!carId) {
+                addMessage('Please enter a car ID', 'error');
+                return;
+            }
+            
+            addMessage(`Removing car ${carId} from all teams...`);
+            sendMessage({
+                "action": "remove_car_from_teams",
+                "car_id": parseInt(carId)
+            });
+        }
+
+        // Quick setup functions
+        function setupDefaultTeams() {
+            addMessage('Setting up Red vs Blue teams...', 'info');
+            
+            // Add teams
+            setTimeout(() => {
+                sendMessage({"action": "add_team", "color": "red", "name": "Red Team"});
+            }, 100);
+            
+            setTimeout(() => {
+                sendMessage({"action": "add_team", "color": "blue", "name": "Blue Team"});
+            }, 200);
+            
+            // Assign cars if available
+            setTimeout(() => {
+                assignAvailableCars();
+            }, 500);
+        }
+
+        function clearAllTeams() {
+            addMessage('Clearing all team assignments...', 'info');
+            
+            // Remove all cars from teams (assuming cars 0-3 exist)
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => {
+                    sendMessage({
+                        "action": "remove_car_from_teams",
+                        "car_id": i
+                    });
+                }, i * 100);
+            }
+        }
+
+        function assignAvailableCars() {
+            addMessage('Auto-assigning cars to teams...', 'info');
+            
+            // Get available car IDs
+            const carIds = Object.keys(cars).map(id => parseInt(id));
+            
+            if (carIds.length === 0) {
+                addMessage('No cars available for assignment', 'error');
+                return;
+            }
+            
+            // Assign cars alternating between red and blue teams
+            carIds.forEach((carId, index) => {
+                const team = index % 2 === 0 ? 'red' : 'blue';
+                setTimeout(() => {
+                    sendMessage({
+                        "action": "add_car_to_team",
+                        "car_id": carId,
+                        "team": team
+                    });
+                    addMessage(`Assigned car ${carId} to ${team} team`);
+                }, index * 200);
+            });
+        }
+
+        // Game simulation functions
+        function simulateMatch() {
+            addMessage('Starting full match simulation...', 'info');
+            
+            // Step 1: Start game (resets and creates new game)
+            setTimeout(() => {
+                startGame();
+            }, 500);
+            
+            // Step 2: Setup teams
+            setTimeout(() => {
+                setupDefaultTeams();
+            }, 1000);
+            
+            // Step 3: Simulate some goals
+            setTimeout(() => {
+                quickScoreGoal('red');
+            }, 2500);
+            
+            setTimeout(() => {
+                quickScoreGoal('blue');
+            }, 3500);
+            
+            setTimeout(() => {
+                quickScoreGoal('red');
+            }, 4500);
+            
+            // Step 4: Test pause/resume
+            setTimeout(() => {
+                stopGame();
+                addMessage('Pausing game for 2 seconds...');
+            }, 5500);
+            
+            setTimeout(() => {
+                resumeGame();
+            }, 7500);
+            
+            // Step 5: Check status
+            setTimeout(() => {
+                getGameStatus();
+            }, 8500);
+            
+            addMessage('Match simulation will run for 8 seconds with pause/resume test...', 'info');
+        }
+
+        function simulateQuickGoals() {
+            addMessage('⚡ Quick goal simulation...', 'info');
+            
+            const teams = ['red', 'blue', 'red', 'blue', 'red'];
+            teams.forEach((team, index) => {
+                setTimeout(() => {
+                    quickScoreGoal(team);
+                    addMessage(`Simulated goal ${index + 1} for ${team} team`);
+                }, index * 1000);
+            });
+            
+            // Get final status
+            setTimeout(() => {
+                getGameStatus();
+            }, teams.length * 1000 + 500);
+        }
+
+        function testGameFlow() {
+            addMessage('Testing complete game flow...', 'info');
+            
+            // Complete flow test
+            const steps = [
+                { delay: 0, action: () => startGame(), msg: 'Starting/resetting game...' },
+                { delay: 1000, action: () => addTeam(), msg: 'Adding team...' },
+                { delay: 1500, action: () => quickScoreGoal('red'), msg: 'Scoring goal...' },
+                { delay: 2000, action: () => getGameStatus(), msg: 'Checking status...' },
+                { delay: 2500, action: () => stopGame(), msg: 'Pausing game...' },
+                { delay: 3500, action: () => resumeGame(), msg: 'Resuming game...' },
+                { delay: 4000, action: () => endGame(), msg: 'Ending game...' },
+                { delay: 4500, action: () => getGameStatus(), msg: 'Final status check...' }
+            ];
+            
+            steps.forEach(step => {
+                setTimeout(() => {
+                    addMessage(step.msg);
+                    step.action();
+                }, step.delay);
+            });
+        }
+
+        function emergencyStopGame() {
+            addMessage('🚨 EMERGENCY STOP - Stopping game and all cars!', 'error');
+            
+            // Stop the game
+            stopGame();
+            
+            // Stop all car movement
+            stopAllMovement();
+            
+            // Get final status
+            setTimeout(() => {
+                getGameStatus();
+            }, 1000);
+        }
+
+        function updateBluetoothStatus(bluetoothStatus) {
+            const statusContent = document.getElementById('bluetoothStatusContent');
+            if (statusContent) {
+                statusContent.innerHTML = `
+                    <pre>${JSON.stringify(bluetoothStatus, null, 2)}</pre>
+                `;
+            }
+        }
+
+        function updatePhaseStatus(phaseStatus) {
+            addMessage(`Phase Status: ${JSON.stringify(phaseStatus, null, 2)}`, 'info');
+            
+            // Update phase indicator if available
+            const currentPhase = phaseStatus.current_phase || phaseStatus.phase || 'unknown';
+            updatePhaseIndicator(currentPhase);
+        }
+
+        function updatePhaseIndicator(phase) {
+            // Remove existing phase indicators
+            const existingIndicators = document.querySelectorAll('.phase-indicator');
+            existingIndicators.forEach(indicator => indicator.remove());
+            
+            // Add new phase indicator
+            const header = document.querySelector('.container h2');
+            if (header && header.textContent.includes('Car Controls')) {
+                const indicator = document.createElement('span');
+                indicator.className = `phase-indicator phase-${phase}`;
+                indicator.textContent = `Phase: ${phase.toUpperCase()}`;
+                header.appendChild(indicator);
+            }
+        }
+
+        function updateDiscoveredDevices(devices) {
+            addMessage(`Discovered ${devices.length} Bluetooth devices:`, 'success');
+            devices.forEach(device => {
+                addMessage(`  - ${device.name} (${device.address}) ${device.paired ? '[PAIRED]' : ''}`, 'info');
+            });
+        }
+
+        function updateDiscoveredCars(cars) {
+            addMessage(`Discovered ${cars.length} cars in phase:`, 'success');
+            cars.forEach(car => {
+                addMessage(`  - ${car.name} (${car.address || car.ble_address})`, 'info');
+            });
+        }
+
+        function updateCarControls(carsData) {
+            cars = {};
+            carsData.forEach(car => {
+                cars[car.car] = car;
+                // Initialize last command for each car based on current state
+                if (!lastCarCommands[car.car]) {
+                    lastCarCommands[car.car] = {
+                        move: car.move || 'stopped',
+                        x: car.x || 0
+                    };
+                }
+            });
+
+            const controlsDiv = document.getElementById('carControls');
+            controlsDiv.innerHTML = '';
+
+            carsData.forEach(car => {
+                const carDiv = document.createElement('div');
+                carDiv.className = 'car-card';
+                const selectedStatus = car.selected ? '🔒 Selected' : '🆓 Available';
+                const selectionColor = car.selected ? '#ffeb3b' : '#e8f5e8';
+                carDiv.style.backgroundColor = selectionColor;
+                
+                carDiv.innerHTML = `
+                    <h3>${car.name} (ID: ${car.car})</h3>
+                    <div>
+                        <strong>Status:</strong> <span id="connectionStatus_${car.car}" style="color: ${car.connected ? 'green' : 'red'};">${car.connected ? '🟢 Connected' : '🔴 Disconnected'}</span><br>
+                        <strong>Selection:</strong> ${selectedStatus}<br>
+                        <strong>Battery:</strong> <span id="battery_${car.car}" style="color: ${car.battery_level > 30 ? 'green' : car.battery_level > 15 ? 'orange' : 'red'};">${car.battery_level}%</span><br>
+                        <strong>Movement:</strong> <span id="movement_${car.car}" style="font-weight: bold; color: ${car.move === 'stopped' ? 'red' : car.move === 'forward' ? 'green' : 'blue'};">${car.move}</span><br>
+                        <strong>Steering:</strong> <span id="steeringDisplay_${car.car}" style="font-weight: bold;">${car.x || 0}</span><br>
+                        <strong>Boost:</strong> <span id="boostDisplay_${car.car}" style="color: ${car.boost ? 'orange' : 'gray'};">${car.boost ? '⚡ ON' : '⚪ OFF'}</span> (${car.boost_value}%)
+                    </div>
+                    <div class="boost-controls" style="margin-bottom: 10px;">
+                        <label>Car Selection:</label>
+                        ${car.selected ? 
+                            `<button onclick="freeCar(${car.car})" style="background-color: #f44336;">🔓 Free Car</button>` :
+                            `<button onclick="selectCar(${car.car})" style="background-color: #4caf50;">🔒 Select Car</button>`
+                        }
+                        <button onclick="setKeyboardControlCar(${car.car})" style="background-color: #2196f3;">Keyboard Control</button>
+                    </div>
+                    <div class="controls">
+                        <button onclick="moveCar(${car.car}, 'forward')">↑ Forward</button>
+                        <button onclick="moveCar(${car.car}, 'stopped')">⬜ Stop</button>
+                        <button onclick="moveCar(${car.car}, 'backward')">↓ Backward</button>
+                        <button onclick="steerCar(${car.car}, -100)">← Full Left</button>
+                        <button onclick="getCarStatus(${car.car})">⟲ Refresh</button>
+                        <button onclick="steerCar(${car.car}, 100)">→ Full Right</button>
+                    </div>
+                    <div class="steering-controls" style="margin: 10px 0;">
+                        <label>Steering (-100 to 100):</label>
+                        <input type="range" id="steering_${car.car}" min="-100" max="100" value="${car.x || 0}" 
+                               onchange="updateSteering(${car.car}, this.value)" style="width: 200px;">
+                        <span id="steeringValue_${car.car}">${car.x || 0}</span>
+                    </div>
+                    <div class="controls" style="margin: 10px 0;">
+                        <label>Precision Steering:</label>
+                        <button onclick="steerCar(${car.car}, -50)">← Left</button>
+                        <button onclick="steerCar(${car.car}, 0)">↕ Center</button>
+                        <button onclick="steerCar(${car.car}, 50)">→ Right</button>
+                    </div>
+                    <div class="boost-controls">
+                        <label>Boost:</label>
+                        <button onclick="toggleBoost(${car.car}, true)">⚡ On</button>
+                        <button onclick="toggleBoost(${car.car}, false)">⚪ Off</button>
+                    </div>
+                    <div class="boost-controls" style="margin-top: 10px;">
+                        <label>BLE Commands:</label>
+                        <button onclick="connectToCar(${car.car})">Connect BLE</button>
+                        <button onclick="sendWiFiCredentials(${car.car})">Set WiFi</button>
+                    </div>
+                    ${car.ble_address ? `<div style="font-size: 0.8em; color: #666; margin-top: 5px;">BLE: ${car.ble_address}</div>` : ''}
+                `;
+                controlsDiv.appendChild(carDiv);
+            });
+        }
+
+        // Car control functions
+        function getAllCars() {
+            sendMessage({
+                "action": "get_all_cars"
+            });
+        }
+
+        function getFreeCars() {
+            sendMessage({
+                "action": "get_free_cars"
+            });
+        }
+
+        function selectCar(carId) {
+            addMessage(`Selecting car ${carId}...`);
+            sendMessage({
+                "action": "select_car",
+                "car": carId
+            });
+        }
+
+        function freeCar(carId) {
+            addMessage(`Freeing car ${carId}...`);
+            sendMessage({
+                "action": "free_car",
+                "car": carId
+            });
+        }
+
+        function moveCar(carId, move, x = null, boost = null) {
+            // Get current car state
+            const currentCar = cars[carId];
+            
+            // Preserve current values if not explicitly provided
+            const finalX = x !== null ? x : (currentCar ? currentCar.x || 0 : 0);
+            const finalBoost = boost !== null ? boost : (currentCar ? currentCar.boost || false : false);
+            
+            // Convert boost parameter to string if it's boolean
+            const boostStr = typeof finalBoost === 'boolean' ? finalBoost.toString() : finalBoost;
+            
+            // Store the last command for this car (without boost info)
+            lastCarCommands[carId] = {
+                move: move,
+                x: finalX
+            };
+            
+            // Update local display immediately for responsiveness
+            updateCarStatusDisplay(carId, {
+                move: move,
+                x: finalX,
+                boost: finalBoost
+            });
+            
+            sendMessage({
+                "action": "move_car",
+                "car": carId,
+                "move": move,
+                "x": finalX,
+                "boost": boostStr
+            });
+        }
+
+        function toggleBoost(carId, boostOn) {
+            // Get the last command for this car
+            const lastCommand = lastCarCommands[carId];
+            if (!lastCommand) {
+                // If no last command, default to stopped
+                lastCommand = { move: 'stopped', x: 0 };
+            }
+            
+            // Send the last movement command with the new boost state
+            moveCar(carId, lastCommand.move, lastCommand.x, boostOn);
+        }
+
+        function steerCar(carId, x) {
+            const currentCar = cars[carId];
+            const currentMove = currentCar ? currentCar.move : 'stopped';
+            const currentBoost = currentCar ? currentCar.boost : false;
+            
+            // Send the movement command with new steering but preserve boost
+            moveCar(carId, currentMove, parseInt(x), currentBoost);
+            
+            // Update the slider if it exists
+            const slider = document.getElementById(`steering_${carId}`);
+            const valueDisplay = document.getElementById(`steeringValue_${carId}`);
+            if (slider) {
+                slider.value = x;
+            }
+            if (valueDisplay) {
+                valueDisplay.textContent = x;
+            }
+        }
+
+        function updateSteering(carId, x) {
+            const currentCar = cars[carId];
+            const currentMove = currentCar ? currentCar.move : 'stopped';
+            
+            // Update the display immediately for better responsiveness
+            document.getElementById(`steeringValue_${carId}`).textContent = x;
+            const steeringDisplay = document.getElementById(`steeringDisplay_${carId}`);
+            if (steeringDisplay) {
+                steeringDisplay.textContent = x;
+            }
+            
+            // Update the car object locally
+            if (cars[carId]) {
+                cars[carId].x = parseInt(x);
+            }
+            
+            // Send the movement command with new steering
+            moveCar(carId, currentMove, parseInt(x));
+        }
+
+        function updateCarStatusDisplay(carId, updates) {
+            // Update local car object
+            if (cars[carId]) {
+                Object.assign(cars[carId], updates);
+            }
+            
+            // Update visual elements
+            if (updates.move !== undefined) {
+                const movementDisplay = document.getElementById(`movement_${carId}`);
+                if (movementDisplay) {
+                    movementDisplay.textContent = updates.move;
+                    movementDisplay.style.color = updates.move === 'stopped' ? 'red' : 
+                                                  updates.move === 'forward' ? 'green' : 'blue';
+                }
+            }
+            
+            if (updates.x !== undefined) {
+                const steeringDisplay = document.getElementById(`steeringDisplay_${carId}`);
+                const steeringValue = document.getElementById(`steeringValue_${carId}`);
+                const slider = document.getElementById(`steering_${carId}`);
+                
+                if (steeringDisplay) steeringDisplay.textContent = updates.x;
+                if (steeringValue) steeringValue.textContent = updates.x;
+                if (slider) slider.value = updates.x;
+            }
+            
+            if (updates.boost !== undefined) {
+                const boostDisplay = document.getElementById(`boostDisplay_${carId}`);
+                if (boostDisplay) {
+                    const isBoostOn = updates.boost === true || updates.boost === 'true';
+                    boostDisplay.textContent = isBoostOn ? '⚡ ON' : '⚪ OFF';
+                    boostDisplay.style.color = isBoostOn ? 'orange' : 'gray';
+                }
+            }
+            
+            if (updates.connected !== undefined) {
+                const connectionStatus = document.getElementById(`connectionStatus_${carId}`);
+                if (connectionStatus) {
+                    connectionStatus.innerHTML = updates.connected ? '🟢 Connected' : '🔴 Disconnected';
+                    connectionStatus.style.color = updates.connected ? 'green' : 'red';
+                }
+            }
+        }
+
+        function updateCommandFields() {
+            const commandType = document.getElementById('commandType').value;
+            const messageField = document.getElementById('commandMessage');
+            const xField = document.getElementById('commandX');
+            
+            if (commandType === 'move') {
+                messageField.placeholder = 'forward, backward, or stopped';
+                messageField.value = 'forward';
+                xField.style.display = 'inline';
+                document.querySelector('label[for="commandX"]').style.display = 'inline';
+            } else {
+                messageField.placeholder = 'Enter message';
+                if (commandType === 'test') {
+                    messageField.value = 'Test from HTML interface';
+                } else if (commandType === 'ping') {
+                    messageField.value = 'Are you there?';
+                } else if (commandType === 'status') {
+                    messageField.value = 'Send status update';
+                } else {
+                    messageField.value = 'Hello from WebSocket!';
+                }
+                xField.style.display = 'none';
+                document.querySelector('label[for="commandX"]').style.display = 'none';
+            }
+        }
+
+        function getCarStatus(carId) {
+            sendMessage({
+                "action": "get_car_status",
+                "car": carId
+            });
+        }
+
+        // BLE Car command functions
+        function sendCustomCommand() {
+            const carId = document.getElementById('commandCarId').value;
+            const command = document.getElementById('commandType').value;
+            const message = document.getElementById('commandMessage').value;
+            const x = document.getElementById('commandX').value || 0;
+            
+            if (!carId) {
+                addMessage('Please enter a car ID', 'error');
+                return;
+            }
+            
+            if (command === 'wifi') {
+                sendWiFiCredentials(parseInt(carId));
+            } else if (command === 'move') {
+                // Special handling for move commands with x parameter
+                sendMessage({
+                    "action": "move_car",
+                    "car": parseInt(carId),
+                    "move": message || "forward",
+                    "x": parseInt(x),
+                    "boost": "false"
+                });
+            } else {
+                sendMessage({
+                    "action": "send_to_car",
+                    "car": parseInt(carId),
+                    "command": command,
+                    "message": message
+                });
+            }
+        }
+
+        function sendWiFiCredentials(carId) {
+            const ssid = document.getElementById('wifiSSID').value || "RL-Hotspot";
+            const password = document.getElementById('wifiPassword').value || "rocketleague";
+            
+            addMessage(`Setting WiFi credentials on car ${carId}: SSID=${ssid}`);
+            sendMessage({
+                "action": "set_wifi_credentials",
+                "car": carId,
+                "ssid": ssid,
+                "password": password
+            });
+        }
+
+        function connectToCar(carId) {
+            addMessage(`Connecting to car ${carId} via BLE...`);
+            sendMessage({
+                "action": "connect_to_car",
+                "car": carId
+            });
+        }
+
+        // Bluetooth Management Functions
+        function switchToScanPhase() {
+            addMessage("Switching to scan phase...");
+            sendMessage({
+                "action": "switch_to_scan_phase"
+            });
+        }
+
+        function switchToControlPhase() {
+            addMessage("Switching to control phase...");
+            sendMessage({
+                "action": "switch_to_control_phase"
+            });
+        }
+
+        function getPhaseStatus() {
+            addMessage("Getting phase status...");
+            sendMessage({
+                "action": "get_phase_status"
+            });
+        }
+
+        function getBluetoothStatus() {
+            addMessage("Getting Bluetooth status...");
+            sendMessage({
+                "action": "get_bluetooth_status"
+            });
+        }
+
+        function startBluetoothScan() {
+            addMessage("Starting Bluetooth scan...");
+            sendMessage({
+                "action": "start_bluetooth_scan"
+            });
+        }
+
+        function stopBluetoothScan() {
+            addMessage("Stopping Bluetooth scan...");
+            sendMessage({
+                "action": "stop_bluetooth_scan"
+            });
+        }
+
+        function pairBluetoothDevice() {
+            const address = document.getElementById('pairDeviceAddress').value;
+            const name = document.getElementById('pairDeviceName').value || "Unknown Device";
+            
+            if (!address) {
+                addMessage('Please enter a device address', 'error');
+                return;
+            }
+            
+            addMessage(`Pairing with device ${name} (${address})...`);
+            sendMessage({
+                "action": "pair_bluetooth_device",
+                "address": address,
+                "name": name
+            });
+        }
+
+        function sendWiFiToAllCars() {
+            const ssid = document.getElementById('wifiSSID').value || "RL-Hotspot";
+            const password = document.getElementById('wifiPassword').value || "rocketleague";
+            
+            // Send to all available cars
+            for (const carId in cars) {
+                sendWiFiCredentials(parseInt(carId));
+            }
+        }
+
+        function sendQuickCommand(command, message) {
+            // Send to all available cars using direct WebSocket messages
+            for (const carId in cars) {
+                addMessage(`Sending ${command} command to car ${carId}: ${message}`);
+                if (command === 'wifi') {
+                    sendWiFiCredentials(parseInt(carId));
+                } else {
+                    sendMessage({
+                        "action": "send_to_car",
+                        "car": parseInt(carId),
+                        "command": command,
+                        "message": message
+                    });
+                }
+            }
+        }
+
+        function sendQuickMoveCommand(move, x) {
+            // Send movement command to all available cars
+            for (const carId in cars) {
+                addMessage(`Moving car ${carId}: ${move} with steering ${x}`);
+                moveCar(parseInt(carId), move, x);
+            }
+        }
+
+        // Movement test pattern functions
+        function testCircularMovement() {
+            addMessage('Starting circular movement test...', 'info');
+            for (const carId in cars) {
+                const car = cars[carId];
+                if (car.selected) {
+                    addMessage(`Car ${carId}: Starting circular movement`);
+                    
+                    // Start forward movement with right turn
+                    moveCar(parseInt(carId), 'forward', 75);
+                    
+                    // Schedule steering changes for circular motion
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 50), 2000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 25), 4000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 0), 6000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -25), 8000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -50), 10000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -75), 12000);
+                    setTimeout(() => moveCar(parseInt(carId), 'stopped', 0), 14000);
+                }
+            }
+        }
+
+        function testFigureEight() {
+            addMessage('Starting figure-8 movement test...', 'info');
+            for (const carId in cars) {
+                const car = cars[carId];
+                if (car.selected) {
+                    addMessage(`Car ${carId}: Starting figure-8 pattern`);
+                    
+                    // Figure-8 pattern: alternating left and right turns
+                    moveCar(parseInt(carId), 'forward', -80);  // Start with left turn
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -40), 2000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 0), 4000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 40), 6000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 80), 8000);  // Right turn
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 40), 10000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', 0), 12000);
+                    setTimeout(() => moveCar(parseInt(carId), 'forward', -40), 14000);
+                    setTimeout(() => moveCar(parseInt(carId), 'stopped', 0), 16000);
+                }
+            }
+        }
+
+        function testPrecisionSteering() {
+            addMessage('Starting precision steering test...', 'info');
+            for (const carId in cars) {
+                const car = cars[carId];
+                if (car.selected) {
+                    addMessage(`Car ${carId}: Testing precision steering`);
+                    
+                    // Test precise steering angles
+                    const steeringAngles = [-100, -75, -50, -25, 0, 25, 50, 75, 100, 0];
+                    
+                    steeringAngles.forEach((angle, index) => {
+                        setTimeout(() => {
+                            if (index < steeringAngles.length - 1) {
+                                moveCar(parseInt(carId), 'forward', angle);
+                                addMessage(`Car ${carId}: Steering at ${angle}°`);
+                            } else {
+                                moveCar(parseInt(carId), 'stopped', angle);
+                                addMessage(`Car ${carId}: Test complete, stopped`);
+                            }
+                        }, index * 1500);
+                    });
+                }
+            }
+        }
+
+        function stopAllMovement() {
+            addMessage('EMERGENCY STOP: Stopping all car movement', 'error');
+            for (const carId in cars) {
+                moveCar(parseInt(carId), 'stopped', 0, false);
+                addMessage(`Car ${carId}: STOPPED`);
+            }
+        }
+
+        // Auto-connect on page load
+        window.onload = function() {
+            connectWebSocket();
+            updateCommandFields(); // Initialize command fields
+            setupKeyboardControls(); // Setup keyboard controls for car movement
+        };
+
+        // ============================================================================
+        // AUTO PROVISIONING SERVICE FUNCTIONS
+        // ============================================================================
+
+        let autoStatusInterval = null;
+
+        function getAutoProvisioningStatus() {
+            addMessage('Getting auto provisioning status...');
+            sendMessage({
+                "action": "get_auto_provisioning_status"
+            });
+        }
+
+        function startAutoStatusMonitoring() {
+            if (autoStatusInterval) {
+                addMessage('Auto-refresh already running', 'error');
+                return;
+            }
+            
+            addMessage('Starting auto-refresh of provisioning status...');
+            autoStatusInterval = setInterval(() => {
+                getAutoProvisioningStatus();
+            }, 10000); // Refresh every 10 seconds
+            
+            // Get initial status
+            getAutoProvisioningStatus();
+        }
+
+        function stopAutoStatusMonitoring() {
+            if (autoStatusInterval) {
+                clearInterval(autoStatusInterval);
+                autoStatusInterval = null;
+                addMessage('Stopped auto-refresh of provisioning status');
+            } else {
+                addMessage('Auto-refresh is not running', 'error');
+            }
+        }
+
+        function updateAutoProvisioningStatus(data) {
+            const statusContent = document.getElementById('autoProvisioningContent');
+            if (!statusContent) return;
+            
+            if (data.status === 'success' && data.provisioning_status) {
+                const status = data.provisioning_status;
+                
+                let carsHtml = '';
+                if (status.cars && Object.keys(status.cars).length > 0) {
+                    carsHtml = '<h5>Cars in Provisioning:</h5>';
+                    for (const [ble_address, carData] of Object.entries(status.cars)) {
+                        const stateColor = carData.completed ? 'green' : 
+                                          carData.failed ? 'red' : 'orange';
+                        
+                        carsHtml += `
+                            <div style="margin: 5px 0; padding: 8px; background: ${carData.completed ? '#e8f5e8' : carData.failed ? '#ffebee' : '#fff3e0'}; border-radius: 5px; border-left: 4px solid ${stateColor};">
+                                <strong>${carData.name}</strong> (${ble_address.slice(-8)})<br>
+                                <strong>State:</strong> <span style="color: ${stateColor};">${carData.state}</span><br>
+                                ${carData.ip_address ? `<strong>IP:</strong> ${carData.ip_address}<br>` : ''}
+                                <strong>Status:</strong> ${carData.completed ? 'Completed' : carData.failed ? 'Failed' : 'In Progress'}
+                            </div>
+                        `;
+                    }
+                } else {
+                    carsHtml = '<p><em>No cars currently in provisioning queue</em></p>';
+                }
+                
+                statusContent.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <strong>Service:</strong> <span style="color: ${status.service_running ? 'green' : 'red'};">${status.service_running ? '🟢 Running' : '🔴 Stopped'}</span><br>
+                        <strong>WiFi Network:</strong> ${status.wifi_ssid}<br>
+                        <strong>Total Cars:</strong> ${status.total_cars}<br>
+                        <strong>Completed:</strong> <span style="color: green;">${status.completed}</span> | 
+                        <strong>In Progress:</strong> <span style="color: orange;">${status.in_progress}</span> | 
+                        <strong>Failed:</strong> <span style="color: red;">${status.failed}</span>
+                    </div>
+                    ${carsHtml}
+                `;
+            } else {
+                statusContent.innerHTML = `<em>Error: ${data.message || 'Could not get provisioning status'}</em>`;
+            }
+        }
+
+        // ============================================================================
+        // VIDEO FEED FUNCTIONS (STREAMLINED)
+        // ============================================================================
+
+        let currentVideoFeed = null;
+
+        function getAccessibleCarFeeds() {
+            addMessage('Getting accessible car feeds...');
+            sendMessage({
+                "action": "get_accessible_car_feeds"
+            });
+        }
+
+        function displayVideoFeedFromUrl(carId, url) {
+            const videoDisplay = document.getElementById('videoDisplay');
+            const videoStatus = document.getElementById('videoStatus');
+            
+            if (!videoDisplay || !videoStatus) {
+                addMessage('Video display elements not found', 'error');
+                return;
+            }
+            
+            addMessage(`Displaying video feed from ${url}`, 'info');
+            
+            // Create video element for MJPEG stream
+            videoDisplay.innerHTML = `
+                <div style="text-align: center;">
+                    <h4>Live Feed - Car ${carId}</h4>
+                    <img src="${url}" 
+                         style="max-width: 100%; max-height: 400px; border: 2px solid #007bff; border-radius: 5px;"
+                         alt="Video Feed from Car ${carId}"
+                         onerror="this.style.display='none'; document.getElementById('videoStatus').textContent='Status: Failed to load video feed'; document.getElementById('videoStatus').style.color='red';"
+                         onload="document.getElementById('videoStatus').textContent='Status: Video feed loaded successfully'; document.getElementById('videoStatus').style.color='green';">
+                    <div style="margin-top: 10px; font-size: 0.8em; color: #666;">
+                        Stream URL: ${url}
+                    </div>
+                </div>
+            `;
+            
+            videoStatus.textContent = `Status: Loading video feed from car ${carId}...`;
+            videoStatus.style.color = 'orange';
+            currentVideoFeed = carId;
+        }
+
+        function showAccessibleFeeds(accessibleFeeds) {
+            const videoDisplay = document.getElementById('videoDisplay');
+            const videoStatus = document.getElementById('videoStatus');
+            
+            if (!accessibleFeeds || accessibleFeeds.length === 0) {
+                videoDisplay.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <p>No accessible video feeds available.</p>
+                        <p>Make sure cars are connected and have video configured.</p>
+                    </div>
+                `;
+                videoStatus.textContent = 'Status: No video feeds available';
+                return;
+            }
+            
+            let feedsHtml = '<div style="text-align: center;"><h4>Available Video Feeds</h4>';
+            
+            accessibleFeeds.forEach(feed => {
+                feedsHtml += `
+                    <div style="margin: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; display: inline-block;">
+                        <strong>Car ${feed.car_id}</strong><br>
+                        <button onclick="displayVideoFeedFromUrl(${feed.car_id}, '${feed.url}')" 
+                                style="margin: 5px; padding: 8px 12px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                            🎥 Show Feed
+                        </button><br>
+                        <small style="color: #666;">${feed.url}</small>
+                    </div>
+                `;
+            });
+            
+            feedsHtml += '</div>';
+            videoDisplay.innerHTML = feedsHtml;
+            
+            videoStatus.textContent = `Status: Found ${accessibleFeeds.length} accessible video feed(s)`;
+            videoStatus.style.color = 'green';
+        }
+
+        function updateAccessibleFeeds(feeds) {
+            addMessage(`Accessible video feeds: [${feeds.join(', ')}]`, 'success');
+        }
+
+        function updateVideoDisplay(data) {
+            const videoDisplay = document.getElementById('videoDisplay');
+            const videoStatus = document.getElementById('videoStatus');
+            
+            // Check for both 'car' and 'car_id' field names for compatibility
+            const carId = data.car || data.car_id;
+            
+            if (data.video_frame && carId) {
+                // Only display if we're subscribed to this car's feed
+                if (currentVideoFeed === carId || currentVideoFeed === null) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    
+                    videoDisplay.innerHTML = `
+                        <div style="text-align: center;">
+                            <h4>Live Feed - Car ${carId}</h4>
+                            <img src="data:image/jpeg;base64,${data.video_frame}" 
+                                 style="max-width: 100%; max-height: 300px; border: 2px solid #007bff; border-radius: 5px;"
+                                 alt="Video Frame from Car ${carId}">
+                            <div style="margin-top: 10px; font-size: 0.8em; color: #666;">
+                                Last frame: ${timestamp}
+                                ${data.subscribers ? ` | Subscribers: ${data.subscribers.length}` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    videoStatus.textContent = `Status: Receiving frames from car ${carId}`;
+                    videoStatus.style.color = 'green';
+                    
+                    addMessage(`Received video frame from car ${carId} (${timestamp})`, 'success');
+                }
+            }
+        }
+
+        // Keyboard controls for car movement
+        function setupKeyboardControls() {
+            let selectedCarForKeyboard = null;
+            
+            document.addEventListener('keydown', function(event) {
+                // Only process if we have a selected car and no input field is focused
+                if (!selectedCarForKeyboard || document.activeElement.tagName === 'INPUT' || 
+                    document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                switch(event.key.toLowerCase()) {
+                    case 'w':
+                    case 'arrowup':
+                        event.preventDefault();
+                        moveCar(selectedCarForKeyboard, 'forward');
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} moving forward`);
+                        break;
+                    case 's':
+                    case 'arrowdown':
+                        event.preventDefault();
+                        moveCar(selectedCarForKeyboard, 'backward');
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} moving backward`);
+                        break;
+                    case 'a':
+                    case 'arrowleft':
+                        event.preventDefault();
+                        const currentX = cars[selectedCarForKeyboard]?.x || 0;
+                        const newLeftX = Math.max(-100, currentX - 25);
+                        steerCar(selectedCarForKeyboard, newLeftX);
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} steering left to ${newLeftX}`);
+                        break;
+                    case 'd':
+                    case 'arrowright':
+                        event.preventDefault();
+                        const currentXRight = cars[selectedCarForKeyboard]?.x || 0;
+                        const newRightX = Math.min(100, currentXRight + 25);
+                        steerCar(selectedCarForKeyboard, newRightX);
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} steering right to ${newRightX}`);
+                        break;
+                    case ' ':
+                    case 'escape':
+                        event.preventDefault();
+                        moveCar(selectedCarForKeyboard, 'stopped');
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} STOPPED`, 'error');
+                        break;
+                    case 'shift':
+                        event.preventDefault();
+                        toggleBoost(selectedCarForKeyboard, true);
+                        addMessage(`Keyboard: Car ${selectedCarForKeyboard} BOOST ON`);
+                        break;
+                }
+            });
+            
+            // Handle key release for boost
+            document.addEventListener('keyup', function(event) {
+                if (!selectedCarForKeyboard || document.activeElement.tagName === 'INPUT' || 
+                    document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                if (event.key.toLowerCase() === 'shift') {
+                    event.preventDefault();
+                    toggleBoost(selectedCarForKeyboard, false);
+                    addMessage(`Keyboard: Car ${selectedCarForKeyboard} BOOST OFF`);
+                }
+            });
+            
+            // Handle key releases for boost
+            document.addEventListener('keyup', function(event) {
+                if (!selectedCarForKeyboard || document.activeElement.tagName === 'INPUT' || 
+                    document.activeElement.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                if (event.key === 'Shift') {
+                    event.preventDefault();
+                    toggleBoost(selectedCarForKeyboard, false);
+                    addMessage(`Keyboard: Car ${selectedCarForKeyboard} BOOST OFF`);
+                }
+            });
+            
+            // Function to set which car responds to keyboard
+            window.setKeyboardControlCar = function(carId) {
+                selectedCarForKeyboard = carId;
+                addMessage(`Keyboard control set to Car ${carId}. Use WASD/Arrow keys to move, Space/Esc to stop, Shift for boost.`, 'success');
+            };
+        }
+    </script>
+</body>
+</html>

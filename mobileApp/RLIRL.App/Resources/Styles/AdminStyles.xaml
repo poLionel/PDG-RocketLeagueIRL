@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Admin Container Styles - Restored for visual appearance -->
+    <Style x:Key="AdminContainerBorder" TargetType="Border" BasedOn="{StaticResource AppContainerBorder}">
+    </Style>
+
+    <Style x:Key="AdminSectionContainer" TargetType="Border" BasedOn="{StaticResource AppSectionContainer}">
+    </Style>
+
+    <Style x:Key="AdminItemContainer" TargetType="Border" BasedOn="{StaticResource AppItemContainer}">
+    </Style>
+
+    <!-- Admin Typography Styles -->
+    <Style x:Key="AdminSectionTitle" TargetType="Label" BasedOn="{StaticResource AppSectionTitle}">
+    </Style>
+
+    <Style x:Key="AdminPageTitle" TargetType="Label" BasedOn="{StaticResource AppPageTitle}">
+    </Style>
+
+    <Style x:Key="AdminSubtitle" TargetType="Label" BasedOn="{StaticResource AppSubtitle}">
+    </Style>
+
+    <Style x:Key="AdminItemTitle" TargetType="Label">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="AdminItemSubtext" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+    </Style>
+
+    <Style x:Key="AdminCenteredLabel" TargetType="Label">
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <!-- Admin Button Styles -->
+    <Style x:Key="AdminPrimaryButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource DodgerBlue}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SmallCornerRadius}" />
+    </Style>
+
+    <Style x:Key="AdminStartButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameGreen}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SmallCornerRadius}" />
+        <Setter Property="MinimumWidthRequest" Value="140" />
+        <Setter Property="MinimumHeightRequest" Value="50" />
+    </Style>
+
+    <Style x:Key="AdminPauseButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameOrange}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SmallCornerRadius}" />
+        <Setter Property="MinimumWidthRequest" Value="140" />
+        <Setter Property="MinimumHeightRequest" Value="50" />
+    </Style>
+
+    <Style x:Key="AdminResumeButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameBlue}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SmallCornerRadius}" />
+        <Setter Property="MinimumWidthRequest" Value="140" />
+        <Setter Property="MinimumHeightRequest" Value="50" />
+    </Style>
+
+    <Style x:Key="AdminStopButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameRed}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Padding" Value="{StaticResource ButtonPadding}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SmallCornerRadius}" />
+        <Setter Property="MinimumWidthRequest" Value="140" />
+        <Setter Property="MinimumHeightRequest" Value="50" />
+    </Style>
+
+    <Style x:Key="AdminBlueTeamButton" TargetType="Button" BasedOn="{StaticResource AdminPrimaryButton}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameBlue}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <Style x:Key="AdminRedTeamButton" TargetType="Button" BasedOn="{StaticResource AdminBlueTeamButton}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameRed}" />
+    </Style>
+
+    <Style x:Key="AdminSecondaryButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource Gray500}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Padding" Value="{StaticResource SmallPadding}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SmallCornerRadius}" />
+    </Style>
+
+    <Style x:Key="AdminSmallButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource DodgerBlue}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Padding" Value="{StaticResource SmallButtonPadding}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SmallCornerRadius}" />
+    </Style>
+
+    <Style x:Key="AdminCompactButton" TargetType="Button" BasedOn="{StaticResource AppButtonBase}">
+        <Setter Property="BackgroundColor" Value="{StaticResource DodgerBlue}" />
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Padding" Value="{StaticResource CompactButtonPadding}" />
+        <Setter Property="CornerRadius" Value="{StaticResource SmallCornerRadius}" />
+    </Style>
+
+    <!-- Admin Image Button Styles - Fixed to use consistent border radius -->
+    <Style x:Key="AdminRefreshButton" TargetType="ImageButton" BasedOn="{StaticResource AppRefreshButton}">
+        <Setter Property="WidthRequest" Value="35" />
+        <Setter Property="HeightRequest" Value="35" />
+    </Style>
+
+    <Style x:Key="AdminLargeRefreshButton" TargetType="ImageButton" BasedOn="{StaticResource AppRefreshButton}">
+        <Setter Property="WidthRequest" Value="40" />
+        <Setter Property="HeightRequest" Value="40" />
+    </Style>
+
+    <!-- Admin Team Score Styles -->
+    <Style x:Key="AdminTeamScoreContainer" TargetType="Border">
+        <Setter Property="StrokeShape" Value="RoundRectangle 10,10,10,10" />
+        <Setter Property="Stroke" Value="Transparent" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <Style x:Key="AdminBlueTeamContainer" TargetType="Border" BasedOn="{StaticResource AdminTeamScoreContainer}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameBlue}" />
+    </Style>
+
+    <Style x:Key="AdminRedTeamContainer" TargetType="Border" BasedOn="{StaticResource AdminTeamScoreContainer}">
+        <Setter Property="BackgroundColor" Value="{StaticResource GameRed}" />
+    </Style>
+
+    <Style x:Key="AdminTeamLabel" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="AdminTeamScore" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="36" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <!-- Admin Timer Styles -->
+    <Style x:Key="AdminTimerLabel" TargetType="Label">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="AdminTimerSubtext" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextColor" Value="{StaticResource Gray500}" />
+        <Setter Property="HorizontalTextAlignment" Value="Center" />
+    </Style>
+
+    <!-- Admin Collection View Styles -->
+    <Style x:Key="AdminCameraGrid" TargetType="CollectionView">
+        <Setter Property="ItemsLayout" Value="HorizontalGrid, 2" />
+        <Setter Property="HeightRequest" Value="400" />
+    </Style>
+
+    <Style x:Key="AdminCarList" TargetType="CollectionView">
+        <Setter Property="HeightRequest" Value="200" />
+    </Style>
+
+    <!-- Admin Camera Feed Styles -->
+    <Style x:Key="AdminCameraContainer" TargetType="Border">
+        <Setter Property="StrokeShape" Value="RoundRectangle 10,10,10,10" />
+        <Setter Property="Stroke" Value="{StaticResource LightGray}" />
+        <Setter Property="Margin" Value="{StaticResource TinySpacing}" />
+        <Setter Property="BackgroundColor" Value="{StaticResource Black}" />
+    </Style>
+
+    <Style x:Key="AdminCameraPlaceholder" TargetType="Rectangle">
+        <Setter Property="Fill" Value="{StaticResource Black}" />
+    </Style>
+
+    <Style x:Key="AdminCameraOverlay" TargetType="Grid">
+        <Setter Property="VerticalOptions" Value="End" />
+        <Setter Property="BackgroundColor" Value="{StaticResource SemiTransparentBlack}" />
+        <Setter Property="Padding" Value="{StaticResource SmallPadding}" />
+    </Style>
+
+    <Style x:Key="AdminCameraPlayerName" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource White}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <Style x:Key="AdminCameraCarInfo" TargetType="Label">
+        <Setter Property="TextColor" Value="{StaticResource LightGray}" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <Style x:Key="AdminCameraTeamInfo" TargetType="Label">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <!-- Admin Grid Styles -->
+    <Style x:Key="AdminSectionGrid" TargetType="Grid">
+        <Setter Property="ColumnSpacing" Value="{StaticResource ItemSpacing}" />
+        <Setter Property="Padding" Value="{StaticResource SectionPadding}" />
+    </Style>
+
+    <Style x:Key="AdminItemGrid" TargetType="Grid">
+        <Setter Property="ColumnSpacing" Value="{StaticResource ItemSpacing}" />
+        <Setter Property="Padding" Value="{StaticResource ItemPadding}" />
+    </Style>
+
+    <!-- Admin Layout Styles -->
+    <Style x:Key="AdminMainScrollView" TargetType="ScrollView">
+        <Setter Property="Padding" Value="20" />
+        <Setter Property="MaximumWidthRequest" Value="1200" />
+    </Style>
+
+    <Style x:Key="AdminMainGrid" TargetType="Grid">
+        <Setter Property="RowSpacing" Value="{StaticResource SectionSpacing}" />
+    </Style>
+
+    <!-- Admin Empty State Styles -->
+    <Style x:Key="AdminEmptyStateContainer" TargetType="StackLayout">
+        <Setter Property="VerticalOptions" Value="Center" />
+        <Setter Property="Spacing" Value="{StaticResource SmallSpacing}" />
+    </Style>
+
+    <Style x:Key="AdminEmptyStateTitle" TargetType="Label" BasedOn="{StaticResource AppEmptyStateTitle}">
+    </Style>
+
+    <Style x:Key="AdminEmptyStateSubtext" TargetType="Label" BasedOn="{StaticResource AppEmptyStateSubtext}">
+    </Style>
+
+</ResourceDictionary>

@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  rocket-league-server:
+    build: .
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    container_name: rocket-league-server
+    environment:
+      - PYTHONUNBUFFERED=1
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    volumes:
+      - /var/run/dbus:/var/run/dbus:ro
+    network_mode: host
+    privileged: true  # Required for Bluetooth access
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
