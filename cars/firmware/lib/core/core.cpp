@@ -160,7 +160,9 @@ static void hardware_teardown(void* ) {
 struct VideoCtx {
   uint16_t       port = 81;
   WiFiServer*    server = nullptr;
-  WiFiClient     client;
+  static const uint8_t MAX_CLIENTS = 4;  // Support up to 4 simultaneous clients
+  WiFiClient     clients[MAX_CLIENTS];
+  uint8_t        client_count = 0;
 };
 static VideoCtx g_video_ctx;
 
@@ -169,45 +171,95 @@ static void video_setup(void* ctxv) {
   if (!ctx->server) ctx->server = new WiFiServer(ctx->port);
   ctx->server->begin();
   if (g_wifi && g_wifi->is_connected()) {
-    Serial.printf("[TASK_VID] MJPEG: http://%s:%u/stream\n", g_wifi->ip().c_str(), ctx->port);
+    Serial.printf("[TASK_VID] MJPEG: http://%s:%u/stream (supports %d clients)\n", 
+                  g_wifi->ip().c_str(), ctx->port, VideoCtx::MAX_CLIENTS);
   }
 }
 static void video_loop(void* ctxv) {
   auto* ctx = static_cast<VideoCtx*>(ctxv);
 
-  // Si pas de client, en accepter un
-  if (!ctx->client || !ctx->client.connected()) {
-    ctx->client.stop();
-    ctx->client = ctx->server->available();
-    if (!ctx->client) return; // réessaiera au prochain tour
-    ctx->client.setTimeout(2000);
-    ctx->client.print(
-      "HTTP/1.1 200 OK\r\n"
-      "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n"
-      "Cache-Control: no-cache\r\n"
-      "Connection: close\r\n\r\n");
+  // Try to accept new clients if we have space
+  WiFiClient new_client = ctx->server->available();
+  if (new_client && ctx->client_count < VideoCtx::MAX_CLIENTS) {
+    // Find an empty slot
+    for (uint8_t i = 0; i < VideoCtx::MAX_CLIENTS; i++) {
+      if (!ctx->clients[i] || !ctx->clients[i].connected()) {
+        ctx->clients[i] = new_client;
+        ctx->clients[i].setTimeout(2000);
+        ctx->clients[i].print(
+          "HTTP/1.1 200 OK\r\n"
+          "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n"
+          "Cache-Control: no-cache\r\n"
+          "Connection: close\r\n\r\n");
+        Serial.printf("[TASK_VID] New client connected, slot %d\n", i);
+        break;
+      }
+    }
   }
 
-  // Envoyer UNE frame par itération (période fixe → FPS stable)
+  // Update client count and clean up disconnected clients
+  ctx->client_count = 0;
+  for (uint8_t i = 0; i < VideoCtx::MAX_CLIENTS; i++) {
+    if (ctx->clients[i] && ctx->clients[i].connected()) {
+      ctx->client_count++;
+    } else if (ctx->clients[i]) {
+      ctx->clients[i].stop();
+      ctx->clients[i] = WiFiClient(); // Reset to empty client
+    }
+  }
+
+  // Only proceed if we have at least one connected client
+  if (ctx->client_count == 0) return;
+
+  // Capture one frame per iteration (fixed period → stable FPS)
   camera_fb_t* fb = g_camera ? g_camera->capture_frame() : nullptr;
   if (!fb) return;
 
-  ctx->client.printf(
-    "--frame\r\n"
-    "Content-Type: image/jpeg\r\n"
-    "Content-Length: %u\r\n\r\n", fb->len);
-  size_t written = ctx->client.write(fb->buf, fb->len);
-  ctx->client.print("\r\n");
+  // Broadcast frame to all connected clients
+  for (uint8_t i = 0; i < VideoCtx::MAX_CLIENTS; i++) {
+    if (ctx->clients[i] && ctx->clients[i].connected()) {
+      ctx->clients[i].printf(
+        "--frame\r\n"
+        "Content-Type: image/jpeg\r\n"
+        "Content-Length: %u\r\n\r\n", fb->len);
+      size_t written = ctx->clients[i].write(fb->buf, fb->len);
+      ctx->clients[i].print("\r\n");
+      
+      // Disconnect slow/unresponsive clients
+      if (written == 0) {
+        Serial.printf("[TASK_VID] Client %d disconnected (slow)\n", i);
+        ctx->clients[i].stop();
+        ctx->clients[i] = WiFiClient();
+      }
+    }
+  }
+  
   g_camera->release_frame(fb);
 
-  if (written == 0 || !g_wifi->is_connected()) {
-    ctx->client.stop(); // client lent / coupé
+  // Disconnect all clients if WiFi is lost
+  if (!g_wifi->is_connected()) {
+    for (uint8_t i = 0; i < VideoCtx::MAX_CLIENTS; i++) {
+      if (ctx->clients[i]) {
+        ctx->clients[i].stop();
+        ctx->clients[i] = WiFiClient();
+      }
+    }
+    ctx->client_count = 0;
   }
 }
 static void video_teardown(void* ctxv) {
   auto* ctx = static_cast<VideoCtx*>(ctxv);
   if (ctx->server) ctx->server->stop();
-  if (ctx->client) ctx->client.stop();
+  
+  // Stop all connected clients
+  for (uint8_t i = 0; i < VideoCtx::MAX_CLIENTS; i++) {
+    if (ctx->clients[i]) {
+      ctx->clients[i].stop();
+      ctx->clients[i] = WiFiClient();
+    }
+  }
+  ctx->client_count = 0;
+  
   Serial.printf("[TASK_VID] serveur arrêté\n");
 }
 ////////////////////////////////////////////////////////////////////////////////////
