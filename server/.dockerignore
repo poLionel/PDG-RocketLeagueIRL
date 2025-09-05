@@ -1,0 +1,25 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Test files
+websocket/test_websocket_client.py
+websocket/test_websocket.html
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

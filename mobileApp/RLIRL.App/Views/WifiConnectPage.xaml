@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:RLIRL.App.Views"
+             xmlns:viewmodels="clr-namespace:RLIRL.App.ViewModels"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="RLIRL.App.Views.WifiConnectPage"
+             x:Name="ContentPage"
+             x:DataType="viewmodels:WifiConnectViewModel">
+
+    <ContentPage.Resources>
+        <x:Boolean x:Key="TrueValue">True</x:Boolean>
+        <x:Boolean x:Key="FalseValue">False</x:Boolean>
+    </ContentPage.Resources>
+
+    <!-- Initial Connection Check -->
+    <ContentPage.Behaviors>
+        <toolkit:EventToCommandBehavior
+            EventName="Loaded"
+            BindingContext="{Binding Path=BindingContext, Source={x:Reference ContentPage}, x:DataType=ContentPage}"
+            Command="{Binding CheckServerConnectionCommand}"
+            CommandParameter="{StaticResource TrueValue}"/>
+    </ContentPage.Behaviors>
+    
+    <ScrollView Style="{StaticResource AdminMainScrollView}">
+        <Border Style="{StaticResource AppSectionContainer}">
+            <Grid RowSpacing="{StaticResource SmallSpacing}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+
+                <views:WifiSelector Grid.Row="0" />
+
+                <Label Grid.Row="1"
+                       TextColor="{StaticResource GameRed}" 
+                       IsVisible="{Binding ConnectionFailed}"
+                       Style="{StaticResource AppEmptyStateTitle}"
+                       Text="The connection with the server failed. Please ensure you are on the right network and that the server is up and running." />
+
+                <Button Grid.Row="2"
+                        Text="Continue" 
+                        Command="{Binding CheckServerConnectionCommand}"
+                        CommandParameter="{StaticResource FalseValue}"
+                        Style="{StaticResource AdminPrimaryButton}" />
+            </Grid>
+        </Border>
+    </ScrollView>
+</ContentPage>

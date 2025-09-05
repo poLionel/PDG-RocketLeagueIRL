@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:RLIRL.App.Views"
+             xmlns:fonts="clr-namespace:RLIRL.App.Resources.Fonts"
+             x:Class="RLIRL.App.Views.MenuPage">
+    
+    <ScrollView Style="{StaticResource AdminMainScrollView}">
+        <Grid Style="{StaticResource AdminMainGrid}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />  <!-- Main Header -->
+                <RowDefinition Height="auto" />  <!-- Team Selection Section -->
+                <RowDefinition Height="auto" />  <!-- Car Connection Section -->
+                <RowDefinition Height="auto" />  <!-- Spectate Section -->
+                <RowDefinition Height="auto" />  <!-- Admin Section -->
+            </Grid.RowDefinitions>
+
+            <!-- Main Header -->
+            <Border Grid.Row="0" Style="{StaticResource AdminSectionContainer}">
+                <Grid Style="{StaticResource AdminSectionGrid}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Column="0">
+                        <Image.Source>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.games_24_regular}"
+                                             Size="{StaticResource LargeIconSize}"
+                                             Color="{StaticResource DodgerBlue}" />
+                        </Image.Source>
+                    </Image>
+
+                    <StackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="Rocket League IRL" Style="{StaticResource AdminPageTitle}" />
+                        <Label Text="Choose your game mode" Style="{StaticResource AdminSubtitle}" />
+                    </StackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Team Selection Section -->
+            <Border Grid.Row="1" Style="{StaticResource AdminSectionContainer}">
+                <StackLayout Spacing="{StaticResource ItemSpacing}">
+                    <Label Text="Join a Team" Style="{StaticResource AdminSectionTitle}" HorizontalTextAlignment="Center" />
+                    <views:CarSelector Grid.Row="1" />
+                </StackLayout>
+            </Border>
+
+            <!-- Spectate Section -->
+            <Border Grid.Row="3" Style="{StaticResource AdminSectionContainer}">
+                <StackLayout Spacing="{StaticResource ItemSpacing}">
+                    <Grid ColumnSpacing="{StaticResource ItemSpacing}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Image Grid.Column="0" VerticalOptions="Center">
+                            <Image.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.eye_24_regular}"
+                                                 Size="{StaticResource MediumIconSize}"
+                                                 Color="{StaticResource DodgerBlue}" />
+                            </Image.Source>
+                        </Image>
+
+                        <StackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label Text="Spectate a Game" Style="{StaticResource AdminSectionTitle}" />
+                            <Label Text="Watch live games and follow the action" Style="{StaticResource AdminSubtitle}" />
+                        </StackLayout>
+                    </Grid>
+                    
+                    <Button Text="Spectate a game" 
+                            Clicked="OnSpectate" 
+                            Style="{StaticResource AdminPrimaryButton}"
+                            HorizontalOptions="Fill">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.camera_24_regular}"
+                                             Size="{StaticResource SmallIconSize}"
+                                             Color="{StaticResource White}" />
+                        </Button.ImageSource>
+                    </Button>
+                </StackLayout>
+            </Border>
+
+            <!-- Admin Section -->
+            <Border Grid.Row="4" Style="{StaticResource AdminSectionContainer}">
+                <StackLayout Spacing="{StaticResource ItemSpacing}">
+                    <Grid ColumnSpacing="{StaticResource ItemSpacing}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Image Grid.Column="0" VerticalOptions="Center">
+                            <Image.Source>
+                                <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                                 Glyph="{x:Static fonts:FluentUI.settings_24_regular}"
+                                                 Size="{StaticResource MediumIconSize}"
+                                                 Color="{StaticResource DodgerBlue}" />
+                            </Image.Source>
+                        </Image>
+
+                        <StackLayout Grid.Column="1" VerticalOptions="Center">
+                            <Label Text="Manage a Game" Style="{StaticResource AdminSectionTitle}" />
+                            <Label Text="Control game settings, scoring, and administration" Style="{StaticResource AdminSubtitle}" />
+                        </StackLayout>
+                    </Grid>
+                    
+                    <Button Text="Manage a game" 
+                            Clicked="OnAdmin" 
+                            Style="{StaticResource AdminPrimaryButton}"
+                            HorizontalOptions="Fill">
+                        <Button.ImageSource>
+                            <FontImageSource FontFamily="{x:Static fonts:FluentUI.FontFamily}"
+                                             Glyph="{x:Static fonts:FluentUI.person_settings_20_regular}"
+                                             Size="{StaticResource SmallIconSize}"
+                                             Color="{StaticResource White}" />
+                        </Button.ImageSource>
+                    </Button>
+                </StackLayout>
+            </Border>
+        </Grid>
+    </ScrollView>
+</ContentPage>
