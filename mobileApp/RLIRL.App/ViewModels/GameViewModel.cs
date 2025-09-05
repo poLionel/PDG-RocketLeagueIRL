@@ -1,13 +1,12 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using AutoMapper;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RLIRL.App.Models;
 using RLIRL.Business.Abstractions.Abstractions;
 using RLIRL.Business.Abstractions.Models;
 using RLIRL.Business.Services;
 using RLIRL.Server.Abstractions.ClientCommands;
-using System.Diagnostics;
 using RLIRL.Server.Abstractions.ServerResponses;
-using Microsoft.Maui.Controls;
 
 namespace RLIRL.App.ViewModels
 {
@@ -15,13 +14,14 @@ namespace RLIRL.App.ViewModels
     {
         #region Constructor
 
-        public GameViewModel(ICarControlService carControlService, IGameService gameService, ITimerService timerService, ICarService carService, ICameraFeedService cameraFeedService)
+        public GameViewModel(ICarControlService carControlService, IGameService gameService, ITimerService timerService, ICarService carService, ICameraFeedService cameraFeedService, IMapper mapper)
         {
             _carControlService = carControlService;
             _gameService = gameService;
             _timerService = timerService;
             _carService = carService;
             _cameraFeedService = cameraFeedService;
+            _mapper = mapper;
 
             _gameService.GameStatusChanged += OnGameStatusChanged;
             _timerService.TimeLeftChanged += OnTimerChanged;
@@ -205,6 +205,8 @@ namespace RLIRL.App.ViewModels
         private readonly ICarService _carService;
 
         private readonly ICameraFeedService _cameraFeedService;
+
+        private readonly IMapper _mapper;
 
         #endregion
     }
