@@ -84,9 +84,13 @@ namespace RLIRL.App.ViewModels
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 if (e != null)
-                    Game ??= new();
+                {
+                    Game = _mapper.Map<GameInfo>(e);
+                }
                 else
+                {
                     Game = new GameInfo();
+                }
             });
         }
 
