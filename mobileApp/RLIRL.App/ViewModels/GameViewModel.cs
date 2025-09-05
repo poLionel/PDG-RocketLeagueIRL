@@ -7,6 +7,7 @@ using RLIRL.Business.Abstractions.Models;
 using RLIRL.Business.Services;
 using RLIRL.Server.Abstractions.ClientCommands;
 using RLIRL.Server.Abstractions.ServerResponses;
+using System.Diagnostics;
 
 namespace RLIRL.App.ViewModels
 {
@@ -62,7 +63,7 @@ namespace RLIRL.App.ViewModels
         private void SetSteering(int value)
         {
             value = Math.Clamp(value, -100, 100);
-            Steering = value;
+            Steering = -value;
             _carControlService.SetSteering(value);
         }
 
