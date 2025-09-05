@@ -205,14 +205,14 @@ public partial class GamePage : ContentPage
     private double _knobRadius = 32;
 
     /// <summary>
-    /// Quantization step for steering values. Use 5 or 10.
+    /// Quantization step for steering values.
     /// </summary>
-    private const int Step = 10;
+    private const int Step = 25;
 
     /// <summary>
     /// Throttle interval in milliseconds for steering updates.
     /// </summary>
-    private const int IntervalMs = 80;
+    private const int IntervalMs = 100;
 
     /// <summary>
     /// Last quantized value that was sent to the ViewModel.
